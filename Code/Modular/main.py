@@ -8,7 +8,6 @@ from users import UsersTab
 class Ui_MainWindow(object):
     def __init__(self, user_id):
         self.user_id = user_id
-        print(user_id)
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -193,7 +192,7 @@ class Ui_MainWindow(object):
         self.stackedWidget.setCurrentWidget(self.cart_tab)
 
     def open_products(self):
-        self.products_tab = ProductsTab()
+        self.products_tab = ProductsTab(self.user_id)
         self.stackedWidget.addWidget(self.products_tab)
         self.stackedWidget.setCurrentWidget(self.products_tab)
 

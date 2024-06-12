@@ -74,6 +74,12 @@ class Ui_Login(QtWidgets.QMainWindow):
         self.password_input.setPlaceholderText("")
         self.password_input.setObjectName("password_input")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.password_input)
+        
+        self.show_password_checkbox = QtWidgets.QCheckBox(self.gridLayoutWidget)
+        self.show_password_checkbox.setObjectName("show_password_checkbox")
+        self.formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.show_password_checkbox)
+        self.show_password_checkbox.stateChanged.connect(self.toggle_password_visibility)
+        
         self.verticalLayout.addLayout(self.formLayout)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
@@ -122,8 +128,10 @@ class Ui_Login(QtWidgets.QMainWindow):
         self.Hardware_label.setText(_translate("Login", "Hardware"))
         self.username_label.setText(_translate("Login", "Username:"))
         self.password_label.setText(_translate("Login", "Password:"))
+        self.show_password_checkbox.setText(_translate("Login", "Show Password"))
         self.loginButton.setText(_translate("Login", "Login"))
         self.forgotButton.setText(_translate("Login", "Forgot Password?"))
+        
 
     def login_user(self):
         username = self.username_input.text().strip()
@@ -156,12 +164,6 @@ class Ui_Login(QtWidgets.QMainWindow):
                             VALUES (?, ?, ?, ?)''', (user_id, action, time_log, date_log))
                 conn.commit()
 
-                msg = QtWidgets.QMessageBox()
-                msg.setIcon(QtWidgets.QMessageBox.Information)
-                msg.setText("User Logged In Successfully!")
-                msg.setWindowTitle("Success")
-                msg.exec_()
-
                 self.open_main_window(user_id)  # Pass user_id to the main window
 
             else:
@@ -170,7 +172,6 @@ class Ui_Login(QtWidgets.QMainWindow):
             self.show_error_message(f"Database error: {e}")
         finally:
             conn.close()
-
 
     def show_error_message(self, message):
         msg = QtWidgets.QMessageBox()
@@ -192,6 +193,12 @@ class Ui_Login(QtWidgets.QMainWindow):
         self.ui = Ui_ForgotPassword()
         self.ui.setupUi(self.forgot_password_window)
         self.forgot_password_window.show()
+
+    def toggle_password_visibility(self, state):
+        if state == QtCore.Qt.Checked:
+            self.password_input.setEchoMode(QtWidgets.QLineEdit.Normal)
+        else:
+            self.password_input.setEchoMode(QtWidgets.QLineEdit.Password)
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
