@@ -184,12 +184,7 @@ class Login(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow(user_id)
         self.ui.setupUi(self.main_window)
         self.main_window.show()
-        print("Closing login window...")  # Debugging statement
-        try:
-            self.close()
-            del self  # Explicitly delete the reference
-        except Exception as e:
-            print(f"Error closing window: {e}")
+        self.close()
 
     def open_forgot_password(self):
         self.forgot_password_window = QtWidgets.QMainWindow()

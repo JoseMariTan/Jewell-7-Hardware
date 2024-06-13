@@ -203,65 +203,126 @@ class StaffRegistration(QtWidgets.QMainWindow):
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
         self.setWindowTitle(_translate("StaffRegistration", "Staff Registration"))
-        self.Jewell7.setText(_translate("StaffRegistration", "Jewell7"))
+        self.Jewell7.setText(_translate("StaffRegistration", "Jewell 7"))
         self.Hardware.setText(_translate("StaffRegistration", "Hardware"))
         self.firstName_label.setText(_translate("StaffRegistration", "First Name:"))
         self.lastName_label.setText(_translate("StaffRegistration", "Last Name:"))
         self.username_label.setText(_translate("StaffRegistration", "Username:"))
         self.password_label.setText(_translate("StaffRegistration", "Password:"))
-        self.show_password_checkbox.setText(_translate("StaffRegistration", "Show Password"))
+        self.show_password_checkbox.setText(_translate("Login", "Show Password"))
         self.birthdate_label.setText(_translate("StaffRegistration", "Birthdate:"))
-        self.loa_label.setText(_translate("StaffRegistration", "Level of Access:"))
+        self.loa_label.setText(_translate("StaffRegistration", "LOA:"))
+        self.loa_input.setText(_translate("StaffRegistration", "staff"))
         self.registerButton.setText(_translate("StaffRegistration", "Register"))
         self.clearButton.setText(_translate("StaffRegistration", "Clear"))
 
         # Connect signals to slots
-        self.registerButton.clicked.connect(self.register_button_clicked)
-        self.clearButton.clicked.connect(self.clear_button_clicked)
+        self.registerButton.clicked.connect(self.register_staff)
+        self.clearButton.clicked.connect(self.clear_text)
         self.show_password_checkbox.stateChanged.connect(self.toggle_password_visibility)
 
-    def register_button_clicked(self):
-        first_name = self.firstName_input.text()
-        last_name = self.lastName_input.text()
-        username = self.username_input.text()
-        password = self.password_input.text()
-        birthdate = self.birthdate_edit.date().toString(QtCore.Qt.ISODate)
-
-        if not (first_name and last_name and username and password and birthdate):
-            QtWidgets.QMessageBox.warning(self, "Incomplete Form", "Please fill in all fields.")
-            return
-
-        try:
-            connection = sqlite3.connect("staff.db")
-            cursor = connection.cursor()
-            cursor.execute("""CREATE TABLE IF NOT EXISTS staff (
-                              id INTEGER PRIMARY KEY,
-                              first_name TEXT,
-                              last_name TEXT,
-                              username TEXT,
-                              password TEXT,
-                              birthdate TEXT)""")
-            cursor.execute("INSERT INTO staff (first_name, last_name, username, password, birthdate) VALUES (?, ?, ?, ?, ?)",
-                           (first_name, last_name, username, password, birthdate))
-            connection.commit()
-            QtWidgets.QMessageBox.information(self, "Registration Successful", "Staff registered successfully!")
-            from selection_screen import Selection
-            self.close()
-            self.selection_screen_window = Selection()
-            self.selection_screen_window.show()
-        except sqlite3.Error as error:
-            print("Error while connecting to SQLite", error)
-        finally:
-            if connection:
-                connection.close()
-
-    def clear_button_clicked(self):
+    def clear_text(self):
         self.firstName_input.clear()
         self.lastName_input.clear()
         self.username_input.clear()
         self.password_input.clear()
         self.birthdate_edit.setDate(QtCore.QDate.currentDate())
 
+    def register_staff(self):
+        # Fetching data from input fields
+        first_name = self.firstName_input.text().strip()
+        last_name = self.lastName_input.text().strip()
+        username = self.username_input.text().strip()
+        password = self.password_input.text().strip()
+        birthdate = self.birthdate_edit.date().toString(QtCore.Qt.ISODate)
+        loa = self.loa_input.text().strip()
+
+        # Validation: Check if any field is empty
+        if not all([first_name, last_name, username, password]):
+            # Displaying a message box for error
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Warning)
+            msg.setText("Please fill in all the fields.")
+            msg.setWindowTitle("Error")
+            msg.exec_()
+            return
+        
+        # Validation: Check if the password length is between 8 and 12 characters
+        if not (8 <= len(password) <= 12):
+            # Displaying a message box for error
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Warning)
+            msg.setText("Password must be between 8 and 12 characters long.")
+            msg.setWindowTitle("Error")
+            msg.exec_()
+            return
+        
+        # Validation: Check if names contain only alphabets
+        name_pattern = re.compile("^[A-Za-z]+$")
+
+        if not name_pattern.match(first_name) or (last_name and not name_pattern.match(last_name)):
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Warning)
+            msg.setText("Names can only contain alphabets.")
+            msg.setWindowTitle("Error")
+            msg.exec_()
+            return
+
+        current_datetime = datetime.today()
+        date_log = current_datetime.strftime('%Y-%m-%d')
+        time_log = current_datetime.strftime("%I:%M %p")
+
+        # Establishing connection with SQLite database
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+
+        # Check if username already exists
+        cursor.execute("SELECT username FROM users WHERE username=?", (username,))
+        if cursor.fetchone():
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Warning)
+            msg.setText("Username already exists. Please choose a different username.")
+            msg.setWindowTitle("Error")
+            msg.exec_()
+            
+            conn.close()
+            return
+
+        # Inserting data into the users table
+        cursor.execute('''INSERT INTO users (first_name, last_name, username, password, loa) 
+                  VALUES (?, ?, ?, ?, ?)''', (first_name, last_name, username, password, loa))
+
+        # Retrieve the user_id of the newly inserted user
+        user_id = cursor.lastrowid  # This fetches the last inserted row id, which is the user_id
+
+        # Inserting data into the staff table using the retrieved user_id
+        cursor.execute('''INSERT INTO staff (first_name, last_name, birthdate, date_started, user_id) 
+                  VALUES (?, ?, ?, ?, ?)''', (first_name, last_name, birthdate, date_log, user_id))
+
+        action = "register"
+        
+        # Inserting data into the user_logs table using the retrieved user_id
+        cursor.execute('''INSERT INTO user_logs (user_id, action, time, date) 
+                      VALUES (?, ?, ?, ?)''', (user_id, action, time_log, date_log))
+
+        # Committing the transaction and closing connection
+        conn.commit()
+        conn.close()
+
+        # Displaying a message box
+        msg = QtWidgets.QMessageBox()
+        msg.setIcon(QtWidgets.QMessageBox.Information)
+        msg.setText("User Registered Successfully!")
+        msg.setWindowTitle("Success")
+        msg.exec_()
+
+        from selection_screen import Selection
+        self.window = QtWidgets.QMainWindow()
+        self.ui = Selection()
+        self.ui.setupUi(self.window)
+        self.window.show()
+        self.close() 
+        
     def toggle_password_visibility(self, state):
         if state == QtCore.Qt.Checked:
             self.password_input.setEchoMode(QtWidgets.QLineEdit.Normal)

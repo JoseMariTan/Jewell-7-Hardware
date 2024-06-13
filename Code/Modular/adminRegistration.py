@@ -224,7 +224,7 @@ class AdminRegistration(QtWidgets.QMainWindow):
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
-        self.setWindowTitle(_translate("AdminRegistration", "MainWindow"))
+        self.setWindowTitle(_translate("AdminRegistration", "Admin Registration"))
         self.Jewell7.setText(_translate("AdminRegistration", "Jewell 7"))
         self.Hardware.setText(_translate("AdminRegistration", "Hardware"))
         self.firstName_label.setText(_translate("AdminRegistration", "First Name:"))
@@ -238,7 +238,6 @@ class AdminRegistration(QtWidgets.QMainWindow):
         self.loa_input.setText(_translate("AdminRegistration", "admin"))
         self.registerButton.setText(_translate("AdminRegistration", "Register"))
         self.clearButton.setText(_translate("AdminRegistration", "Clear"))
-
 
     def clear_text(self):
         self.firstName_input.clear()
@@ -338,9 +337,11 @@ class AdminRegistration(QtWidgets.QMainWindow):
         msg.exec_()
 
         from selection_screen import Selection
-        self.close()
-        self.selection_screen_window = Selection()
-        self.selection_screen_window.show()
+        self.window = QtWidgets.QMainWindow()
+        self.ui = Selection()
+        self.ui.setupUi(self.window)
+        self.window.show()
+        self.close() 
 
     def toggle_password_visibility(self, state):
         if state == QtCore.Qt.Checked:
