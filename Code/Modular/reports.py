@@ -96,23 +96,23 @@ class ReportsTab(QtWidgets.QWidget):
         self.tab_widget = QtWidgets.QTabWidget()
         self.reports_tab = QtWidgets.QWidget()
         self.transactions_tab = QtWidgets.QWidget()
-        self.inventory_logs_tab = QtWidgets.QWidget()
+
 
         # Add sub-tabs to the tab widget
         self.tab_widget.addTab(self.reports_tab, "User Logs")  
         self.tab_widget.addTab(self.transactions_tab, "Transactions")
-        self.tab_widget.addTab(self.inventory_logs_tab, "Inventory Logs")
+
 
         # Set layouts for each sub-tab
         self.initReportsTab()
         self.initTransactionsTab()
-        self.initInventoryTab()
+
 
         self.layout.addWidget(self.tab_widget)
 
         # Connect itemSelectionChanged signal to handle row selection
         self.transactions_table.itemSelectionChanged.connect(self.on_selection_changed)
-        self.inventory_logs_table.itemSelectionChanged.connect(self.on_inventory_selection_changed)
+
 
         # Connect tabChanged signal to clear the search query
         self.tab_widget.currentChanged.connect(self.clear_search_query)
@@ -164,7 +164,6 @@ class ReportsTab(QtWidgets.QWidget):
         # Add the table widget to the layout
         layout.addWidget(self.transactions_table)
 
-        self.transactions_table.itemSelectionChanged.connect(self.on_inventory_selection_changed)
 
         # Load transactions into the table
         self.load_transactions()
@@ -191,47 +190,6 @@ class ReportsTab(QtWidgets.QWidget):
         # Add buttons layout to the main layout
         layout.addLayout(buttons_layout)
 
-    def initInventoryTab(self):
-        layout = QtWidgets.QVBoxLayout(self.inventory_logs_tab)
-        
-        # Create the table widget
-        self.inventory_logs_table = QtWidgets.QTableWidget()
-        self.inventory_logs_table.setColumnCount(7) 
-        self.inventory_logs_table.setHorizontalHeaderLabels([
-            'User ID', 'First Name', 'Product ID', 'Product Name', 'Action', 'Date', 'Time'
-        ])
-        self.inventory_logs_table.horizontalHeader().setStretchLastSection(True)
-        self.inventory_logs_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
-
-        # Add the table widget to the layout
-        layout.addWidget(self.inventory_logs_table)
-
-        self.inventory_logs_table.itemSelectionChanged.connect(self.on_inventory_selection_changed)
-
-        # Load inventory logs into the table
-        self.load_inventory_logs()
-
-        # Create buttons for clearing logs, flagging transactions, and generating receipts
-        buttons_layout = QtWidgets.QHBoxLayout()
-        clear_logs_button = QtWidgets.QPushButton("Clear Inventory Logs")
-        flag_transaction_button = QtWidgets.QPushButton("Flag Inventory Action")
-        delete_log_button = QtWidgets.QPushButton("Remove Inventory Log")
-
-        # Connect button signals to slots
-        clear_logs_button.clicked.connect(self.clear_inventory_logs)
-        flag_transaction_button.clicked.connect(self.flag_inventory)
-        delete_log_button.clicked.connect(self.remove_inventory_log)
-
-        # Add buttons to the layout
-        buttons_layout.addWidget(clear_logs_button)
-        buttons_layout.addWidget(flag_transaction_button)
-        buttons_layout.addWidget(delete_log_button)
-
-        # Add buttons layout to the main layout
-        layout.addLayout(buttons_layout)
-
-
-
     def search_logs(self):
         search_query = self.lineEdit.text()
         self.load_user_logs(search_query)
@@ -239,10 +197,6 @@ class ReportsTab(QtWidgets.QWidget):
     def search_transactions(self):
         search_query = self.lineEdit.text()
         self.load_transactions(search_query)
-
-    def search_inventory_logs(self):
-        search_query = self.inventory_search_lineEdit.text()
-        self.load_inventory_logs(search_query)
 
     def clear_search_query(self):
         self.lineEdit.clear()
@@ -277,18 +231,6 @@ class ReportsTab(QtWidgets.QWidget):
                 if item:
                     item.setSelected(True)
 
-    def on_inventory_selection_changed(self):
-        selected_rows = set()
-        # Iterate over selected items to collect rows
-        for item in self.inventory_logs_table.selectedItems():
-            selected_rows.add(item.row())
-
-        # Select all identified rows in the table
-        for row in selected_rows:
-            for column in range(self.inventory_logs_table.columnCount()):
-                item = self.inventory_logs_table.item(row, column)
-                if item:
-                    item.setSelected(True)
 
     def load_user_logs(self, search_query=None):
         conn = sqlite3.connect('j7h.db')
@@ -393,52 +335,6 @@ class ReportsTab(QtWidgets.QWidget):
         # Resize columns to fit contents
         self.transactions_table.resizeColumnsToContents()
 
-    def load_inventory_logs(self, search_query=None):
-        conn = sqlite3.connect('j7h.db')
-        cursor = conn.cursor()
-        
-        # Construct the base query
-        query = """
-            SELECT 
-                inventory_logs.user_id, 
-                users.first_name,  -- Include first_name from users table
-                inventory_logs.product_id, 
-                inventory_logs.product_name,
-                inventory_logs.action, 
-                inventory_logs.date, 
-                inventory_logs.time 
-            FROM 
-                inventory_logs 
-            INNER JOIN 
-                users ON inventory_logs.user_id = users.user_id
-        """
-        
-        # Modify the query to include search functionality if search_query is provided
-        if search_query:
-            query += """
-                WHERE 
-                    inventory_logs.product_name LIKE ?
-            """
-            cursor.execute(query, (f"%{search_query}%",))
-        else:
-            cursor.execute(query)
-
-        rows = cursor.fetchall()
-        conn.close()
-
-        # Set the number of rows in the table
-        self.inventory_logs_table.setRowCount(len(rows))
-
-        # Populate the table with inventory logs data
-        for row_number, row_data in enumerate(rows):
-            for column_number, data in enumerate(row_data):
-                item = QTableWidgetItem(str(data))
-                self.inventory_logs_table.setItem(row_number, column_number, item)
-
-        # Resize columns to fit contents
-        self.inventory_logs_table.resizeColumnsToContents()
-
-
     #button functionalities
 
     def flag_transaction(self):
@@ -527,73 +423,6 @@ class ReportsTab(QtWidgets.QWidget):
         conn = sqlite3.connect('j7h.db')
         cursor = conn.cursor()
         cursor.execute("DELETE FROM user_logs")
-        conn.commit()
-        conn.close()
-
-    def clear_inventory_logs(self):
-        reply = QMessageBox.question(self, 'Confirmation', 'Are you sure you want to clear all inventory logs?', 
-                                    QMessageBox.Yes | QMessageBox.No, 
-                                    QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            # Clear the table
-            self.inventory_logs_table.clearContents()
-            self.inventory_logs_table.setRowCount(0)
-            # Delete all inventory logs from the database
-            self.delete_all_inventory_logs_from_database()
-
-    def delete_all_inventory_logs_from_database(self):
-        conn = sqlite3.connect('j7h.db')
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM inventory_logs")
-        conn.commit()
-        conn.close()
-
-    def flag_inventory(self):
-        for row in set(item.row() for item in self.inventory_logs_table.selectedItems()):
-            if row in self.flagged_rows:
-                # Unflag the row (remove red background)
-                for column in range(self.inventory_logs_table.columnCount()):
-                    item = self.inventory_logs_table.item(row, column)
-                    if item:
-                        item.setBackground(QtGui.QColor(Qt.white))  # Set background to white
-                self.flagged_rows.remove(row)
-            else:
-                # Flag the row (set orange background)
-                for column in range(self.inventory_logs_table.columnCount()):
-                    item = self.inventory_logs_table.item(row, column)
-                    if item:
-                        item.setBackground(QtGui.QColor('orange'))  # Set background to orange
-                self.flagged_rows.add(row)
-
-    def remove_inventory_log(self):
-        selected_items = self.inventory_logs_table.selectedItems()
-        if not selected_items:
-            return
-
-        reply = QMessageBox.question(self, 'Confirmation', 'Are you sure you want to remove selected logs?', 
-                                    QMessageBox.Yes | QMessageBox.No, 
-                                    QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            rows_to_remove = set()
-            logs_to_remove = set()
-            for item in selected_items:
-                row = item.row()
-                rows_to_remove.add(row)
-                log_id = self.inventory_logs_table.item(row, 0).text()  # Assuming log ID is in column 0
-                logs_to_remove.add(log_id)
-
-            # Remove rows from the table
-            for row in sorted(rows_to_remove, reverse=True):
-                self.inventory_logs_table.removeRow(row)
-
-            # Delete logs from the database
-            for log_id in logs_to_remove:
-                self.delete_log_from_database(log_id)
-    
-    def delete_log_from_database(self, log_id):
-        conn = sqlite3.connect('j7h.db')
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM inventory_logs WHERE log_id =?", (log_id,))
         conn.commit()
         conn.close()
 

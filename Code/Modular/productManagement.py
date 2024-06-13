@@ -5,11 +5,10 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 #Class for Products Tab
 class ProductsTab(QtWidgets.QWidget):
-    def __init__(self, user_id, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.setup_ui()
         self.load_data()
-        self.user_id = user_id
         self.tableWidget.itemSelectionChanged.connect(self.on_selection_changed)
 
     def setup_ui(self):
@@ -133,7 +132,7 @@ class ProductsTab(QtWidgets.QWidget):
         self.load_data(search_query)
 
     def open_add_product_dialog(self):
-        dialog = AddProductDialog(self.user_id, self)
+        dialog = AddProductDialog(self)
         dialog.exec_()
         self.load_data()
 
@@ -152,9 +151,8 @@ class ProductsTab(QtWidgets.QWidget):
         price = self.tableWidget.item(row, 5).text()
         qty = self.tableWidget.item(row, 6).text()
         category = self.tableWidget.item(row, 7).text()
-        user_id = self.user_id
 
-        dialog = ModifyProductDialog(parent=self, user_id=user_id, rowid=rowid, product_name=product_name, brand=brand, var=var, size=size, price=price, qty=qty, category=category)
+        dialog = ModifyProductDialog(parent=self, rowid=rowid, product_name=product_name, brand=brand, var=var, size=size, price=price, qty=qty, category=category)
         dialog.exec_()
         self.load_data()
 
@@ -175,25 +173,6 @@ class ProductsTab(QtWidgets.QWidget):
             conn = sqlite3.connect('j7h.db')
             cur = conn.cursor()
 
-            # Retrieve the product_id and product_name for logging
-            cur.execute("SELECT product_id, product_name FROM products WHERE rowid=?", (rowid,))
-            product_result = cur.fetchone()
-            if product_result:
-                product_id, product_name = product_result
-            else:
-                QtWidgets.QMessageBox.warning(self, "Error", "Product not found!")
-                conn.close()
-                return
-
-            # Log the void action
-            user_id = self.user_id
-            action = "voided product"
-            current_date = datetime.now().strftime('%Y-%m-%d')
-            current_time = datetime.now().strftime("%I:%M %p")
-            cur.execute('''INSERT INTO inventory_logs (user_id, product_id, product_name, action, time, date)
-                VALUES (?,?,?,?,?,?)''',
-            (user_id, product_id, product_name, action, current_time, current_date))
-
             # Delete the product
             cur.execute("DELETE FROM products WHERE rowid=?", (rowid,))
             conn.commit()
@@ -202,11 +181,10 @@ class ProductsTab(QtWidgets.QWidget):
             QtWidgets.QMessageBox.information(self, "Success", "Product successfully voided.")
 
 class AddProductDialog(QtWidgets.QDialog):
-    def __init__(self, user_id, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Product Management")
         self.setGeometry(100, 100, 300, 200)
-        self.user_id = user_id
         layout = QtWidgets.QVBoxLayout()
 
         self.product_name_label = QtWidgets.QLabel("Product Name: *")
@@ -283,36 +261,17 @@ class AddProductDialog(QtWidgets.QDialog):
         cur.execute("INSERT INTO products (product_name, brand, var, size, price, qty, category) VALUES (?, ?, ?, ?, ?, ?, ?)",
                 (product_name, brand, var, size, price, qty, category))
         
-        # Retrieve the next available log_id
-        cur.execute("SELECT IFNULL(MAX(log_id), 0) + 1 FROM user_logs")
-        log_id_result = cur.fetchone()
-        if log_id_result:
-            log_id = log_id_result[0]
-        else:
-            QMessageBox.warning(self, "Error", "Unable to determine next log ID!")
-            conn.close()
-            return
-        
-        # Insert into inventory logs
-        current_date = datetime.now().strftime('%Y-%m-%d')
-        current_time = datetime.now().strftime("%I:%M %p")
-        action = "added new product"
-        cur.execute('''INSERT INTO inventory_logs (user_id, product_id, product_name, action, time, date)
-            VALUES (?,?,?,?,?,?)''',
-        (self.user_id, cur.lastrowid, product_name, action, current_time, current_date))
-        
         conn.commit()
         conn.close()
 
         self.accept()
 
 class ModifyProductDialog(QtWidgets.QDialog):
-    def __init__(self, parent=None, user_id=None, rowid=None, product_name=None, brand=None, var=None, size=None, price=None, qty=None, category=None):
+    def __init__(self, parent=None, rowid=None, product_name=None, brand=None, var=None, size=None, price=None, qty=None, category=None):
         super().__init__(parent)
         self.setWindowTitle("Modify Product")
         self.setGeometry(100, 100, 300, 200)
         self.rowid = rowid
-        self.user_id = user_id
 
         layout = QtWidgets.QVBoxLayout()
 
@@ -372,7 +331,6 @@ class ModifyProductDialog(QtWidgets.QDialog):
             QtWidgets.QMessageBox.warning(self, "Error", "Product ID not found!")
             return
         
-        user_id = self.user_id
         product_name = self.product_name_input.text().strip()
         brand = self.brand_input.text().strip() or "None"
         var = self.var_input.text().strip() or "None"
@@ -403,31 +361,9 @@ class ModifyProductDialog(QtWidgets.QDialog):
         conn = sqlite3.connect('j7h.db')
         cur = conn.cursor()
 
-        # Selecting old values from the database
-        cur.execute("SELECT product_name, brand, var, size, price, qty, category FROM products WHERE rowid=?", (self.rowid,))
-        old_values = cur.fetchone()
-
         cur.execute("UPDATE products SET product_name=?, brand=?, var=?, size=?, price=?, qty=?, category=? WHERE rowid=?",
                 (product_name, brand, var, size, price, qty, category, self.rowid))
         
-        # Retrieve the next available log_id
-        cur.execute("SELECT IFNULL(MAX(log_id), 0) + 1 FROM user_logs")
-        log_id_result = cur.fetchone()
-        if log_id_result:
-            log_id = log_id_result[0]
-        else:
-            QMessageBox.warning(self, "Error", "Unable to determine next log ID!")
-            conn.close()
-            return
-
-        # Insert into inventory logs
-        current_date = datetime.now().strftime('%Y-%m-%d')
-        current_time = datetime.now().strftime("%I:%M %p")
-        action = "modified product details"
-        cur.execute('''INSERT INTO inventory_logs (user_id, product_id, product_name, action, time, date)
-            VALUES (?,?,?,?,?,?)''',
-        (user_id, self.product_id, product_name, action, current_time, current_date))
-            
         conn.commit()
         conn.close()
 

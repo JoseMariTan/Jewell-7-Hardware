@@ -163,7 +163,7 @@ class Ui_Login(QtWidgets.QMainWindow):
                 cursor.execute('''INSERT INTO user_logs (user_id, action, time, date) 
                             VALUES (?, ?, ?, ?)''', (user_id, action, time_log, date_log))
                 conn.commit()
-
+                self.close()
                 self.open_main_window(user_id)  # Pass user_id to the main window
 
             else:
