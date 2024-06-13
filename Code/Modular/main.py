@@ -1,4 +1,6 @@
+import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtWidgets
 from shop import ShopTab
 from cart import CartTab
 from productManagement import ProductsTab
@@ -217,24 +219,20 @@ class Ui_MainWindow(object):
             self.cart_tab.load_cart_items()
 
     def logout(self):
-        from login import Ui_Login
         # Create and show the login window
+        from login import Login
         self.login_window = QtWidgets.QMainWindow()
-        self.ui = Ui_Login()
+        self.ui = Login()
         self.ui.setupUi(self.login_window)
         self.login_window.show()
         # Close the main window
         QtWidgets.QApplication.instance().activeWindow().close()
 
 if __name__ == "__main__":
-    import sys
-    from login import Ui_Login
-
     app = QtWidgets.QApplication(sys.argv)
 
-    # Create and show the login window
-    login_window = Ui_Login()
-    login_window.show()
-
-    # Start the application event loop
+    # Create and show the selection window
+    from selection_screen import Selection
+    selection_window = Selection()
+    selection_window.show()
     sys.exit(app.exec_())

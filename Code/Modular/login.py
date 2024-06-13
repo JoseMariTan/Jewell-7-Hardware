@@ -3,9 +3,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from datetime import datetime
 import sqlite3
 from main import Ui_MainWindow
-from forgotPassword import Ui_ForgotPassword  # Import the ForgotPassword class
+from forgotPassword import Ui_ForgotPassword
 
-class Ui_Login(QtWidgets.QMainWindow):
+class Login(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -163,7 +163,6 @@ class Ui_Login(QtWidgets.QMainWindow):
                 cursor.execute('''INSERT INTO user_logs (user_id, action, time, date) 
                             VALUES (?, ?, ?, ?)''', (user_id, action, time_log, date_log))
                 conn.commit()
-                self.close()
                 self.open_main_window(user_id)  # Pass user_id to the main window
 
             else:
@@ -185,8 +184,12 @@ class Ui_Login(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow(user_id)
         self.ui.setupUi(self.main_window)
         self.main_window.show()
-
-        self.close()
+        print("Closing login window...")  # Debugging statement
+        try:
+            self.close()
+            del self  # Explicitly delete the reference
+        except Exception as e:
+            print(f"Error closing window: {e}")
 
     def open_forgot_password(self):
         self.forgot_password_window = QtWidgets.QMainWindow()
@@ -202,6 +205,6 @@ class Ui_Login(QtWidgets.QMainWindow):
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
-    login_window = Ui_Login()
+    login_window = Login()
     login_window.show()
     sys.exit(app.exec_())
