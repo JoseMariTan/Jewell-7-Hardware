@@ -19,9 +19,11 @@ class ProductsTab(QtWidgets.QWidget):
         font.setPointSize(22)
         font.setBold(True)
     
-        self.lineEdit = QtWidgets.QLineEdit(self)
-        self.lineEdit.setFixedHeight(40)  # Match the shop tab's search box height
-        self.horizontalLayout_2.addWidget(self.lineEdit)
+        self.search_input = QtWidgets.QLineEdit(self)
+        self.search_input.setFixedHeight(40) 
+        self.search_input.setPlaceholderText("Search products...")
+        self.horizontalLayout_2.addWidget(self.search_input)
+        
 
         self.search_button = QtWidgets.QPushButton("Search")
         self.search_button.setFixedHeight(40)  # Match the shop tab's search button height
@@ -33,6 +35,7 @@ class ProductsTab(QtWidgets.QWidget):
         self.scrollArea = QtWidgets.QScrollArea(self)
         self.scrollArea.setWidgetResizable(True)
         self.tableWidget = QtWidgets.QTableWidget()
+        
         self.tableWidget.setFixedHeight(self.tableWidget.verticalHeader().defaultSectionSize() * 30)  # Adjust multiplier as needed
         self.tableWidget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         self.tableWidget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
@@ -128,7 +131,7 @@ class ProductsTab(QtWidgets.QWidget):
                     item.setSelected(True)
 
     def search_products(self):
-        search_query = self.lineEdit.text()
+        search_query = self.search_input.text()
         self.load_data(search_query)
 
     def open_add_product_dialog(self):

@@ -53,10 +53,14 @@ class CartTab(QtWidgets.QWidget):
 
         # Search Component
         self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.lineEdit = QtWidgets.QLineEdit()
+        self.search_input = QtWidgets.QLineEdit()
+        self.search_input.setFixedHeight(40)
+        self.search_input.setPlaceholderText("Search cart...")
+
         self.search_button = QtWidgets.QPushButton("Search")
+        self.search_button.setFixedHeight(40)
         self.search_button.clicked.connect(self.search_cart)
-        self.horizontalLayout.addWidget(self.lineEdit)
+        self.horizontalLayout.addWidget(self.search_input)
         self.horizontalLayout.addWidget(self.search_button)
         self.layout.addLayout(self.horizontalLayout)
 
@@ -66,6 +70,14 @@ class CartTab(QtWidgets.QWidget):
         self.cart_table.setHorizontalHeaderLabels(['Product', 'Brand', 'Variation', 'Size', 'Quantity', 'Price', 'Total'])
         self.cart_table.horizontalHeader().setStretchLastSection(True)
         self.cart_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+
+        self.cart_table.verticalHeader().setVisible(False)
+
+        # set table colors
+        self.cart_table.setStyleSheet(
+            "QTableWidget::item:selected { background-color: #3b352d; }"
+            "QHeaderView::section { background-color: #ff7d7d; }"
+        )
 
         self.layout.addWidget(self.cart_table)
 
@@ -146,7 +158,7 @@ class CartTab(QtWidgets.QWidget):
         self.update_total_label()
 
     def search_cart(self):
-        search_query = self.lineEdit.text()
+        search_query = self.search_input.text()
         self.load_cart_items(search_query)
         self.update_total_label()
 
@@ -195,9 +207,7 @@ class CartTab(QtWidgets.QWidget):
         
         # Reload cart items
         self.load_cart_items()
-        
-        # Inform the user about the cleared cart
-        QtWidgets.QMessageBox.information(self, "Clear Cart", "All items have been removed from the cart.")
+
         self.update_total_label()
 
         # Return the quantities of all products removed

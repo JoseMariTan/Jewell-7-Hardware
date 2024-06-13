@@ -9,9 +9,12 @@ class UsersTab(QtWidgets.QWidget):
         self.verticalLayout = QtWidgets.QVBoxLayout(self)
 
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
-        self.lineEdit = QtWidgets.QLineEdit(self)
-        self.horizontalLayout_2.addWidget(self.lineEdit)
+        self.search_input = QtWidgets.QLineEdit(self)
+        self.search_input.setFixedHeight(40)
+        self.horizontalLayout_2.addWidget(self.search_input)
         self.search_button = QtWidgets.QPushButton("Search", self)
+        self.search_button.setFixedHeight(40)
+        self.search_input.setPlaceholderText("Search users...")
         self.horizontalLayout_2.addWidget(self.search_button)
         self.search_button.clicked.connect(self.search_users)
         self.verticalLayout.addLayout(self.horizontalLayout_2)
@@ -144,7 +147,7 @@ class UsersTab(QtWidgets.QWidget):
             QtWidgets.QMessageBox.warning(None, "Selection Error", "Please select a user to void.")
 
     def search_users(self):
-        search_query = self.lineEdit.text()
+        search_query = self.search_input.text()
         self.load_data(search_query)
 
 

@@ -62,7 +62,7 @@ class ShopTab(QtWidgets.QWidget):
         conn.close()
 
     def search_products(self):
-        search_query = self.lineEdit.text()
+        search_query = self.search_input.text()
         self.load_products(search_query)
 
     def on_selection_changed(self):
@@ -82,13 +82,14 @@ class ShopTab(QtWidgets.QWidget):
 
         # Search Component
         self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.lineEdit = QtWidgets.QLineEdit()
-        self.lineEdit.setFixedHeight(40) 
+        self.search_input = QtWidgets.QLineEdit()
+        self.search_input.setFixedHeight(40) 
+        self.search_input.setPlaceholderText("Search shop...")
 
         self.search_button = QtWidgets.QPushButton("Search")
         self.search_button.setFixedHeight(40)
         self.search_button.clicked.connect(self.search_products)
-        self.horizontalLayout.addWidget(self.lineEdit)
+        self.horizontalLayout.addWidget(self.search_input)
         self.horizontalLayout.addWidget(self.search_button)
         self.layout.addLayout(self.horizontalLayout)
 
@@ -97,6 +98,14 @@ class ShopTab(QtWidgets.QWidget):
         self.tableWidget.setHorizontalHeaderLabels(['Product', 'Brand', 'Variation', 'Size', 'Price', 'Items in Stock', 'Category'])
         self.tableWidget.horizontalHeader().setStretchLastSection(True)
         self.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+
+        self.tableWidget.verticalHeader().setVisible(False)
+
+        # set table colors
+        self.tableWidget.setStyleSheet(
+            "QTableWidget::item:selected { background-color: #3b352d; }"
+            "QHeaderView::section { background-color: #ff7d7d; }"
+        )
 
         self.layout.addWidget(self.tableWidget)
 

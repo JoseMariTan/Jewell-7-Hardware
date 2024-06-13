@@ -1,4 +1,6 @@
 import sys
+import sqlite3
+from datetime import datetime
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5 import QtWidgets
 from shop import ShopTab
@@ -219,6 +221,20 @@ class Ui_MainWindow(object):
             self.cart_tab.load_cart_items()
 
     def logout(self):
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+
+        # Use the stored user_id
+        user_id = self.user_id
+        current_datetime = datetime.today()
+        date_log = current_datetime.strftime('%Y-%m-%d')
+        time_log = current_datetime.strftime("%I:%M %p")
+        action = "logout"
+
+        cursor.execute('''INSERT INTO user_logs (user_id, action, time, date) 
+                            VALUES (?, ?, ?, ?)''', (user_id, action, time_log, date_log))
+        conn.commit()
+
         # Create and show the login window
         from login import Login
         self.login_window = QtWidgets.QMainWindow()

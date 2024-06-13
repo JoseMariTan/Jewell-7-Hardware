@@ -226,7 +226,6 @@ class StaffRegistration(QtWidgets.QMainWindow):
         self.lastName_input.clear()
         self.username_input.clear()
         self.password_input.clear()
-        self.birthdate_edit.setDate(QtCore.QDate.currentDate())
 
     def register_staff(self):
         # Fetching data from input fields
