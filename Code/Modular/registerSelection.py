@@ -13,6 +13,16 @@ class RegSelection(QtWidgets.QMainWindow):
         Selection.resize(870, 600)
         self.centralwidget = QtWidgets.QWidget(Selection)
         self.centralwidget.setObjectName("centralwidget")
+
+        # Add back button
+        self.backButton = QtWidgets.QPushButton("Back", self.centralwidget)
+        self.backButton.setGeometry(QtCore.QRect(10, 10, 80, 30))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(10)
+        self.backButton.setFont(font)
+        self.backButton.setObjectName("backButton")
+
         self.layoutWidget = QtWidgets.QWidget(self.centralwidget)
         self.layoutWidget.setGeometry(QtCore.QRect(200, 150, 441, 221))
         self.layoutWidget.setObjectName("layoutWidget")
@@ -98,6 +108,7 @@ class RegSelection(QtWidgets.QMainWindow):
         Selection.setStatusBar(self.statusbar)
 
         # functionalities
+        self.backButton.clicked.connect(self.go_back)
         self.staffButton.clicked.connect(self.open_staff_registration) 
         self.adminButton.clicked.connect(self.open_admin_registration) 
 
@@ -112,6 +123,12 @@ class RegSelection(QtWidgets.QMainWindow):
         self.infoLabel.setText(_translate("SelectionScreen", "Please choose between Staff and Admin"))
         self.staffButton.setText(_translate("SelectionScreen", "Staff"))  
         self.adminButton.setText(_translate("SelectionScreen", "Admin"))  
+
+    def go_back(self):
+        from selection_screen import Selection
+        self.previous_window = Selection()
+        self.previous_window.show()
+        self.close()
     
     def open_staff_registration(self):
         self.staff_registration_window = StaffRegistration()

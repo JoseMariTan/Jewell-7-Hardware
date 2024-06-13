@@ -18,6 +18,16 @@ class StaffRegistration(QtWidgets.QMainWindow):
         self.centralwidget.setObjectName("centralwidget")
         self.setCentralWidget(self.centralwidget)
 
+        # Add back button
+        self.backButton = QtWidgets.QPushButton("Back", self.centralwidget)
+        self.backButton.setGeometry(QtCore.QRect(10, 10, 80, 30))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(10)
+        self.backButton.setFont(font)
+        self.backButton.setObjectName("backButton")
+        self.backButton.clicked.connect(self.go_back)
+
         self.gridLayoutWidget = QtWidgets.QWidget(self.centralwidget)
         self.gridLayoutWidget.setGeometry(QtCore.QRect(100, 60, 601, 585))
         self.gridLayoutWidget.setObjectName("gridLayoutWidget")
@@ -220,6 +230,12 @@ class StaffRegistration(QtWidgets.QMainWindow):
         self.registerButton.clicked.connect(self.register_staff)
         self.clearButton.clicked.connect(self.clear_text)
         self.show_password_checkbox.stateChanged.connect(self.toggle_password_visibility)
+    
+    def go_back(self):
+        from registerSelection import RegSelection
+        self.previous_window = RegSelection()
+        self.previous_window.show()
+        self.close()
 
     def clear_text(self):
         self.firstName_input.clear()
