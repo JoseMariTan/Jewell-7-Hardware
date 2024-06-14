@@ -98,7 +98,6 @@ class ShopTab(QtWidgets.QWidget):
         self.tableWidget.setHorizontalHeaderLabels(['Product', 'Brand', 'Variation', 'Size', 'Price', 'Items in Stock', 'Category'])
         self.tableWidget.horizontalHeader().setStretchLastSection(True)
         self.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
-
         self.tableWidget.verticalHeader().setVisible(False)
 
         # set table colors

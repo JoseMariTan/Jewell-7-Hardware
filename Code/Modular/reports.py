@@ -84,11 +84,13 @@ class ReportsTab(QtWidgets.QWidget):
 
         # Search Component
         self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.lineEdit = QtWidgets.QLineEdit()
+        self.search_input = QtWidgets.QLineEdit()
+        self.search_input.setFixedHeight(40) 
         self.search_button = QtWidgets.QPushButton("Search")
+        self.search_button.setFixedHeight(40)
         self.search_button.clicked.connect(self.search_logs)
         self.search_button.clicked.connect(self.search_transactions)
-        self.horizontalLayout.addWidget(self.lineEdit)
+        self.horizontalLayout.addWidget(self.search_input)
         self.horizontalLayout.addWidget(self.search_button)
         self.layout.addLayout(self.horizontalLayout)
 
@@ -123,11 +125,10 @@ class ReportsTab(QtWidgets.QWidget):
         # Create the table widget for user logs
         self.user_logs_table = QtWidgets.QTableWidget()
         self.user_logs_table.setColumnCount(5)  # Set column count to match the number of columns in user_logs
-        self.user_logs_table.setHorizontalHeaderLabels([
-            'Log ID', 'User ID', 'Action', 'Time', 'Date'
-        ])
+        self.user_logs_table.setHorizontalHeaderLabels(['Log ID', 'User ID', 'Action', 'Time', 'Date'])
         self.user_logs_table.horizontalHeader().setStretchLastSection(True)
         self.user_logs_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        self.user_logs_table.verticalHeader().setVisible(False)
 
         # Add the table widget to the layout
         layout.addWidget(self.user_logs_table)
@@ -155,15 +156,16 @@ class ReportsTab(QtWidgets.QWidget):
         self.transactions_table = QtWidgets.QTableWidget()
         self.transactions_table.setColumnCount(13)  # Update column count to match the number of columns
         self.transactions_table.setHorizontalHeaderLabels([
-            'Transaction Price',  'Cashier', 'Customer', 'Quantity', 'Date','Time', 'Total Price', 'Product ID', 'Category', 'Product Name', 
-            'Brand', 'Size', 'Variation',
+            'Total Amount',  'Price', 'Quantity', 'Customer', 'Product','Brand', 'Variation', 'Size', 'Category', 'Time', 
+            'Date', 'User ID', 'Cashier'
         ])
+        
         self.transactions_table.horizontalHeader().setStretchLastSection(True)
         self.transactions_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        self.transactions_table.verticalHeader().setVisible(False)
 
         # Add the table widget to the layout
         layout.addWidget(self.transactions_table)
-
 
         # Load transactions into the table
         self.load_transactions()
@@ -191,15 +193,15 @@ class ReportsTab(QtWidgets.QWidget):
         layout.addLayout(buttons_layout)
 
     def search_logs(self):
-        search_query = self.lineEdit.text()
+        search_query = self.search_input.text()
         self.load_user_logs(search_query)
 
     def search_transactions(self):
-        search_query = self.lineEdit.text()
+        search_query = self.search_input.text()
         self.load_transactions(search_query)
 
     def clear_search_query(self):
-        self.lineEdit.clear()
+        self.search_input.clear()
         self.search_logs()
         self.search_transactions()
 
@@ -254,24 +256,22 @@ class ReportsTab(QtWidgets.QWidget):
                 item = QTableWidgetItem(str(data))
                 self.user_logs_table.setItem(row_number, column_number, item)
 
-        # Resize columns to fit contents
-        self.user_logs_table.resizeColumnsToContents()
 
     def load_transactions(self, search_query=None):
         conn = sqlite3.connect('j7h.db')
         cursor = conn.cursor()
 
         if search_query:
-            query = """SELECT transactions.transaction_id, users.first_name, transactions.customer, transactions.qty, transactions.date, transactions.time, transactions.total_price, 
-                    transactions.product_id, products.category, products.product_name, products.brand, products.size, products.var
+            query = """SELECT transactions.transaction_id, transactions.total_price, transactions.qty, transactions.customer, products.product_name, products.brand, 
+                           products.var, products.size, products.category, transactions.time, transactions.date, transactions.user_id, users.first_name, transactions.product_id
                     FROM transactions
                     JOIN products ON transactions.product_id = products.product_id
                     JOIN users ON transactions.user_id = users.user_id
-                    WHERE transactions.transaction_id LIKE ? OR users.first_name LIKE ? OR transactions.customer LIKE ?"""
-            cursor.execute(query, (f"%{search_query}%", f"%{search_query}%", f"%{search_query}%"))
+                    WHERE transactions.user_id LIKE ? OR transactions.customer LIKE ? OR transactions.date LIKE ? OR transactions.time LIKE ?"""
+            cursor.execute(query, (f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%"))
         else:
-            cursor.execute("""SELECT transactions.transaction_id, users.first_name, transactions.customer, transactions.qty, transactions.date, transactions.time, transactions.total_price, 
-                    transactions.product_id, products.category, products.product_name, products.brand, products.size, products.var
+            cursor.execute("""SELECT transactions.transaction_id, transactions.total_price, transactions.qty, transactions.customer, products.product_name, products.brand, 
+                           products.var, products.size, products.category, transactions.time, transactions.date, transactions.user_id, users.first_name, transactions.product_id
                     FROM transactions
                     JOIN products ON transactions.product_id = products.product_id
                     JOIN users ON transactions.user_id = users.user_id""")
@@ -282,8 +282,8 @@ class ReportsTab(QtWidgets.QWidget):
         # Group rows by customer name and time
         grouped_rows = {}
         for row in rows:
-            customer_name = row[2]
-            time = row[5] 
+            customer_name = row[3]
+            time = row[9] 
             key = (customer_name, time)
             if key not in grouped_rows:
                 grouped_rows[key] = []
@@ -303,7 +303,7 @@ class ReportsTab(QtWidgets.QWidget):
             total_total_price = 0  # Initialize total_total_price to 0
 
             for i, row_data in enumerate(group):
-                total_price = float(row_data[6])  # Get the total price for each row
+                total_price = float(row_data[1])  # Get the total price for each row
                 total_total_price += total_price  # Add to the total_total_price
 
                 if i == 0:  # For the first row in the group
@@ -331,9 +331,6 @@ class ReportsTab(QtWidgets.QWidget):
                 item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
                 self.transactions_table.setItem(row_number - span_length, 0, item)
 
-
-        # Resize columns to fit contents
-        self.transactions_table.resizeColumnsToContents()
 
     #button functionalities
 
