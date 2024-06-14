@@ -1,0 +1,681 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1081</width>
+    <height>900</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Jewell 7 Hardware</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <spacer name="horizontalSpacer_5">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>55</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="font">
+         <font>
+          <family>Bahnschrift SemiBold</family>
+          <pointsize>28</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Admin Dashboard</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="width" stdset="0">
+         <number>521</number>
+        </property>
+        <property name="height" stdset="0">
+         <number>13</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Expanding</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>13</width>
+          <height>13</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="help_button">
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>Times New Roman</family>
+          <pointsize>24</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton{
+	background-color: #c6c6c8;
+	border-style: outset;
+	border: 2px;
+	border-radius: 25px;
+	border-color: black;
+	padding: 4px;
+	color: black;
+}
+
+
+QPushButton:pressed {
+    background-color: #575759; 
+	color: white;
+}
+
+</string>
+        </property>
+        <property name="text">
+         <string>?</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="aboutUs_button">
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>Times New Roman</family>
+          <pointsize>24</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton{
+	background-color: #c6c6c8;
+	border-style: outset;
+	border: 2px;
+	border-radius: 25px;
+	border-color: black;
+	padding: 4px;
+	color: black;
+}
+
+
+QPushButton:pressed {
+    background-color: #575759; 
+	color: white;
+}
+
+</string>
+        </property>
+        <property name="text">
+         <string>i</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="logout_button">
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>Times New Roman</family>
+          <pointsize>24</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton{
+	background-color: #c6c6c8;
+	border-style: outset;
+	border: 2px;
+	border-radius: 25px;
+	border-color: black;
+	padding: 4px;
+	color: black;
+}
+
+
+QPushButton:pressed {
+    background-color: #575759; 
+	color: white;
+}
+
+</string>
+        </property>
+        <property name="text">
+         <string>↩</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_6">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>3</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <spacer name="verticalSpacer_2">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>10</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="width" stdset="0">
+         <number>1061</number>
+        </property>
+        <property name="height" stdset="0">
+         <number>0</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Expanding</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="spacing">
+         <number>10</number>
+        </property>
+        <property name="leftMargin">
+         <number>10</number>
+        </property>
+        <item>
+         <widget class="QPushButton" name="shop_button">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>400</width>
+            <height>75</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <family>Bahnschrift</family>
+            <pointsize>20</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton{
+	background-color: #c6c6c8;
+	border-width: 2px;
+	border-style: outset;;
+	border-radius: 20px;
+	border-color: black;
+	padding: 4px;
+	color: black;
+}
+
+
+QPushButton:pressed {
+    background-color: #575759; 
+	color: white;
+}
+</string>
+          </property>
+          <property name="text">
+           <string>Shop</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="cart_button">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>400</width>
+            <height>75</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <family>Bahnschrift</family>
+            <pointsize>20</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton{
+	background-color: #c6c6c8;
+	border-width: 2px;
+	border-style: outset;;
+	border-radius: 20px;
+	border-color: black;
+	padding: 4px;
+	color: black;
+}
+
+
+QPushButton:pressed {
+    background-color: #575759; 
+	color: white;
+}
+</string>
+          </property>
+          <property name="text">
+           <string>Cart</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="products_button">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>400</width>
+            <height>75</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <family>Bahnschrift</family>
+            <pointsize>20</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton{
+	background-color: #c6c6c8;
+	border-width: 2px;
+	border-style: outset;;
+	border-radius: 20px;
+	border-color: black;
+	padding: 4px;
+	color: black;
+}
+
+
+QPushButton:pressed {
+    background-color: #575759; 
+	color: white;
+}
+</string>
+          </property>
+          <property name="text">
+           <string>Products</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="users_button">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>400</width>
+            <height>75</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <family>Bahnschrift</family>
+            <pointsize>20</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton{
+	background-color: #c6c6c8;
+	border-width: 2px;
+	border-style: outset;;
+	border-radius: 20px;
+	border-color: black;
+	padding: 4px;
+	color: black;
+}
+
+
+QPushButton:pressed {
+    background-color: #575759; 
+	color: white;
+}
+</string>
+          </property>
+          <property name="text">
+           <string>Users</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="reports_button">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>400</width>
+            <height>75</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <family>Bahnschrift</family>
+            <pointsize>20</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton{
+	background-color: #c6c6c8;
+	border-width: 2px;
+	border-style: outset;;
+	border-radius: 20px;
+	border-color: black;
+	padding: 4px;
+	color: black;
+}
+
+
+QPushButton:pressed {
+    background-color: #575759; 
+	color: white;
+}
+</string>
+          </property>
+          <property name="text">
+           <string>Reports</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="analytics_button">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>400</width>
+            <height>75</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <family>Bahnschrift</family>
+            <pointsize>20</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton{
+	background-color: #c6c6c8;
+	border-width: 2px;
+	border-style: outset;;
+	border-radius: 20px;
+	border-color: black;
+	padding: 4px;
+	color: black;
+}
+
+
+QPushButton:pressed {
+    background-color: #575759; 
+	color: white;
+}
+</string>
+          </property>
+          <property name="text">
+           <string>Analytics</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="returns_button">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>400</width>
+            <height>75</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <family>Bahnschrift</family>
+            <pointsize>20</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton{
+	background-color: #c6c6c8;
+	border-width: 2px;
+	border-style: outset;;
+	border-radius: 20px;
+	border-color: black;
+	padding: 4px;
+	color: black;
+}
+
+
+QPushButton:pressed {
+    background-color: #575759; 
+	color: white;
+}
+</string>
+          </property>
+          <property name="text">
+           <string>Returns</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Fixed</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>10</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_3">
+        <property name="width" stdset="0">
+         <number>13</number>
+        </property>
+        <property name="height" stdset="0">
+         <number>13</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Minimum</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>13</width>
+          <height>13</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QStackedWidget" name="stackedWidget">
+        <property name="font">
+         <font>
+          <family>Bahnschrift SemiLight</family>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_5">
+      <item>
+       <spacer name="horizontalSpacer_4">
+        <property name="width" stdset="0">
+         <number>1061</number>
+        </property>
+        <property name="height" stdset="0">
+         <number>0</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Expanding</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
