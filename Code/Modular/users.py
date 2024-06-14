@@ -6,28 +6,37 @@ class UsersTab(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
         super(UsersTab, self).__init__(parent)
-        self.verticalLayout = QtWidgets.QVBoxLayout(self)
+        self.layout = QtWidgets.QVBoxLayout(self)
 
-        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.search_input = QtWidgets.QLineEdit(self)
         self.search_input.setFixedHeight(40)
-        self.horizontalLayout_2.addWidget(self.search_input)
+        self.search_input.setPlaceholderText("Search users...")
+
         self.search_button = QtWidgets.QPushButton("Search", self)
         self.search_button.setFixedHeight(40)
-        self.search_input.setPlaceholderText("Search users...")
-        self.horizontalLayout_2.addWidget(self.search_button)
         self.search_button.clicked.connect(self.search_users)
-        self.verticalLayout.addLayout(self.horizontalLayout_2)
+        self.horizontalLayout.addWidget(self.search_input)
+        self.horizontalLayout.addWidget(self.search_button)
+        self.layout.addLayout(self.horizontalLayout)
 
-        self.scrollArea = QtWidgets.QScrollArea(self)
-        self.scrollArea.setWidgetResizable(True)
         self.tableWidget = QtWidgets.QTableWidget()
-        self.tableWidget.setObjectName("tableWidget")
-        self.scrollArea.setWidget(self.tableWidget)
-        self.verticalLayout.addWidget(self.scrollArea)
+        self.tableWidget.setColumnCount(7) 
+        self.tableWidget.setHorizontalHeaderLabels(['Product', 'Brand', 'Variation', 'Size', 'Price', 'Items in Stock', 'Category'])
+        self.tableWidget.horizontalHeader().setStretchLastSection(True)
+        self.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        self.tableWidget.verticalHeader().setVisible(False)
+
+        # set table colors
+        self.tableWidget.setStyleSheet(
+            "QTableWidget::item:selected { background-color: #3b352d; }"
+            "QHeaderView::section { background-color: #ff7d7d; }"
+        )
+
+        self.layout.addWidget(self.tableWidget)
 
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
-        button_size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
+        
 
         self.modifyUser_button = QtWidgets.QPushButton(self)
         font = QtGui.QFont()
@@ -51,7 +60,7 @@ class UsersTab(QtWidgets.QWidget):
         self.voidProduct_button.setIconSize(QtCore.QSize(36, 36))
         self.horizontalLayout_4.addWidget(self.voidProduct_button)
 
-        self.verticalLayout.addLayout(self.horizontalLayout_4)
+        self.layout.addLayout(self.horizontalLayout_4)
 
         self.tableWidget.itemSelectionChanged.connect(self.on_selection_changed)
         self.load_data()
