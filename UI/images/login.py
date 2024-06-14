@@ -78,6 +78,27 @@ class Ui_MainWindow(object):
         self.welcomeLabel.setStyleSheet("border:none;")
         self.welcomeLabel.setObjectName("welcomeLabel")
         self.verticalLayout.addWidget(self.welcomeLabel)
+        self.username_input = QtWidgets.QLineEdit(self.widget)
+        self.username_input.setMinimumSize(QtCore.QSize(200, 55))
+        self.username_input.setMaximumSize(QtCore.QSize(500, 55))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        self.username_input.setFont(font)
+        self.username_input.setStyleSheet("\n"
+"QLineEdit {\n"
+"  background-color: #c6c6c8;\n"
+"  padding: 4px;\n"
+"  border: none;\n"
+"border-radius:12px;\n"
+"  position: relative;\n"
+"  z-index: 0; /* We force a stacking context */\n"
+"}\n"
+"")
+        self.username_input.setText("")
+        self.username_input.setFrame(True)
+        self.username_input.setEchoMode(QtWidgets.QLineEdit.Normal)
+        self.username_input.setObjectName("username_input")
+        self.verticalLayout.addWidget(self.username_input)
         self.password_input = QtWidgets.QLineEdit(self.widget)
         self.password_input.setMinimumSize(QtCore.QSize(200, 55))
         self.password_input.setMaximumSize(QtCore.QSize(500, 55))
@@ -119,26 +140,6 @@ class Ui_MainWindow(object):
         self.password_input.setEchoMode(QtWidgets.QLineEdit.Password)
         self.password_input.setObjectName("password_input")
         self.verticalLayout.addWidget(self.password_input)
-        self.username_input = QtWidgets.QLineEdit(self.widget)
-        self.username_input.setMinimumSize(QtCore.QSize(200, 55))
-        self.username_input.setMaximumSize(QtCore.QSize(500, 55))
-        font = QtGui.QFont()
-        font.setFamily("Segoe UI")
-        self.username_input.setFont(font)
-        self.username_input.setStyleSheet("\n"
-"QLineEdit {\n"
-"  background-color: #c6c6c8;\n"
-"  padding: 4px;\n"
-"  border: none;\n"
-"border-radius:12px;\n"
-"  position: relative;\n"
-"  z-index: 0; /* We force a stacking context */\n"
-"}\n"
-"")
-        self.username_input.setText("")
-        self.username_input.setFrame(True)
-        self.username_input.setObjectName("username_input")
-        self.verticalLayout.addWidget(self.username_input)
         self.show_password_checkbox = QtWidgets.QCheckBox(self.widget)
         self.show_password_checkbox.setMaximumSize(QtCore.QSize(500, 16777215))
         self.show_password_checkbox.setLayoutDirection(QtCore.Qt.LeftToRight)
@@ -222,8 +223,8 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.welcomeLabel.setText(_translate("MainWindow", " Welcome Back!"))
-        self.password_input.setPlaceholderText(_translate("MainWindow", "Password"))
         self.username_input.setPlaceholderText(_translate("MainWindow", "Username"))
+        self.password_input.setPlaceholderText(_translate("MainWindow", "Password"))
         self.show_password_checkbox.setText(_translate("MainWindow", "Show Password"))
         self.loginButton.setText(_translate("MainWindow", "Login"))
         self.forgotButton.setText(_translate("MainWindow", "Forgot your password?"))
