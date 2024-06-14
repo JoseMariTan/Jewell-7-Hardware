@@ -175,6 +175,51 @@ border:none;</string>
           </widget>
          </item>
          <item>
+          <widget class="QLineEdit" name="username_input">
+           <property name="minimumSize">
+            <size>
+             <width>200</width>
+             <height>55</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>500</width>
+             <height>55</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <family>Segoe UI</family>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">
+QLineEdit {
+  background-color: #c6c6c8;
+  padding: 4px;
+  border: none;
+border-radius:12px;
+  position: relative;
+  z-index: 0; /* We force a stacking context */
+}
+</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="frame">
+            <bool>true</bool>
+           </property>
+           <property name="echoMode">
+            <enum>QLineEdit::Normal</enum>
+           </property>
+           <property name="placeholderText">
+            <string>Username</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QLineEdit" name="password_input">
            <property name="minimumSize">
             <size>
@@ -236,48 +281,6 @@ QLineEdit::after {
            </property>
            <property name="placeholderText">
             <string>Password</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="username_input">
-           <property name="minimumSize">
-            <size>
-             <width>200</width>
-             <height>55</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>500</width>
-             <height>55</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <family>Segoe UI</family>
-            </font>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">
-QLineEdit {
-  background-color: #c6c6c8;
-  padding: 4px;
-  border: none;
-border-radius:12px;
-  position: relative;
-  z-index: 0; /* We force a stacking context */
-}
-</string>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="frame">
-            <bool>true</bool>
-           </property>
-           <property name="placeholderText">
-            <string>Username</string>
            </property>
           </widget>
          </item>
