@@ -171,7 +171,7 @@ class CartTab(QtWidgets.QWidget):
         conn = sqlite3.connect('j7h.db')
         cursor = conn.cursor()
         for row in selected_rows:
-            product_item = self.cart_table.item(row, 0)
+            product_item = self.cart_table.item(row, 1)
             if product_item is not None:
                 product_name = product_item.text()
                 # Retrieve current quantity from the cart
