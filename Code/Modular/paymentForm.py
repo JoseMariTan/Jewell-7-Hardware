@@ -186,27 +186,34 @@ class PaymentForm(QDialog):
         self.amount_edit.clear()
         self.complete_button.setEnabled(False)
 
-    payment_completed = pyqtSignal(dict, str)
     def accept(self):
         if self.validate_fields():
-            customer_details = {
+                customer_details = {
                 "name": self.name_edit.text(),
                 "contact": self.contact_edit.text(),
                 "address": self.address_edit.text(),
                 "amount_paid": float(self.amount_edit.text())
-            }
-            self.customer_details = customer_details
-            self.transaction_id = str(uuid.uuid4())
-            self.done(QtWidgets.QDialog.Accepted)
-            self.show_receipt(customer_details)
-        else:
-            QMessageBox.warning(self, "Validation Error", "Please fill in all fields and ensure amount is sufficient.")
+                }
+                self.customer_details = customer_details
 
-    def exec_(self):
-        result = super().exec_()
-        if result == QtWidgets.QDialog.Accepted:
-            return self.customer_details, self.transaction_id
-        return None
+                # Retrieve existing transaction_ids
+                existing_transaction_ids = []
+                conn = sqlite3.connect('j7h.db')
+                cursor = conn.cursor()
+                cursor.execute('SELECT transaction_id FROM transactions')
+                for row in cursor:
+                        existing_transaction_ids.append(row[0])
+
+                # Generate a new transaction_id if it already exists in the existing_transaction_ids list
+                while True:
+                        self.transaction_id = str(uuid.uuid4())
+                        if self.transaction_id not in existing_transaction_ids:
+                                break
+
+                self.done(QtWidgets.QDialog.Accepted)
+                self.show_receipt(customer_details)
+        else:
+                QMessageBox.warning(self, "Validation Error", "Please fill in all fields and ensure amount is sufficient.")
 
     def validate_fields(self):
         fields = [
