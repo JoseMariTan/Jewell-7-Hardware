@@ -2,12 +2,12 @@ import sys
 import sqlite3
 from datetime import datetime
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5 import QtWidgets
 from shop import ShopTab
 from cart import CartTab
 from productManagement import ProductsTab
 from reports import ReportsTab
 from users import UsersTab
+from analytics import AnalyticsTab  # Import the AnalyticsTab class
 
 class Ui_MainWindow(object):
     def __init__(self, user_id):
@@ -211,7 +211,9 @@ class Ui_MainWindow(object):
         self.stackedWidget.setCurrentWidget(self.reports_tab)
 
     def open_analytics(self):
-        pass  # Implement this function
+        self.analytics_tab = AnalyticsTab()
+        self.stackedWidget.addWidget(self.analytics_tab)
+        self.stackedWidget.setCurrentWidget(self.analytics_tab)
 
     def open_returns(self):
         pass  # Implement this function
