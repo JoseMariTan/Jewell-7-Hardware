@@ -215,20 +215,73 @@ class PaymentForm(QDialog):
         return False
 
     def show_receipt(self, customer_details, payment_id):
-        receipt = f"PAYMENT ID: {payment_id}\n"
-        receipt += f"Customer Name: {customer_details['name']}\n"
-        receipt += f"Contact: {customer_details['contact']}\n"
-        receipt += f"Address: {customer_details['address']}\n"
-        receipt += f"Amount Paid: PHP{customer_details['amount_paid']:.2f}\n\n"
-        receipt += "Products Purchased:\n"
+        cart_products = self.products_in_cart  # Use the already fetched cart products
 
-        for product in self.products_in_cart:
-            receipt += f"- {product['name']} ({product['brand']} - {product['variant']} - Size: {product['size']}): "
-            receipt += f"Qty: {product['quantity']}, Total Price: PHP{product['total_price']:.2f}\n"
+        def censor_text(text, visible_chars=4):
+            return text[:visible_chars] + '*' * (len(text) - visible_chars) if len(text) > visible_chars else text
 
-        receipt += f"\nTotal Price: PHP{self.total_price:.2f}\n"
+        # Censoring contact number and address
+        censored_contact = censor_text(customer_details['contact'])
+        censored_address = censor_text(customer_details['address'])
 
-        QMessageBox.information(self, "Receipt", receipt)
+        business_name = "Jewell 7 Hardware"
+        business_address = "123 Hardware St., City, Country"  # Placeholder address
+        business_contact1 = "09530330697"
+        business_contact2 = "09852434838"
+
+        # Function to center text within a given width
+        def center_text(text, width):
+            return text.center(width, ' ')
+
+        receipt_width = 46  # Define the width of the receipt
+
+        receipt_header = f"""
+    {center_text('======================================', receipt_width)}
+    {center_text(business_name, receipt_width)}
+    {center_text('======================================', receipt_width)}
+    Address: {business_address}
+    Contact: {business_contact1}, {business_contact2}
+    {center_text('======================================', receipt_width)}
+    PAYMENT ID: {payment_id}
+    {center_text('--------------------------------------', receipt_width)}
+    Customer Details:
+    {center_text('--------------------------------------', receipt_width)}
+    Name    : {customer_details['name']}
+    Contact : {censored_contact}
+    Address : {censored_address}
+
+    {center_text('--------------------------------------', receipt_width)}
+    Products Purchased:
+    {center_text('--------------------------------------', receipt_width)}
+    """
+
+        total_price = 0
+        table_header = "{:<30} {:<10} {:<12}".format("Product", "Qty", "Total Price")
+        product_lines = [table_header + "\n" + "-" * len(table_header)]
+
+        for product in cart_products:
+            name, quantity, total_price_product = product['name'], product['quantity'], product['total_price']
+            total_price += total_price_product
+            product_lines.append(f"{name:<30} {quantity:<10} {total_price_product:<12.2f}")
+
+        payment_details = f"""
+    {center_text('--------------------------------------', receipt_width)}
+    Total Price: PHP{total_price:.2f}
+    Amount Paid: PHP{customer_details['amount_paid']:.2f}
+    Change     : PHP{customer_details['amount_paid'] - total_price:.2f}
+    {center_text('======================================', receipt_width)}
+    THANK YOU FOR YOUR PURCHASE!
+    {center_text('======================================', receipt_width)}
+    """
+
+        receipt = receipt_header + "\n".join(product_lines) + payment_details
+
+        # Create and display the custom QMessageBox
+        msg_box = QMessageBox(self)
+        msg_box.setIcon(QMessageBox.NoIcon)
+        msg_box.setWindowTitle("Receipt")
+        msg_box.setText(receipt)
+        msg_box.exec_()
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
