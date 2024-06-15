@@ -238,87 +238,75 @@ class CartTab(QtWidgets.QWidget):
             conn.close()
             return
         
-        try:
-            for row in range(self.cart_table.rowCount()):
-                product_name_item = self.cart_table.item(row, 1)
-                brand_item = self.cart_table.item(row, 2)
-                var_item = self.cart_table.item(row, 3)
-                size_item = self.cart_table.item(row, 4)
-                qty_item = self.cart_table.item(row, 5)
-                total_price_item = self.cart_table.item(row, 6)
+        for row in range(self.cart_table.rowCount()):
+            product_name_item = self.cart_table.item(row, 1)
+            brand_item = self.cart_table.item(row, 2)
+            var_item = self.cart_table.item(row, 3)
+            size_item = self.cart_table.item(row, 4)
+            qty_item = self.cart_table.item(row, 5)
+            total_price_item = self.cart_table.item(row, 6)
 
-                if qty_item and qty_item.text():
-                    product_name = product_name_item.text()
-                    qty = int(qty_item.text())
-                    total_price = float(total_price_item.text())
-                    brand = brand_item.text() if brand_item.text() else None
-                    var = var_item.text() if var_item.text() else None
-                    size = size_item.text() if size_item.text() else None
+            if qty_item and qty_item.text():
+                product_name = product_name_item.text()
+                qty = int(qty_item.text())
+                total_price = float(total_price_item.text())
+                brand = brand_item.text() if brand_item.text() else None
+                var = var_item.text() if var_item.text() else None
+                size = size_item.text() if size_item.text() else None
 
-                    query = """
-                        SELECT product_id 
-                        FROM products 
-                        WHERE product_name = ? 
-                            AND (brand = ? OR brand IS NULL) 
-                            AND (var = ? OR var IS NULL) 
-                            AND (size = ? OR size IS NULL)
-                    """
-                    cursor.execute(query, (product_name, brand, var, size))
+                query = """
+                    SELECT product_id 
+                    FROM products 
+                    WHERE product_name = ? 
+                        AND (brand = ? OR brand IS NULL) 
+                        AND (var = ? OR var IS NULL) 
+                        AND (size = ? OR size IS NULL)
+                """
+                cursor.execute(query, (product_name, brand, var, size))
 
-                    product_id_result = cursor.fetchone()
+                product_id_result = cursor.fetchone()
 
-                    if product_id_result:
-                        product_id = product_id_result[0]
-                    else:
-                        # Log the error and continue with the next item
-                        QMessageBox.warning(self, "Error", f"Product ID not found for {brand}!")
-                        transaction_successful = False
-                        continue  # Skip this item
+                if product_id_result:
+                    product_id = product_id_result[0]
+                else:
+                    # Log the error and continue with the next item
+                    QMessageBox.warning(self, "Error", f"Product ID not found for {brand}!")
+                    transaction_successful = False
+                    continue  # Skip this item
 
-                    # Replace with actual transaction type logic
-                    transaction_type = "purchase"
-            
-                    # Insert into transactions table
-                    cursor.execute('''
-                        INSERT INTO transactions (transaction_id, customer, product_name, qty, total_price, date, time, type, product_id, log_id, brand, var, size, user_id)
-                        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-                    ''', (transaction_id, customer_name, product_name, qty, total_price, current_date, current_time, transaction_type, product_id, log_id, brand, var, size, user_id))
-
-                    # Update the quantity in the products table
-                    cursor.execute("UPDATE products SET qty = qty - ? WHERE product_id = ?", (qty, product_id))
-
-                    # Insert into user_logs table
-                    action = "checkout"
-                    cursor.execute('''
-                        INSERT INTO user_logs (user_id, action, time, date)
-                        VALUES (?,?,?,?)
-                    ''', (user_id, action, current_time, current_date))
-
-                    transaction_successful = True
-                    log_id += 1  # Increment log_id for the next entry if there are multiple items
-
-            conn.commit()
-            conn.close()
-
-            # Clear cart table
-            self.clear_cart()
-
-            # Display success message
-            if transaction_successful:
-                QMessageBox.information(self, "Checkout", "Checkout successful!")
-            else:
-                QMessageBox.warning(self, "Checkout", "Checkout failed. Some items were not processed.")
+                # Replace with actual transaction type logic
+                transaction_type = "purchase"
         
-        except sqlite3.IntegrityError as e:
-            conn.rollback()  # Rollback the transaction to avoid partial commits
-            conn.close()
-            
-            # Extract the duplicate transaction_id from the error message
-            error_message = str(e)
-            duplicate_transaction_id = error_message.split(": ")[-1]
-            
-            QMessageBox.warning(self, "Error", f"Duplicate transaction ID found: {duplicate_transaction_id}")
+                # Insert into transactions table
+                cursor.execute('''
+                    INSERT INTO transactions (transaction_id, customer, product_name, qty, total_price, date, time, type, product_id, log_id, brand, var, size, user_id)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                ''', (transaction_id, customer_name, product_name, qty, total_price, current_date, current_time, transaction_type, product_id, log_id, brand, var, size, user_id))
 
+                # Update the quantity in the products table
+                cursor.execute("UPDATE products SET qty = qty - ? WHERE product_id = ?", (qty, product_id))
+
+                # Insert into user_logs table
+                action = "checkout"
+                cursor.execute('''
+                    INSERT INTO user_logs (user_id, action, time, date)
+                    VALUES (?,?,?,?)
+                ''', (user_id, action, current_time, current_date))
+
+                transaction_successful = True
+                log_id += 1  # Increment log_id for the next entry if there are multiple items
+
+        conn.commit()
+        conn.close()
+
+        # Clear cart table
+        self.clear_cart()
+
+        # Display success message
+        if transaction_successful:
+            QMessageBox.information(self, "Checkout", "Checkout successful!")
+        else:
+            QMessageBox.warning(self, "Checkout", "Checkout failed. Some items were not processed.")
 
 
     def resize_table(self):
