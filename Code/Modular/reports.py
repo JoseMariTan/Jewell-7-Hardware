@@ -154,10 +154,10 @@ class ReportsTab(QtWidgets.QWidget):
         
         # Create the table widget
         self.transactions_table = QtWidgets.QTableWidget()
-        self.transactions_table.setColumnCount(13)  # Update column count to match the number of columns
+        self.transactions_table.setColumnCount(15)  # Update column count to match the number of columns
         self.transactions_table.setHorizontalHeaderLabels([
             'Total Amount',  'Price', 'Quantity', 'Customer', 'Product','Brand', 'Variation', 'Size', 'Category', 'Time', 
-            'Date', 'User ID', 'Cashier'
+            'Date', 'User ID', 'Cashier', 'Payment ID', 'Contact'
         ])
         
         self.transactions_table.horizontalHeader().setStretchLastSection(True)
@@ -207,23 +207,19 @@ class ReportsTab(QtWidgets.QWidget):
 
     def on_selection_changed(self):
         selected_rows = set()
-        selected_transactions = set()  # Track selected transactions (customer name + time)
+        selected_payment_ids = set()  # Track selected payment_ids
 
-        # Iterate over selected items to collect rows and transactions
+        # Iterate over selected items to collect rows and payment_ids
         for item in self.transactions_table.selectedItems():
             row = item.row()
-            customer_name = self.transactions_table.item(row, 2).text()
-            time = self.transactions_table.item(row, 5).text()  # Assuming time is in column 5
-            transaction = f"{customer_name} - {time}"
+            payment_id = self.transactions_table.item(row, 13).text()  # Get payment_id from the 14th column
             selected_rows.add(row)
-            selected_transactions.add(transaction)
+            selected_payment_ids.add(payment_id)
 
-        # Find all rows with the same customer names and times as selected
+        # Find all rows with the same payment_id as selected
         for row in range(self.transactions_table.rowCount()):
-            customer_name = self.transactions_table.item(row, 2).text()
-            time = self.transactions_table.item(row, 5).text()  # Assuming time is in column 5
-            transaction = f"{customer_name} - {time}"
-            if transaction in selected_transactions:
+            payment_id = self.transactions_table.item(row, 13).text()  # Get payment_id from the 14th column
+            if payment_id in selected_payment_ids:
                 selected_rows.add(row)
 
         # Select all identified rows in the table
@@ -263,7 +259,7 @@ class ReportsTab(QtWidgets.QWidget):
 
         if search_query:
             query = """SELECT transactions.transaction_id, transactions.total_price, transactions.qty, transactions.customer, products.product_name, products.brand, 
-                           products.var, products.size, products.category, transactions.time, transactions.date, transactions.user_id, users.first_name, transactions.product_id
+                           products.var, products.size, products.category, transactions.time, transactions.date, transactions.user_id, users.first_name, transactions.payment_id, transactions.contact, transactions.product_id
                     FROM transactions
                     JOIN products ON transactions.product_id = products.product_id
                     JOIN users ON transactions.user_id = users.user_id
@@ -271,7 +267,7 @@ class ReportsTab(QtWidgets.QWidget):
             cursor.execute(query, (f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%"))
         else:
             cursor.execute("""SELECT transactions.transaction_id, transactions.total_price, transactions.qty, transactions.customer, products.product_name, products.brand, 
-                           products.var, products.size, products.category, transactions.time, transactions.date, transactions.user_id, users.first_name, transactions.product_id
+                           products.var, products.size, products.category, transactions.time, transactions.date, transactions.user_id, users.first_name, transactions.payment_id, transactions.contact, transactions.product_id
                     FROM transactions
                     JOIN products ON transactions.product_id = products.product_id
                     JOIN users ON transactions.user_id = users.user_id""")
@@ -330,7 +326,6 @@ class ReportsTab(QtWidgets.QWidget):
                 item = QTableWidgetItem(str(formatted_total_price))
                 item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
                 self.transactions_table.setItem(row_number - span_length, 0, item)
-
 
     #button functionalities
 

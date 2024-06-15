@@ -1,4 +1,5 @@
 import sqlite3
+import uuid
 from datetime import datetime
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QSpinBox, QPushButton, QMessageBox
 from PyQt5 import QtWidgets, QtCore
@@ -156,9 +157,10 @@ class CartTab(QtWidgets.QWidget):
         payment_form = PaymentForm(total_price=total_price, parent=self)
         
         if payment_form.exec_() == QtWidgets.QDialog.Accepted:
-            transaction_id = payment_form.transaction_id
-            customer_name = payment_form.customer_details['name']  # Get customer name from PaymentForm
-            self.checkout(customer_name, transaction_id)  # Pass customer_name and transaction_id
+            customer_name = payment_form.customer_details['name']  
+            contact = payment_form.customer_details['contact']
+            payment_id = payment_form.payment_id
+            self.checkout(customer_name, payment_id, contact) 
             QMessageBox.information(self, "Payment Successful", "Thank you for your purchase!")
             self.load_cart_items()
         else:
@@ -215,7 +217,11 @@ class CartTab(QtWidgets.QWidget):
         # Return the quantities of all products removed
         return quantities_removed
         
-    def checkout(self, customer_name, transaction_id):
+    def checkout(self, customer_name, payment_id, contact):
+        if not payment_id:
+            QMessageBox.warning(self, "Error", "Payment ID is missing.")
+            return
+
         # Get current date and time
         transaction_successful = False
         current_date = datetime.now().strftime('%Y-%m-%d')
@@ -276,12 +282,13 @@ class CartTab(QtWidgets.QWidget):
 
                 # Replace with actual transaction type logic
                 transaction_type = "purchase"
-        
+
+                transaction_id = str(uuid.uuid4())
                 # Insert into transactions table
                 cursor.execute('''
-                    INSERT INTO transactions (transaction_id, customer, product_name, qty, total_price, date, time, type, product_id, log_id, brand, var, size, user_id)
-                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-                ''', (transaction_id, customer_name, product_name, qty, total_price, current_date, current_time, transaction_type, product_id, log_id, brand, var, size, user_id))
+                    INSERT INTO transactions ( transaction_id, customer, product_name, qty, total_price, date, time, type, product_id, log_id, brand, var, size, user_id, payment_id, contact)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                ''', (transaction_id, customer_name, product_name, qty, total_price, current_date, current_time, transaction_type, product_id, log_id, brand, var, size, user_id, payment_id, contact))
 
                 # Update the quantity in the products table
                 cursor.execute("UPDATE products SET qty = qty - ? WHERE product_id = ?", (qty, product_id))
@@ -307,6 +314,7 @@ class CartTab(QtWidgets.QWidget):
             QMessageBox.information(self, "Checkout", "Checkout successful!")
         else:
             QMessageBox.warning(self, "Checkout", "Checkout failed. Some items were not processed.")
+
 
 
     def resize_table(self):

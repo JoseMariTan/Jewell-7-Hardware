@@ -8,7 +8,7 @@ class PaymentForm(QDialog):
     def __init__(self, total_price, parent=None):
         super().__init__(parent)
         self.total_price = total_price
-        self.transaction_id = None
+        self.payment_id = None
         self.products_in_cart = []
         self.customer_details = None
         self.setupUi()
@@ -195,23 +195,11 @@ class PaymentForm(QDialog):
                 "amount_paid": float(self.amount_edit.text())
                 }
                 self.customer_details = customer_details
-
-                # Retrieve existing transaction_ids
-                existing_transaction_ids = []
-                conn = sqlite3.connect('j7h.db')
-                cursor = conn.cursor()
-                cursor.execute('SELECT transaction_id FROM transactions')
-                for row in cursor:
-                        existing_transaction_ids.append(row[0])
-
-                # Generate a new transaction_id if it already exists in the existing_transaction_ids list
-                while True:
-                        self.transaction_id = str(uuid.uuid4())
-                        if self.transaction_id not in existing_transaction_ids:
-                                break
-
+                payment_id = str(uuid.uuid4())
+                self.payment_id = payment_id
                 self.done(QtWidgets.QDialog.Accepted)
-                self.show_receipt(customer_details)
+                self.show_receipt(customer_details, payment_id)
+                
         else:
                 QMessageBox.warning(self, "Validation Error", "Please fill in all fields and ensure amount is sufficient.")
 
@@ -226,8 +214,8 @@ class PaymentForm(QDialog):
             return True
         return False
 
-    def show_receipt(self, customer_details):
-        receipt = f"Transaction ID: {self.transaction_id}\n"
+    def show_receipt(self, customer_details, payment_id):
+        receipt = f"PAYMENT ID: {payment_id}\n"
         receipt += f"Customer Name: {customer_details['name']}\n"
         receipt += f"Contact: {customer_details['contact']}\n"
         receipt += f"Address: {customer_details['address']}\n"
