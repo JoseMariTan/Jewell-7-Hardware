@@ -1,6 +1,6 @@
 import sqlite3
 from datetime import datetime
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QSpinBox, QPushButton
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QSpinBox, QPushButton, QHBoxLayout
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 class AddToCartDialog(QDialog):
@@ -8,15 +8,56 @@ class AddToCartDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Add to Cart")
         self.layout = QVBoxLayout()
+        
         self.label = QLabel("Enter quantity:")
         self.layout.addWidget(self.label)
+        
         self.spin_box = QSpinBox()
         self.spin_box.setMaximum(max_quantity)
         self.layout.addWidget(self.spin_box)
+        
+        self.button_layout = QHBoxLayout()
+        
+        self.min_button = QPushButton("Min (1)")
+        self.min_button.setFixedWidth(50)
+        self.min_button.clicked.connect(lambda: self.set_quantity(1))
+        self.button_layout.addWidget(self.min_button)
+
+        self.plus_5_button = QPushButton("+5")
+        self.plus_5_button.setFixedWidth(50)
+        self.plus_5_button.clicked.connect(lambda: self.adjust_quantity(5))
+        self.button_layout.addWidget(self.plus_5_button)
+
+        self.zero_button = QPushButton("0")
+        self.zero_button.setFixedWidth(50)
+        self.zero_button.clicked.connect(lambda: self.adjust_quantity(0))
+        self.button_layout.addWidget(self.zero_button)
+        
+        self.plus_10_button = QPushButton("+10")
+        self.plus_10_button.setFixedWidth(50)
+        self.plus_10_button.clicked.connect(lambda: self.adjust_quantity(10))
+        self.button_layout.addWidget(self.plus_10_button)
+        
+        self.max_button = QPushButton(f"Max ({max_quantity})")
+        self.max_button.setFixedWidth(50)
+        self.max_button.clicked.connect(lambda: self.set_quantity(max_quantity))
+        self.button_layout.addWidget(self.max_button)
+        
+        self.layout.addLayout(self.button_layout)
+        
         self.add_button = QPushButton("Add")
         self.add_button.clicked.connect(self.accept)
         self.layout.addWidget(self.add_button)
+        
         self.setLayout(self.layout)
+
+    def set_quantity(self, quantity):
+        self.spin_box.setValue(quantity)
+
+    def adjust_quantity(self, adjustment):
+        new_value = self.spin_box.value() + adjustment
+        max_value = self.spin_box.maximum()
+        self.spin_box.setValue(min(max(new_value, 0), max_value))
 
     def get_quantity(self):
         return self.spin_box.value()
