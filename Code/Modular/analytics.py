@@ -3,6 +3,7 @@ import sqlite3
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from datetime import datetime, timedelta
 
 class AnalyticsTab(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -28,7 +29,7 @@ class AnalyticsTab(QtWidgets.QWidget):
         self.time_period_layout = QtWidgets.QHBoxLayout()
         self.time_period_label = QtWidgets.QLabel("Time Period:", self)
         self.time_period_combo = QtWidgets.QComboBox(self)
-        self.time_period_combo.addItems(["Daily", "Weekly", "Monthly", "Yearly"])
+        self.time_period_combo.addItems(["Last 24 Hours", "Last Week", "Last Month", "Last Year"])
         self.time_period_layout.addWidget(self.time_period_label)
         self.time_period_layout.addWidget(self.time_period_combo)
         self.controls_layout.addLayout(self.time_period_layout)
@@ -88,67 +89,72 @@ class AnalyticsTab(QtWidgets.QWidget):
     def save_analytics_data(self):
         chart_type = self.chart_type_combo.currentText()
         time_period = self.time_period_combo.currentText()
-        transaction_type = "sales" if self.transaction_type_sales.isChecked() else "returns"
+        transaction_type = "purchases" if self.transaction_type_sales.isChecked() else "returns"
         data_type = "product_name" if self.data_type_product_name.isChecked() else "category"
 
-        # Fetch data from the database
-        data = self.fetch_data(transaction_type, data_type, time_period)
+        self.update_chart(chart_type, time_period, transaction_type, data_type)
+
+    def update_chart(self, chart_type, time_period, transaction_type, data_type):
+        df = self.fetch_data(transaction_type, data_type, time_period)
         
-        # Generate chart based on fetched data and user selections
-        self.generate_chart(chart_type, data, transaction_type, data_type, time_period)
+        if df is not None and not df.empty:
+            if chart_type == "Pie Chart":
+                self.generate_pie_chart(df, f' Customer {transaction_type.capitalize()} Distribution from the {time_period} per {data_type.capitalize()}', data_type)
+            # Add other chart types here as needed
 
     def fetch_data(self, transaction_type, data_type, time_period):
-        # Connect to the database
-        conn = sqlite3.connect('j7h.db')
+        conn = sqlite3.connect("j7h.db")
         query = f"""
-        SELECT {data_type}, date, COUNT(*) as count 
-        FROM transactions 
-        WHERE type = ? 
-        GROUP BY {data_type}, date
+        SELECT {data_type}, date, time, type
+        FROM transactions
+        WHERE type = ?
         """
+
         df = pd.read_sql_query(query, conn, params=(transaction_type,))
         conn.close()
 
-        # Resample data based on the selected time period
-        df['date'] = pd.to_datetime(df['date'])
-        if time_period == "Daily":
-            df.set_index('date', inplace=True)
-        elif time_period == "Weekly":
-            df = df.set_index('date').groupby([pd.Grouper(freq='W'), data_type]).sum().reset_index()
-        elif time_period == "Monthly":
-            df = df.set_index('date').groupby([pd.Grouper(freq='M'), data_type]).sum().reset_index()
-        elif time_period == "Yearly":
-            df = df.set_index('date').groupby([pd.Grouper(freq='Y'), data_type]).sum().reset_index()
-
+        # Combine 'date' and 'time' columns into a single datetime column
+        df['datetime'] = pd.to_datetime(df['date'] + ' ' + df['time'], format='%Y-%m-%d %I:%M %p')
+        
+        # Filter data based on the selected time period
+        now = datetime.now()
+        start_date = now - timedelta(days=1) if time_period == 'Last 24 Hours' else \
+                     now - timedelta(weeks=1) if time_period == 'Last Week' else \
+                     now - timedelta(days=30) if time_period == 'Last Month' else \
+                     now - timedelta(days=365)
+        df = df[df['datetime'] >= start_date]
+        
         return df
 
-    def generate_chart(self, chart_type, data, transaction_type, data_type, time_period):
-        fig, ax = plt.subplots()
+    def generate_pie_chart(self, df, title, data_type):
+        if data_type == "product_name":
+            counts = df['product_name'].value_counts().head(8)
+        else:
+            counts = df['category'].value_counts().head(8)
+        
+        fig, ax = plt.subplots(figsize=(8, 6))
+        ax.pie(counts, labels=counts.index, autopct=self.autopct_format(counts), startangle=90)
+        ax.set_title(title)
+        ax.axis('equal')
 
-        if chart_type == "Line Chart":
-            for key, grp in data.groupby([data_type]):
-                ax.plot(grp['date'], grp['count'], label=key)
-            ax.legend(loc='best')
-        elif chart_type == "Pie Chart":
-            summary = data.groupby(data_type).sum()
-            ax.pie(summary['count'], labels=summary.index, autopct='%1.1f%%', startangle=90)
-            ax.axis('equal')
-        elif chart_type == "Bar Chart":
-            summary = data.groupby(data_type).sum().reset_index()
-            ax.bar(summary[data_type], summary['count'])
-
-        ax.set_title(f"{chart_type} for {transaction_type} by {data_type} ({time_period})")
-        ax.set_xlabel("Date")
-        ax.set_ylabel("Count")
-
-        # Clear the previous chart and plot the new one
-        for i in reversed(range(self.chart_layout.count())): 
-            widgetToRemove = self.chart_layout.itemAt(i).widget()
-            self.chart_layout.removeWidget(widgetToRemove)
-            widgetToRemove.setParent(None)
-
+        # Replace chart placeholder with the pie chart
         canvas = FigureCanvas(fig)
+        self.clear_chart_placeholder()
         self.chart_layout.addWidget(canvas)
+
+    def autopct_format(self, values):
+        def my_format(pct):
+            total = sum(values)
+            val = int(round(pct * total / 100.0))
+            return f'{pct:.1f}% ({val:d})'
+        return my_format
+
+    def clear_chart_placeholder(self):
+        # Clear all widgets in the chart layout
+        for i in reversed(range(self.chart_layout.count())):
+            widget = self.chart_layout.itemAt(i).widget()
+            if widget is not None:
+                widget.setParent(None)
 
 if __name__ == "__main__":
     import sys

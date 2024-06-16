@@ -258,19 +258,15 @@ class ReportsTab(QtWidgets.QWidget):
         cursor = conn.cursor()
 
         if search_query:
-            query = """SELECT transactions.transaction_id, transactions.total_price, transactions.qty, transactions.customer, products.product_name, products.brand, 
-                           products.var, products.size, products.category, transactions.time, transactions.date, transactions.user_id, users.first_name, transactions.payment_id, transactions.contact, transactions.product_id
+            query = """SELECT transaction_id, total_price, qty, customer, product_name, brand, 
+                           var, size, category, time, date, user_id, users.first_name, payment_id, contact, product_id
                     FROM transactions
-                    JOIN products ON transactions.product_id = products.product_id
-                    JOIN users ON transactions.user_id = users.user_id
-                    WHERE transactions.user_id LIKE ? OR transactions.customer LIKE ? OR transactions.date LIKE ? OR transactions.time LIKE ?"""
+                    WHERE user_id LIKE ? OR customer LIKE ? OR date LIKE ? OR time LIKE ?"""
             cursor.execute(query, (f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%"))
         else:
-            cursor.execute("""SELECT transactions.transaction_id, transactions.total_price, transactions.qty, transactions.customer, products.product_name, products.brand, 
-                           products.var, products.size, products.category, transactions.time, transactions.date, transactions.user_id, users.first_name, transactions.payment_id, transactions.contact, transactions.product_id
-                    FROM transactions
-                    JOIN products ON transactions.product_id = products.product_id
-                    JOIN users ON transactions.user_id = users.user_id""")
+            cursor.execute("""SELECT transaction_id, total_price, qty, customer, product_name, brand, 
+                           var, size, category, time, date, user_id, payment_id, contact, product_id
+                    FROM transactions""")
 
         rows = cursor.fetchall()
         conn.close()
