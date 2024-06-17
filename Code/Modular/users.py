@@ -21,8 +21,6 @@ class UsersTab(QtWidgets.QWidget):
         self.layout.addLayout(self.horizontalLayout)
 
         self.tableWidget = QtWidgets.QTableWidget()
-        self.tableWidget.setColumnCount(7) 
-        self.tableWidget.setHorizontalHeaderLabels(['Product', 'Brand', 'Variation', 'Size', 'Price', 'Items in Stock', 'Category'])
         self.tableWidget.horizontalHeader().setStretchLastSection(True)
         self.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         self.tableWidget.verticalHeader().setVisible(False)
@@ -79,17 +77,15 @@ class UsersTab(QtWidgets.QWidget):
         users = cur.fetchall()
 
         self.tableWidget.setRowCount(len(users))
-        self.tableWidget.setColumnCount(6)
-        self.tableWidget.setHorizontalHeaderLabels(["RowID", "First Name", "Last Name", "Username", "Password", "LOA"])
+        self.tableWidget.setColumnCount(5)
+        self.tableWidget.setHorizontalHeaderLabels(["First Name", "Last Name", "Username", "Password", "Level of Access"])
+        self.tableWidget.setColumnHidden(0, True)
 
         for i, user in enumerate(users):
             for j, value in enumerate(user):
                 self.tableWidget.setItem(i, j, QtWidgets.QTableWidgetItem(str(value)))
 
-        self.resize_table()
         conn.close()
-
-        self.tableWidget.setColumnHidden(0, True)
 
     def on_selection_changed(self):
         selected_rows = set()
@@ -100,15 +96,6 @@ class UsersTab(QtWidgets.QWidget):
                 item = self.tableWidget.item(row, column)
                 if item:
                     item.setSelected(True)
-
-    def resize_table(self):
-        header = self.tableWidget.horizontalHeader()
-        for i in range(1, self.tableWidget.columnCount() - 1):
-            header.setSectionResizeMode(i, QtWidgets.QHeaderView.Stretch)
-        header.setSectionResizeMode(self.tableWidget.columnCount() - 1, QtWidgets.QHeaderView.Stretch)
-
-        vertical_header = self.tableWidget.verticalHeader()
-        vertical_header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
 
     def open_modify_user_dialog(self):
         selected_row = self.tableWidget.currentRow()

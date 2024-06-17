@@ -154,11 +154,11 @@ class Login(QtWidgets.QMainWindow):
                 return
 
             user_id, stored_password = result
+            current_datetime = datetime.today()
+            date_log = current_datetime.strftime('%Y-%m-%d')
+            time_log = current_datetime.strftime("%I:%M %p")
+            
             if stored_password == password:
-                current_datetime = datetime.today()
-                date_log = current_datetime.strftime('%Y-%m-%d')
-                time_log = current_datetime.strftime("%I:%M %p")
-
                 action = "login"
                 cursor.execute('''INSERT INTO user_logs (user_id, action, time, date) 
                             VALUES (?, ?, ?, ?)''', (user_id, action, time_log, date_log))
@@ -166,6 +166,10 @@ class Login(QtWidgets.QMainWindow):
                 self.open_main_window(user_id)  # Pass user_id to the main window
 
             else:
+                action = "login attempt"
+                cursor.execute('''INSERT INTO user_logs (user_id, action, time, date) 
+                            VALUES (?, ?, ?, ?)''', (user_id, action, time_log, date_log))
+                conn.commit()
                 self.show_error_message("Invalid username or password.")
         except sqlite3.Error as e:
             self.show_error_message(f"Database error: {e}")

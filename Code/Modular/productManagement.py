@@ -36,17 +36,14 @@ class ProductsTab(QtWidgets.QWidget):
         self.scrollArea.setWidgetResizable(True)
         self.tableWidget = QtWidgets.QTableWidget()
         
-        self.tableWidget.setFixedHeight(self.tableWidget.verticalHeader().defaultSectionSize() * 30)  # Adjust multiplier as needed
-        self.tableWidget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        self.tableWidget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.tableWidget.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
-    
-        # Ensure consistent border and frame shape
-        self.tableWidget.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.tableWidget.setFrameShadow(QtWidgets.QFrame.Plain)
-        self.tableWidget.setStyleSheet("QTableWidget { border: none; }")  # Ensure no border
+        self.tableWidget.horizontalHeader().setStretchLastSection(True)
         self.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
-    
+        self.tableWidget.verticalHeader().setVisible(False)
+
+        self.tableWidget.setStyleSheet(""" QTableWidget::item:selected { background-color: #3b352d; border: none;}
+                            QTableWidget::item { border: none;}
+                            QHeaderView::section { background-color: #ff7d7d;} """)
+
         self.scrollArea.setWidget(self.tableWidget)
         self.horizontalLayout_4.addWidget(self.scrollArea)
         self.verticalLayout.addLayout(self.horizontalLayout_4)
@@ -114,7 +111,6 @@ class ProductsTab(QtWidgets.QWidget):
         for i, product in enumerate(products):
             for j, value in enumerate(product):
                 self.tableWidget.setItem(i, j, QtWidgets.QTableWidgetItem(str(value)))
-
 
         conn.close()
         self.tableWidget.setColumnHidden(0, True)
