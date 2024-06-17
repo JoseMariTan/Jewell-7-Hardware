@@ -31,8 +31,19 @@ for _ in range(150):
     qty = random.randint(1, 5)
     customer = random.choice(customers)
     product = random.choice(products)
-    time = (datetime.now() + timedelta(minutes=random.randint(0, 1000))).strftime("%I:%M %p")
-    date = datetime.now().strftime("%Y-%m-%d")
+    
+    # Generate a random date between January 2024 and December 2024
+    start_date = datetime(2024, 1, 1)
+    end_date = datetime(2024, 12, 31)
+    random_date = start_date + timedelta(days=random.randint(0, (end_date - start_date).days))
+    date = random_date.strftime("%Y-%m-%d")
+    
+    # Generate a random time between 8:00 AM and 6:00 PM
+    start_time = datetime.strptime("08:00 AM", "%I:%M %p")
+    end_time = datetime.strptime("06:00 PM", "%I:%M %p")
+    random_time = start_time + timedelta(minutes=random.randint(0, int((end_time - start_time).total_seconds() // 60)))
+    time = random_time.strftime("%I:%M %p")
+
     user_id = random.randint(1, 10)
     status = None
     reference_id = None

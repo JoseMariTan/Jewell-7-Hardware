@@ -86,6 +86,23 @@ class AnalyticsTab(QtWidgets.QWidget):
         # Connect save button to a method
         self.save_button.clicked.connect(self.save_analytics_data)
 
+        # Connect chart type combo box to visibility handler
+        self.chart_type_combo.currentIndexChanged.connect(self.toggle_data_type_visibility)
+
+        # Initially hide data type options for Line Chart
+        self.toggle_data_type_visibility()
+
+    def toggle_data_type_visibility(self):
+        chart_type = self.chart_type_combo.currentText()
+        if chart_type == "Line Chart":
+            self.data_type_label.hide()
+            self.data_type_product_name.hide()
+            self.data_type_category.hide()
+        else:
+            self.data_type_label.show()
+            self.data_type_product_name.show()
+            self.data_type_category.show()
+
     def save_analytics_data(self):
         chart_type = self.chart_type_combo.currentText()
         time_period = self.time_period_combo.currentText()
@@ -96,11 +113,14 @@ class AnalyticsTab(QtWidgets.QWidget):
 
     def update_chart(self, chart_type, time_period, transaction_type, data_type):
         df = self.fetch_data(transaction_type, data_type, time_period)
-        
+
         if df is not None and not df.empty:
             if chart_type == "Pie Chart":
-                self.generate_pie_chart(df, f' Customer {transaction_type.capitalize()} Distribution from the {time_period} per {data_type.capitalize()}', data_type)
-            # Add other chart types here as needed
+                self.generate_pie_chart(df, f'Customer {transaction_type.capitalize()} Distribution from the {time_period} per {data_type.capitalize()}', data_type)
+            elif chart_type == "Line Chart":
+                self.generate_line_chart(df, f'Customer {transaction_type.capitalize()} over {time_period} per {data_type.capitalize()}', data_type)
+            elif chart_type == "Bar Chart":
+                self.generate_bar_chart(df, f'Customer {transaction_type.capitalize()} Distribution from the {time_period} per {data_type.capitalize()}', data_type)
 
     def fetch_data(self, transaction_type, data_type, time_period):
         conn = sqlite3.connect("j7h.db")
@@ -115,7 +135,7 @@ class AnalyticsTab(QtWidgets.QWidget):
 
         # Combine 'date' and 'time' columns into a single datetime column
         df['datetime'] = pd.to_datetime(df['date'] + ' ' + df['time'], format='%Y-%m-%d %I:%M %p')
-        
+
         # Filter data based on the selected time period
         now = datetime.now()
         start_date = now - timedelta(days=1) if time_period == 'Last 24 Hours' else \
@@ -123,15 +143,12 @@ class AnalyticsTab(QtWidgets.QWidget):
                      now - timedelta(days=30) if time_period == 'Last Month' else \
                      now - timedelta(days=365)
         df = df[df['datetime'] >= start_date]
-        
+
         return df
 
     def generate_pie_chart(self, df, title, data_type):
-        if data_type == "product_name":
-            counts = df['product_name'].value_counts().head(8)
-        else:
-            counts = df['category'].value_counts().head(8)
-        
+        counts = df[data_type].value_counts().head(8)
+
         fig, ax = plt.subplots(figsize=(8, 6))
         ax.pie(counts, labels=counts.index, autopct=self.autopct_format(counts), startangle=90)
         ax.set_title(title)
@@ -142,25 +159,78 @@ class AnalyticsTab(QtWidgets.QWidget):
         self.clear_chart_placeholder()
         self.chart_layout.addWidget(canvas)
 
+    def generate_line_chart(self, df, title, data_type):
+        fig, ax = plt.subplots(figsize=(10, 5))
+
+        if self.time_period_combo.currentText() == 'Last 24 Hours':
+            times_24h = [(datetime.now().replace(hour=h, minute=0, second=0, microsecond=0),
+                          datetime.now().replace(hour=h + 1, minute=0, second=0, microsecond=0))
+                         for h in range(8, 18)]  # Business hours from 8 AM to 5 PM
+            counts = [len(df[(df['datetime'] >= start) & (df['datetime'] < end)]) for start, end in times_24h]
+            times_labels = [start.strftime('%I %p') for start, end in times_24h]
+            ax.plot(times_labels, counts, marker='o')
+
+        elif self.time_period_combo.currentText() == 'Last Week':
+            days = [(datetime.now() - timedelta(days=i)).date() for i in range(6, -1, -1)]
+            counts = [len(df[df['datetime'].dt.date == day]) for day in days]
+            days_labels = [day.strftime('%a') for day in days]
+            ax.plot(days_labels, counts, marker='o')
+
+        elif self.time_period_combo.currentText() == 'Last Month':
+            weeks = [(datetime.now() - timedelta(days=i * 7), datetime.now() - timedelta(days=(i - 1) * 7)) for i in range(4, 0, -1)]
+            counts = [len(df[(df['datetime'] >= start) & (df['datetime'] < end)]) for start, end in weeks]
+            weeks_labels = [f'Week {i + 1}' for i in range(4)]
+            ax.plot(weeks_labels, counts, marker='o')
+
+        elif self.time_period_combo.currentText() == 'Last Year':
+            months = [datetime(datetime.now().year, m, 1) for m in range(1, 13)]
+            counts = [len(df[df['datetime'].dt.month == month.month]) for month in months]
+            months_labels = [month.strftime('%b') for month in months]
+            ax.plot(months_labels, counts, marker='o')
+
+        ax.set_title(title)
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Frequency')
+        ax.grid(True)
+        plt.xticks(rotation=45)
+
+        canvas = FigureCanvas(fig)
+        self.clear_chart_placeholder()
+        self.chart_layout.addWidget(canvas)
+
+    def generate_bar_chart(self, df, title, data_type):
+        counts = df[data_type].value_counts().head(8)
+
+        fig, ax = plt.subplots(figsize=(10, 5))
+        ax.bar(counts.index, counts, color='skyblue')
+        ax.set_title(title)
+        ax.set_xlabel(data_type.capitalize())
+        ax.set_ylabel('Frequency')
+        plt.xticks(rotation=45)
+
+        canvas = FigureCanvas(fig)
+        self.clear_chart_placeholder()
+        self.chart_layout.addWidget(canvas)
+
+    def clear_chart_placeholder(self):
+        while self.chart_layout.count():
+            child = self.chart_layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+
     def autopct_format(self, values):
         def my_format(pct):
             total = sum(values)
             val = int(round(pct * total / 100.0))
-            return f'{pct:.1f}% ({val:d})'
+            return f'{val} ({pct:.2f}%)'
         return my_format
 
-    def clear_chart_placeholder(self):
-        # Clear all widgets in the chart layout
-        for i in reversed(range(self.chart_layout.count())):
-            widget = self.chart_layout.itemAt(i).widget()
-            if widget is not None:
-                widget.setParent(None)
-
 if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    window = QtWidgets.QMainWindow()
+    app = QtWidgets.QApplication([])
+
     analytics_tab = AnalyticsTab()
-    window.setCentralWidget(analytics_tab)
-    window.show()
-    sys.exit(app.exec_())
+    analytics_tab.setWindowTitle('Analytics Dashboard')
+    analytics_tab.resize(1200, 800)
+    analytics_tab.show()
+
+    app.exec_()
