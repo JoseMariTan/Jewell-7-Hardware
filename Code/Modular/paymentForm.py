@@ -214,6 +214,7 @@ class PaymentForm(QDialog):
             return True
         return False
 
+
     def show_receipt(self, customer_details, payment_id):
         cart_products = self.products_in_cart  # Use the already fetched cart products
 
@@ -229,59 +230,66 @@ class PaymentForm(QDialog):
         business_contact1 = "09530330697"
         business_contact2 = "09852434838"
 
-        # Function to center text within a given width
+        # Function to center text within a given width using asterisks
         def center_text(text, width):
-            return text.center(width, ' ')
+            return f"*{text:^{width - 2}}*"
 
         receipt_width = 46  # Define the width of the receipt
 
         receipt_header = f"""
-    {center_text('======================================', receipt_width)}
-    {center_text(business_name, receipt_width)}
-    {center_text('======================================', receipt_width)}
+    *{'=' * 44}*
+    *{center_text(business_name, 44)}*
+    *{'=' * 44}*
     Address: {business_address}
     Contact: {business_contact1}, {business_contact2}
-    {center_text('======================================', receipt_width)}
+    *{'=' * 44}*
     PAYMENT ID: {payment_id}
-    {center_text('--------------------------------------', receipt_width)}
+    *{'-' * 60}*
     Customer Details:
-    {center_text('--------------------------------------', receipt_width)}
-    Name    : {customer_details['name']}
-    Contact : {censored_contact}
-    Address : {censored_address}
-
-    {center_text('--------------------------------------', receipt_width)}
+    *{'-' * 60}*
+    Name\t: {customer_details['name']}
+    Contact\t: {censored_contact}
+    Address\t: {censored_address}
+    *{'-' * 60}*
     Products Purchased:
-    {center_text('--------------------------------------', receipt_width)}
+    *{'-' * 60}*
     """
 
         total_price = 0
-        table_header = "{:<30} {:<10} {:<12}".format("Product", "Qty", "Total Price")
-        product_lines = [table_header + "\n" + "-" * len(table_header)]
+        product_lines = []
+
+        # Define fixed-width columns
+        name_width = 20
+        quantity_width = 8
+        price_width = 15
 
         for product in cart_products:
-            name, quantity, total_price_product = product['name'], product['quantity'], product['total_price']
+            name = product['name'][:name_width]  # Truncate if too long
+            quantity = product['quantity']
+            total_price_product = product['total_price']
             total_price += total_price_product
-            product_lines.append(f"{name:<30} {quantity:<10} {total_price_product:<12.2f}")
+            product_line = f"{name:<{name_width}} {quantity:<{quantity_width}} PHP{total_price_product:>{price_width - 4}.2f}"
+            product_lines.append(product_line)
 
         payment_details = f"""
-    {center_text('--------------------------------------', receipt_width)}
-    Total Price: PHP{total_price:.2f}
-    Amount Paid: PHP{customer_details['amount_paid']:.2f}
-    Change     : PHP{customer_details['amount_paid'] - total_price:.2f}
-    {center_text('======================================', receipt_width)}
+    *{'-' * 44}*
+    Total Price\t: PHP{total_price:.2f}
+    Amount Paid\t: PHP{customer_details['amount_paid']:.2f}
+    Change\t\t: PHP{customer_details['amount_paid'] - total_price:.2f}
+    *{'=' * 44}*
     THANK YOU FOR YOUR PURCHASE!
-    {center_text('======================================', receipt_width)}
+    *{'=' * 44}*
     """
 
         receipt = receipt_header + "\n".join(product_lines) + payment_details
 
-        # Create and display the custom QMessageBox
-        msg_box = QMessageBox(self)
-        msg_box.setIcon(QMessageBox.NoIcon)
-        msg_box.setWindowTitle("Receipt")
-        msg_box.setText(receipt)
-        msg_box.exec_()
+        # Create a QMessageBox and set the receipt as its text
+        message_box = QMessageBox()
+        message_box.setWindowTitle("Receipt")
+        message_box.setText(receipt)
+        message_box.setStandardButtons(QMessageBox.Ok)
+        message_box.exec_()
+
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
