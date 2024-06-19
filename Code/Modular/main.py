@@ -467,7 +467,7 @@ class Ui_MainWindow(object):
         self.login_window = QtWidgets.QMainWindow()
         self.ui = Login()
         self.ui.setupUi(self.login_window)
-        self.login_window.show()
+        self.login_window.showFullScreen()
         # Close the main window
         QtWidgets.QApplication.instance().activeWindow().close()
 
@@ -477,5 +477,5 @@ if __name__ == "__main__":
     # Create and show the selection window
     from selection_screen import Selection
     selection_window = Selection()
-    selection_window.show()
+    selection_window.showFullScreen()
     sys.exit(app.exec_())
