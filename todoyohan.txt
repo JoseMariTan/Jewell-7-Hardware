@@ -1,0 +1,7 @@
+to-do(applying ui to existing system):
+*import logo_rc for logo to show up
+
+refactor main system flow
+turn selectionscreen to stacked widgets similar to main program
+turn login and register into widgets
+logout goes back to selection screen instead of login
