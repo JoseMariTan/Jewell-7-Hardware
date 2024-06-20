@@ -8,30 +8,24 @@ from selection_screen import Selection
 from forgotPassword import Ui_ForgotPassword
 import logo_rc
 
-class Login(QtWidgets.QMainWindow):
-    def __init__(self):
-        super().__init__()
+class Login(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.setupUi(self)
         self.new_window = None
 
     def setupUi(self, Login):
-        Login.setObjectName("Login")
-        Login.resize(1218, 820)
-        Login.setStyleSheet("background-color: #FCFEFE;")
-        Login.setAnimated(True)
-        Login.setDocumentMode(False)
+        self.setObjectName("Login")
+        self.resize(1218, 820)
+        self.setStyleSheet("background-color: #FCFEFE;")
         
-        self.centralwidget = QtWidgets.QWidget(Login)
-        self.centralwidget.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.centralwidget.setObjectName("centralwidget")
-        
-        self.gridLayout_3 = QtWidgets.QGridLayout(self.centralwidget)
+        self.gridLayout_3 = QtWidgets.QGridLayout(self)
         self.gridLayout_3.setObjectName("gridLayout_3")
         self.gridLayout_2 = QtWidgets.QGridLayout()
         self.gridLayout_2.setHorizontalSpacing(0)
         self.gridLayout_2.setObjectName("gridLayout_2")
         
-        self.widget_2 = QtWidgets.QWidget(self.centralwidget)
+        self.widget_2 = QtWidgets.QWidget(self)
         self.widget_2.setMinimumSize(QtCore.QSize(200, 0))
         self.widget_2.setMaximumSize(QtCore.QSize(500, 600))
         self.widget_2.setStyleSheet("QWidget {\n"
@@ -56,7 +50,7 @@ class Login(QtWidgets.QMainWindow):
         self.gridLayout.addWidget(self.logo, 0, 0, 1, 1)
         self.gridLayout_2.addWidget(self.widget_2, 0, 0, 1, 1)
         
-        self.widget = QtWidgets.QWidget(self.centralwidget)
+        self.widget = QtWidgets.QWidget(self)
         self.widget.setMinimumSize(QtCore.QSize(200, 0))
         self.widget.setMaximumSize(QtCore.QSize(500, 600))
         self.widget.setLayoutDirection(QtCore.Qt.LeftToRight)
@@ -83,20 +77,20 @@ class Login(QtWidgets.QMainWindow):
         font.setWeight(50)
         self.back_button.setFont(font)
         self.back_button.setStyleSheet("QPushButton {\n"
-"    background-color: transparent;\n"
-"    border: none;\n"
-"    color:#3d3d3d    ;\n"
-"    padding: 0;\n"
-"}\n"
-"\n"
-"QPushButton:hover {\n"
-"    text-decoration: underline;\n"
-"}\n"
-"\n"
-"QPushButton:pressed {\n"
-"    color: #265C42;\n"
-"}\n"
-"")
+                                       "    background-color: transparent;\n"
+                                       "    border: none;\n"
+                                       "    color:#3d3d3d;\n"
+                                       "    padding: 0;\n"
+                                       "}\n"
+                                       "\n"
+                                       "QPushButton:hover {\n"
+                                       "    text-decoration: underline;\n"
+                                       "}\n"
+                                       "\n"
+                                       "QPushButton:pressed {\n"
+                                       "    color: #265C42;\n"
+                                       "}\n"
+                                       "")
         self.back_button.setText("←")
         self.back_button.clicked.connect(self.go_back)
         self.verticalLayout.addWidget(self.back_button)
@@ -201,40 +195,35 @@ class Login(QtWidgets.QMainWindow):
         font.setPointSize(10)
         self.forgotButton.setFont(font)
         self.forgotButton.setStyleSheet("QPushButton {\n"
-"    background-color: transparent;\n"
-"    border: none;\n"
-"    color:#4169E1;\n"
-"    padding: 0;\n"
-"}\n"
-"\n"
-"QPushButton:hover {\n"
-"    text-decoration: underline;\n"
-"}\n"
-"\n"
-"QPushButton:pressed {\n"
-"    color: #265C42;\n"
-"}\n"
-"")
+                                        "    background-color: transparent;\n"
+                                        "    border: none;\n"
+                                        "    color:#4169E1;\n"
+                                        "    padding: 0;\n"
+                                        "}\n"
+                                        "\n"
+                                        "QPushButton:hover {\n"
+                                        "    text-decoration: underline;\n"
+                                        "}\n"
+                                        "\n"
+                                        "QPushButton:pressed {\n"
+                                        "    color: #265C42;\n"
+                                        "}\n"
+                                        "")
         self.forgotButton.setObjectName("forgotButton")
         self.verticalLayout.addWidget(self.forgotButton)
         self.forgotButton.clicked.connect(self.forgot_password)
         
         self.gridLayout_2.addWidget(self.widget, 0, 1, 1, 1)
         self.gridLayout_3.addLayout(self.gridLayout_2, 1, 0, 1, 1)
-        Login.setCentralWidget(self.centralwidget)
-        
-        self.statusbar = QtWidgets.QStatusBar(Login)
-        self.statusbar.setObjectName("statusbar")
-        Login.setStatusBar(self.statusbar)
 
-        self.retranslateUi(Login)
-        QtCore.QMetaObject.connectSlotsByName(Login)
+        self.retranslateUi()
+        QtCore.QMetaObject.connectSlotsByName(self)
 
         self.show_password_checkbox.stateChanged.connect(self.toggle_password_visibility)
 
-    def retranslateUi(self, Login):
+    def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
-        Login.setWindowTitle(_translate("Login", "MainWindow"))
+        self.setWindowTitle(_translate("Login", "MainWindow"))
         self.welcomeLabel.setText(_translate("Login", "                  Welcome Back!"))
         self.username_input.setPlaceholderText(_translate("Login", "Username"))
         self.password_input.setPlaceholderText(_translate("Login", "Password"))
@@ -292,6 +281,7 @@ class Login(QtWidgets.QMainWindow):
             conn.close()
 
     def open_main_window(self, user_id):
+        QtWidgets.QApplication.instance().activeWindow().close()
         self.main_window = QtWidgets.QMainWindow()
         self.ui = Ui_MainWindow(user_id)
         self.ui.setupUi(self.main_window)
@@ -314,21 +304,10 @@ class Login(QtWidgets.QMainWindow):
         msg_box.exec_()
 
     def go_back(self):
-        self.new_window = Selection()  
+        QtWidgets.QApplication.instance().activeWindow().close()
+        self.new_window = QtWidgets.QMainWindow()
+        self.selection_ui = Selection()
+        self.selection_ui.setupUi(self.new_window)
         self.new_window.showFullScreen()
         self.close()
 
-if __name__ == "__main__":
-
-    app = QtWidgets.QApplication(sys.argv)
-    Login = Login()
-    Login.show()
-    sys.exit(app.exec_())
-
-
-if __name__ == "__main__":
-
-    app = QtWidgets.QApplication(sys.argv)
-    Login = Login()
-    Login.show()
-    sys.exit(app.exec_())

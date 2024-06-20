@@ -7,8 +7,7 @@ from cart import CartTab
 from productManagement import ProductsTab
 from reports import ReportsTab
 from users import UsersTab
-from analytics import AnalyticsTab  # Import the AnalyticsTab class
-
+from analytics import AnalyticsTab
 class Ui_MainWindow(object):
     def __init__(self, user_id):
         self.user_id = user_id
@@ -461,21 +460,12 @@ class Ui_MainWindow(object):
         cursor.execute('''INSERT INTO user_logs (user_id, action, time, date) 
                             VALUES (?, ?, ?, ?)''', (user_id, action, time_log, date_log))
         conn.commit()
-
-        # Create and show the login window
-        from login import Login
-        self.login_window = QtWidgets.QMainWindow()
-        self.ui = Login()
-        self.ui.setupUi(self.login_window)
-        self.login_window.showFullScreen()
-        # Close the main window
         QtWidgets.QApplication.instance().activeWindow().close()
+        # Go back to selection_screen
+        from selection_screen import Selection
+        self.new_window = QtWidgets.QMainWindow()
+        self.selection_ui = Selection()
+        self.selection_ui.setupUi(self.new_window)
+        self.new_window.showFullScreen()
+   
 
-if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-
-    # Create and show the selection window
-    from selection_screen import Selection
-    selection_window = Selection()
-    selection_window.showFullScreen()
-    sys.exit(app.exec_())

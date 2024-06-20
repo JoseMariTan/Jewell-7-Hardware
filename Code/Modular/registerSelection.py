@@ -2,26 +2,25 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from staffRegistration import StaffRegistration
 from adminRegistration import AdminRegistration
-import logo_rc
 
-class Ui_registerSelection(object):
+class Register(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setupUi(self)
+        self.setupConnections()
+
     def setupUi(self, registerSelection):
-        registerSelection.setObjectName("registerSelection")
         registerSelection.resize(1150, 820)
         registerSelection.setStyleSheet("background-color: #FCFEFE;")
-        registerSelection.setAnimated(True)
-        registerSelection.setDocumentMode(False)
-        self.centralwidget = QtWidgets.QWidget(registerSelection)
-        self.centralwidget.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.centralwidget.setObjectName("centralwidget")
-        self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
+        self.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.horizontalLayout = QtWidgets.QHBoxLayout(self)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.gridLayout_2 = QtWidgets.QGridLayout()
         self.gridLayout_2.setHorizontalSpacing(0)
         self.gridLayout_2.setObjectName("gridLayout_2")
         
         # Logo Container
-        self.logoContainer = QtWidgets.QWidget(self.centralwidget)
+        self.logoContainer = QtWidgets.QWidget(self)
         self.logoContainer.setMinimumSize(QtCore.QSize(200, 0))
         self.logoContainer.setMaximumSize(QtCore.QSize(500, 600))
         self.logoContainer.setStyleSheet("QWidget {\n"
@@ -49,7 +48,7 @@ class Ui_registerSelection(object):
         self.gridLayout_2.addWidget(self.logoContainer, 0, 0, 1, 1)
         
         # White Container (Main Content Area)
-        self.whiteContainer = QtWidgets.QWidget(self.centralwidget)
+        self.whiteContainer = QtWidgets.QWidget(self)
         self.whiteContainer.setMinimumSize(QtCore.QSize(200, 0))
         self.whiteContainer.setMaximumSize(QtCore.QSize(500, 600))
         self.whiteContainer.setLayoutDirection(QtCore.Qt.LeftToRight)
@@ -191,13 +190,11 @@ class Ui_registerSelection(object):
         self.verticalLayout.addItem(spacerItem)
         self.gridLayout_2.addWidget(self.whiteContainer, 0, 1, 1, 1)
         self.horizontalLayout.addLayout(self.gridLayout_2)
-        registerSelection.setCentralWidget(self.centralwidget)
-        self.statusbar = QtWidgets.QStatusBar(registerSelection)
-        self.statusbar.setObjectName("statusbar")
-        registerSelection.setStatusBar(self.statusbar)
 
         self.retranslateUi(registerSelection)
         QtCore.QMetaObject.connectSlotsByName(registerSelection)
+    
+    import logo_rc
 
     def retranslateUi(self, registerSelection):
         _translate = QtCore.QCoreApplication.translate
@@ -207,32 +204,27 @@ class Ui_registerSelection(object):
         self.staffButton.setText(_translate("registerSelection", "Staff"))
         self.adminButton.setText(_translate("registerSelection", "Admin"))
 
-class RegSelection(QtWidgets.QMainWindow, Ui_registerSelection):
-    def __init__(self):
-        super().__init__()
-        self.setupUi(self)
+    def setupConnections(self):
+        self.staffButton.clicked.connect(self.openStaffRegistration)
+        self.adminButton.clicked.connect(self.openAdminRegistration)
         self.backButton.clicked.connect(self.go_back)
-        self.staffButton.clicked.connect(self.open_staff_registration)
-        self.adminButton.clicked.connect(self.open_admin_registration)
+
+    def openStaffRegistration(self):
+        self.staff_registration = StaffRegistration()
+        self.staff_registration.show()
+        self.close()
+
+    def openAdminRegistration(self):
+        self.admin_registration = AdminRegistration()
+        self.admin_registration.show()
+        self.close()
 
     def go_back(self):
+        QtWidgets.QApplication.instance().activeWindow().close()
+        self.new_window = QtWidgets.QMainWindow()
         from selection_screen import Selection
-        self.previous_window = Selection()
-        self.previous_window.showFullScreen()
+        self.new_window = QtWidgets.QMainWindow()
+        self.selection_ui = Selection()
+        self.selection_ui.setupUi(self.new_window)
+        self.new_window.showFullScreen()
         self.close()
-
-    def open_staff_registration(self):
-        self.staff_registration_window = StaffRegistration()
-        self.staff_registration_window.show()
-        self.close()
-
-    def open_admin_registration(self):
-        self.admin_registration_window = AdminRegistration()
-        self.admin_registration_window.show()
-        self.close()
-
-if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-    selection_window = RegSelection()
-    selection_window.showFullScreen()
-    sys.exit(app.exec_())
