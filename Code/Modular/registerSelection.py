@@ -211,12 +211,12 @@ class Register(QtWidgets.QWidget):
 
     def openStaffRegistration(self):
         self.staff_registration = StaffRegistration()
-        self.staff_registration.show()
+        self.staff_registration.showFullScreen()
         self.close()
 
     def openAdminRegistration(self):
         self.admin_registration = AdminRegistration()
-        self.admin_registration.show()
+        self.admin_registration.showFullScreen()
         self.close()
 
     def go_back(self):

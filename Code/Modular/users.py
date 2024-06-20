@@ -77,8 +77,8 @@ class UsersTab(QtWidgets.QWidget):
         users = cur.fetchall()
 
         self.tableWidget.setRowCount(len(users))
-        self.tableWidget.setColumnCount(5)
-        self.tableWidget.setHorizontalHeaderLabels(["First Name", "Last Name", "Username", "Password", "Level of Access"])
+        self.tableWidget.setColumnCount(6)
+        self.tableWidget.setHorizontalHeaderLabels(["Row Id", "First Name", "Last Name", "Username", "Password", "Level of Access"])
         self.tableWidget.setColumnHidden(0, True)
 
         for i, user in enumerate(users):

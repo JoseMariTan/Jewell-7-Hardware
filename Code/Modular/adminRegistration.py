@@ -3,257 +3,440 @@ import sqlite3
 import re
 from PyQt5 import QtCore, QtGui, QtWidgets
 from datetime import datetime
+import logo_rc
 
-class AdminRegistration(QtWidgets.QMainWindow):
+
+class AdminRegistration(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi()
 
     def setupUi(self):
-        self.setObjectName("AdminRegistration")
-        self.resize(816, 715)
-        self.setStyleSheet("background-color:#D9D9D9;")
-        self.centralwidget = QtWidgets.QWidget(self)
-        self.centralwidget.setObjectName("centralwidget")
-        self.gridLayoutWidget = QtWidgets.QWidget(self.centralwidget)
-
-        # Add back button
-        self.backButton = QtWidgets.QPushButton("Back", self.centralwidget)
-        self.backButton.setGeometry(QtCore.QRect(10, 10, 80, 30))
-        font = QtGui.QFont()
-        font.setFamily("Segoe UI")
-        font.setPointSize(10)
-        self.backButton.setFont(font)
-        self.backButton.setObjectName("backButton")
-        self.backButton.clicked.connect(self.go_back)
-
-        self.gridLayoutWidget.setGeometry(QtCore.QRect(100, 60, 601, 585))
-        self.gridLayoutWidget.setObjectName("gridLayoutWidget")
-
-        self.gridLayout = QtWidgets.QGridLayout(self.gridLayoutWidget)
-        self.gridLayout.setContentsMargins(0, 0, 0, 0)
+        self.resize(1218, 820)
+        self.setStyleSheet("background-color: #FCFEFE;")
+        
+        self.gridLayout_4 = QtWidgets.QGridLayout(self)
+        self.gridLayout_4.setObjectName("gridLayout_4")
+        self.gridLayout_3 = QtWidgets.QGridLayout()
+        self.gridLayout_3.setHorizontalSpacing(0)
+        self.gridLayout_3.setObjectName("gridLayout_3")
+        
+        self.widget_2 = QtWidgets.QWidget(self)
+        self.widget_2.setMinimumSize(QtCore.QSize(200, 0))
+        self.widget_2.setMaximumSize(QtCore.QSize(500, 600))
+        self.widget_2.setStyleSheet("QWidget {\n"
+"    background-color: #81cdc6;\n"
+" border-style: solid;\n"
+"    border-color: black;\n"
+"    border-width: 1px;\n"
+"\n"
+"}")
+        self.widget_2.setObjectName("widget_2")
+        self.gridLayout = QtWidgets.QGridLayout(self.widget_2)
+        self.gridLayout.setContentsMargins(-1, -1, 9, -1)
         self.gridLayout.setObjectName("gridLayout")
-
-        self.verticalLayout = QtWidgets.QVBoxLayout()
-        self.verticalLayout.setObjectName("verticalLayout")
-
-        self.Jewell7 = QtWidgets.QLabel(self.gridLayoutWidget)
+        
+        self.logo = QtWidgets.QLabel(self.widget_2)
+        self.logo.setMinimumSize(QtCore.QSize(420, 50))
+        self.logo.setMaximumSize(QtCore.QSize(450, 290))
+        self.logo.setStyleSheet("image: url(:/images/received_836614531712349.png);\n"
+"\n"
+"border:none;")
+        self.logo.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.logo.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.logo.setText("")
+        self.logo.setScaledContents(True)
+        self.logo.setObjectName("logo")
+        self.gridLayout.addWidget(self.logo, 0, 0, 1, 1)
+        self.gridLayout_3.addWidget(self.widget_2, 0, 0, 1, 1)
+        
+        self.whiteContainer = QtWidgets.QWidget(self)
+        self.whiteContainer.setMinimumSize(QtCore.QSize(200, 0))
+        self.whiteContainer.setMaximumSize(QtCore.QSize(500, 600))
+        self.whiteContainer.setStyleSheet("QWidget {\n"
+"    background-color: #fff;\n"
+" border-style: solid;\n"
+"    border-color: black;\n"
+"    border-width: 1px;\n"
+"}")
+        self.whiteContainer.setObjectName("whiteContainer")
+        self.gridLayout_2 = QtWidgets.QGridLayout(self.whiteContainer)
+        self.gridLayout_2.setContentsMargins(45, 10, 45, 30)
+        self.gridLayout_2.setVerticalSpacing(10)
+        self.gridLayout_2.setObjectName("gridLayout_2")
+        
+        self.lastName_input = QtWidgets.QLineEdit(self.whiteContainer)
+        self.lastName_input.setMinimumSize(QtCore.QSize(150, 55))
+        self.lastName_input.setMaximumSize(QtCore.QSize(500, 55))
         font = QtGui.QFont()
         font.setFamily("Segoe UI")
-        font.setPointSize(36)
-        font.setBold(True)
-        self.Jewell7.setFont(font)
-        self.Jewell7.setAlignment(QtCore.Qt.AlignCenter)
-        self.Jewell7.setObjectName("Jewell7")
-        self.verticalLayout.addWidget(self.Jewell7)
-
-        self.Hardware = QtWidgets.QLabel(self.gridLayoutWidget)
-        font = QtGui.QFont()
-        font.setFamily("Segoe UI")
-        font.setPointSize(36)
-        font.setBold(True)
-        self.Hardware.setFont(font)
-        self.Hardware.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.Hardware.setAlignment(QtCore.Qt.AlignCenter)
-        self.Hardware.setObjectName("Hardware")
-        self.verticalLayout.addWidget(self.Hardware)
-
-        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.verticalLayout.addItem(spacerItem)
-
-        self.formLayout_2 = QtWidgets.QFormLayout()
-        self.formLayout_2.setObjectName("formLayout_2")
-
-        self.firstName_label = QtWidgets.QLabel(self.gridLayoutWidget)
-        font = QtGui.QFont()
-        font.setPointSize(20)
-        self.firstName_label.setFont(font)
-        self.firstName_label.setObjectName("firstName_label")
-        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.firstName_label)
-
-        self.firstName_input = QtWidgets.QLineEdit(self.gridLayoutWidget)
-        font = QtGui.QFont()
-        font.setPointSize(20)
-        self.firstName_input.setFont(font)
-        self.firstName_input.setStyleSheet("background-color:#FFFFFF;")
-        self.firstName_input.setText("")
-        self.firstName_input.setPlaceholderText("")
-        self.firstName_input.setObjectName("firstName_input")
-        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.firstName_input)
-
-        self.middleName_label = QtWidgets.QLabel(self.gridLayoutWidget)
-        font = QtGui.QFont()
-        font.setPointSize(20)
-        self.middleName_label.setFont(font)
-        self.middleName_label.setObjectName("middleName_label")
-        self.formLayout_2.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.middleName_label)
-
-        self.middleName_input = QtWidgets.QLineEdit(self.gridLayoutWidget)
-        font = QtGui.QFont()
-        font.setPointSize(20)
-        self.middleName_input.setFont(font)
-        self.middleName_input.setStyleSheet("background-color:#FFFFFF;")
-        self.middleName_input.setText("")
-        self.middleName_input.setPlaceholderText("")
-        self.middleName_input.setObjectName("middleName_input")
-        self.formLayout_2.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.middleName_input)
-
-        self.lastName_label = QtWidgets.QLabel(self.gridLayoutWidget)
-        font = QtGui.QFont()
-        font.setPointSize(20)
-        self.lastName_label.setFont(font)
-        self.lastName_label.setObjectName("lastName_label")
-        self.formLayout_2.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.lastName_label)
-
-        self.lastName_input = QtWidgets.QLineEdit(self.gridLayoutWidget)
-        font = QtGui.QFont()
-        font.setPointSize(20)
         self.lastName_input.setFont(font)
-        self.lastName_input.setStyleSheet("background-color:#FFFFFF;")
+        self.lastName_input.setStyleSheet("\n"
+"QLineEdit {\n"
+"  background-color: #c6c6c8;\n"
+"  padding: 4px;\n"
+"  border: none;\n"
+"border-radius:12px;\n"
+"  position: relative;\n"
+"  z-index: 0; /* We force a stacking context */\n"
+"}\n"
+"")
         self.lastName_input.setText("")
-        self.lastName_input.setPlaceholderText("")
         self.lastName_input.setObjectName("lastName_input")
-        self.formLayout_2.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.lastName_input)
-
-        self.username_label = QtWidgets.QLabel(self.gridLayoutWidget)
+        self.gridLayout_2.addWidget(self.lastName_input, 3, 0, 1, 1)
+        
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setSpacing(10)
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        
+        self.firstName_input = QtWidgets.QLineEdit(self.whiteContainer)
+        self.firstName_input.setMinimumSize(QtCore.QSize(150, 55))
+        self.firstName_input.setMaximumSize(QtCore.QSize(500, 55))
         font = QtGui.QFont()
-        font.setPointSize(20)
-        self.username_label.setFont(font)
-        self.username_label.setObjectName("username_label")
-        self.formLayout_2.setWidget(3, QtWidgets.QFormLayout.LabelRole, self.username_label)
-
-        self.username_input = QtWidgets.QLineEdit(self.gridLayoutWidget)
+        font.setFamily("Segoe UI")
+        self.firstName_input.setFont(font)
+        self.firstName_input.setStyleSheet("\n"
+"QLineEdit {\n"
+"  background-color: #c6c6c8;\n"
+"  padding: 4px;\n"
+"  border: none;\n"
+"border-radius:12px;\n"
+"  position: relative;\n"
+"  z-index: 0; /* We force a stacking context */\n"
+"}\n"
+"")
+        self.firstName_input.setText("")
+        self.firstName_input.setObjectName("firstName_input")
+        self.horizontalLayout.addWidget(self.firstName_input)
+        
+        self.middleName_input = QtWidgets.QLineEdit(self.whiteContainer)
+        self.middleName_input.setMinimumSize(QtCore.QSize(150, 55))
+        self.middleName_input.setMaximumSize(QtCore.QSize(500, 55))
         font = QtGui.QFont()
-        font.setPointSize(20)
-        self.username_input.setFont(font)
-        self.username_input.setStyleSheet("background-color:#FFFFFF;")
-        self.username_input.setText("")
-        self.username_input.setPlaceholderText("")
-        self.username_input.setObjectName("username_input")
-        self.formLayout_2.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.username_input)
-
-        self.password_label = QtWidgets.QLabel(self.gridLayoutWidget)
+        font.setFamily("Segoe UI")
+        self.middleName_input.setFont(font)
+        self.middleName_input.setStyleSheet("\n"
+"QLineEdit {\n"
+"  background-color: #c6c6c8;\n"
+"  padding: 4px;\n"
+"  border: none;\n"
+"border-radius:12px;\n"
+"  position: relative;\n"
+"  z-index: 0; /* We force a stacking context */\n"
+"}\n"
+"")
+        self.middleName_input.setText("")
+        self.middleName_input.setObjectName("middleName_input")
+        self.horizontalLayout.addWidget(self.middleName_input)
+        self.gridLayout_2.addLayout(self.horizontalLayout, 2, 0, 1, 1)
+        
+        self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_3.setContentsMargins(-1, -1, -1, 20)
+        self.horizontalLayout_3.setObjectName("horizontalLayout_3")
+        
+        self.show_password_checkbox = QtWidgets.QCheckBox(self.whiteContainer)
+        self.show_password_checkbox.setMinimumSize(QtCore.QSize(150, 0))
+        self.show_password_checkbox.setMaximumSize(QtCore.QSize(500, 20))
         font = QtGui.QFont()
-        font.setPointSize(20)
-        self.password_label.setFont(font)
-        self.password_label.setObjectName("password_label")
-        self.formLayout_2.setWidget(4, QtWidgets.QFormLayout.LabelRole, self.password_label)
-
-        self.password_input = QtWidgets.QLineEdit(self.gridLayoutWidget)
-        font = QtGui.QFont()
-        font.setPointSize(20)
-        self.password_input.setFont(font)
-        self.password_input.setStyleSheet("background-color:#FFFFFF;")
-        self.password_input.setText("")
-        self.password_input.setEchoMode(QtWidgets.QLineEdit.Password)
-        self.password_input.setPlaceholderText("")
-        self.password_input.setObjectName("password_input")
-        self.formLayout_2.setWidget(4, QtWidgets.QFormLayout.FieldRole, self.password_input)
-
-        self.show_password_checkbox = QtWidgets.QCheckBox(self.gridLayoutWidget)
+        font.setFamily("Segoe UI")
+        self.show_password_checkbox.setFont(font)
+        self.show_password_checkbox.setStyleSheet("border-color:white;")
         self.show_password_checkbox.setObjectName("show_password_checkbox")
-        self.formLayout_2.setWidget(5, QtWidgets.QFormLayout.FieldRole, self.show_password_checkbox)
-        self.show_password_checkbox.stateChanged.connect(self.toggle_password_visibility)
-
-        self.birthdate_label = QtWidgets.QLabel(self.gridLayoutWidget)
+        self.horizontalLayout_3.addWidget(self.show_password_checkbox)
+        
+        spacerItem = QtWidgets.QSpacerItem(62, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_3.addItem(spacerItem)
+        
+        self.setBirthdate_label = QtWidgets.QLabel(self.whiteContainer)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.setBirthdate_label.sizePolicy().hasHeightForWidth())
+        self.setBirthdate_label.setSizePolicy(sizePolicy)
+        self.setBirthdate_label.setMinimumSize(QtCore.QSize(150, 0))
+        self.setBirthdate_label.setMaximumSize(QtCore.QSize(500, 20))
         font = QtGui.QFont()
-        font.setPointSize(20)
-        self.birthdate_label.setFont(font)
-        self.birthdate_label.setObjectName("birthdate_label")
-        self.formLayout_2.setWidget(6, QtWidgets.QFormLayout.LabelRole, self.birthdate_label)
-
-        self.birthdate_edit = QtWidgets.QDateEdit(self.gridLayoutWidget)
+        font.setFamily("Segoe UI")
+        self.setBirthdate_label.setFont(font)
+        self.setBirthdate_label.setStyleSheet("QLabel {\n"
+"  background-color: #fff;\n"
+"  padding: 4px;\n"
+"  border: none;\n"
+"  border-radius: 12px; /* Adjusted border-radius */\n"
+"  position: relative;\n"
+"  z-index: 0; /* We force a stacking context */\n"
+"  color: black;\n"
+"}\n"
+"")
+        self.setBirthdate_label.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
+        self.setBirthdate_label.setObjectName("setBirthdate_label")
+        self.horizontalLayout_3.addWidget(self.setBirthdate_label)
+        self.gridLayout_2.addLayout(self.horizontalLayout_3, 6, 0, 1, 1)
+        
+        self.username_input = QtWidgets.QLineEdit(self.whiteContainer)
+        self.username_input.setMinimumSize(QtCore.QSize(150, 55))
+        self.username_input.setMaximumSize(QtCore.QSize(500, 55))
         font = QtGui.QFont()
-        font.setPointSize(20)
+        font.setFamily("Segoe UI")
+        self.username_input.setFont(font)
+        self.username_input.setStyleSheet("\n"
+"QLineEdit {\n"
+"  background-color: #c6c6c8;\n"
+"  padding: 4px;\n"
+"  border: none;\n"
+"border-radius:12px;\n"
+"  position: relative;\n"
+"  z-index: 0; /* We force a stacking context */\n"
+"}\n"
+"")
+        self.username_input.setText("")
+        self.username_input.setObjectName("username_input")
+        self.gridLayout_2.addWidget(self.username_input, 5, 0, 1, 1)
+        
+        self.label_3 = QtWidgets.QLabel(self.whiteContainer)
+        self.label_3.setMinimumSize(QtCore.QSize(0, 50))
+        self.label_3.setMaximumSize(QtCore.QSize(500, 16777215))
+        self.label_3.setStyleSheet("border: none;")
+        self.label_3.setText("")
+        self.label_3.setObjectName("label_3")
+        self.gridLayout_2.addWidget(self.label_3, 8, 0, 1, 1)
+        
+        self.password_input = QtWidgets.QLineEdit(self.whiteContainer)
+        self.password_input.setMinimumSize(QtCore.QSize(150, 55))
+        self.password_input.setMaximumSize(QtCore.QSize(500, 55))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        self.password_input.setFont(font)
+        self.password_input.setStyleSheet("\n"
+"QLineEdit {\n"
+"  background-color: #c6c6c8;\n"
+"  padding:4px;\n"
+"  border: none;\n"
+"border-radius:10px;\n"
+"\n"
+"  position: relative;\n"
+"  z-index: 0; /* We force a stacking context */\n"
+"}\n"
+"\n"
+"QLineEdit::before {\n"
+"  content: \"\";\n"
+"  position: absolute;\n"
+"  z-index: -2;\n"
+"  inset: -5px;\n"
+"  transform: translate(10px, 8px);\n"
+"  background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop: 0 rgb(198,198,200), stop: 1 rgb(204,204,206));\n"
+"  filter: blur(10px);\n"
+"}\n"
+"\n"
+"QLineEdit::after {\n"
+"  content: \"\";\n"
+"  position: absolute;\n"
+"  z-index: -1;\n"
+"  inset: 0;\n"
+"  background: inherit;\n"
+"  border: inherit;\n"
+"  box-shadow: inherit;\n"
+"}")
+        self.password_input.setText("")
+        self.password_input.setObjectName("password_input")
+        self.gridLayout_2.addWidget(self.password_input, 4, 0, 1, 1)
+        
+        self.birthdate_edit = QtWidgets.QDateEdit(self.whiteContainer)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.birthdate_edit.sizePolicy().hasHeightForWidth())
+        self.birthdate_edit.setSizePolicy(sizePolicy)
+        self.birthdate_edit.setMinimumSize(QtCore.QSize(150, 55))
+        self.birthdate_edit.setMaximumSize(QtCore.QSize(500, 55))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
         self.birthdate_edit.setFont(font)
-        self.birthdate_edit.setMouseTracking(False)
-        self.birthdate_edit.setStyleSheet("background-color:#FFFFFF;")
+        self.birthdate_edit.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.birthdate_edit.setStyleSheet("\n"
+"QDateEdit {\n"
+"  background-color: #c6c6c8;\n"
+"  padding: 4px;\n"
+"  border: none;\n"
+"border-radius:12px;\n"
+"  position: relative;\n"
+"  z-index: 0; /* We force a stacking context */\n"
+"color:#636364;\n"
+"}\n"
+"")
+        self.birthdate_edit.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.birthdate_edit.setButtonSymbols(QtWidgets.QAbstractSpinBox.UpDownArrows)
+        self.birthdate_edit.setSpecialValueText("")
         self.birthdate_edit.setCalendarPopup(True)
         self.birthdate_edit.setObjectName("birthdate_edit")
-        self.formLayout_2.setWidget(6, QtWidgets.QFormLayout.FieldRole, self.birthdate_edit)
-
-        self.loa_label = QtWidgets.QLabel(self.gridLayoutWidget)
-        font = QtGui.QFont()
-        font.setPointSize(20)
-        self.loa_label.setFont(font)
-        self.loa_label.setObjectName("loa_label")
-        self.formLayout_2.setWidget(7, QtWidgets.QFormLayout.LabelRole, self.loa_label)
-
-        self.loa_input = QtWidgets.QLineEdit(self.gridLayoutWidget)
-        font = QtGui.QFont()
-        font.setPointSize(20)
-        self.loa_input.setFont(font)
-        self.loa_input.setStyleSheet("background-color:#D9D9D9; border: none;")
-        self.loa_input.setReadOnly(True)
-        self.loa_input.setPlaceholderText("")
-        self.loa_input.setObjectName("loa_input")
-        self.formLayout_2.setWidget(7, QtWidgets.QFormLayout.FieldRole, self.loa_input)
-
-        self.verticalLayout.addLayout(self.formLayout_2)
-
-        self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout.setObjectName("horizontalLayout")
-
-        self.registerButton = QtWidgets.QPushButton(self.gridLayoutWidget)
+        self.gridLayout_2.addWidget(self.birthdate_edit)
+        self.gridLayout_2.addLayout(self.gridLayout_2, 5, 0, 1, 1)
+        
+        self.label_4 = QtWidgets.QLabel(self.whiteContainer)
+        self.label_4.setMinimumSize(QtCore.QSize(150, 55))
+        self.label_4.setMaximumSize(QtCore.QSize(500, 55))
         font = QtGui.QFont()
         font.setFamily("Segoe UI")
-        font.setPointSize(10)
+        self.label_4.setFont(font)
+        self.label_4.setStyleSheet("border: none;\n"
+                                   "color: black;\n"
+                                   "")
+        self.label_4.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_4.setObjectName("label_4")
+        self.gridLayout_2.addWidget(self.label_4, 1, 0, 1, 1)
+        
+        self.label_5 = QtWidgets.QLabel(self.whiteContainer)
+        self.label_5.setMinimumSize(QtCore.QSize(150, 50))
+        self.label_5.setMaximumSize(QtCore.QSize(500, 50))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        self.label_5.setFont(font)
+        self.label_5.setStyleSheet("border: none;\n"
+                                   "color: black;\n"
+                                   "")
+        self.label_5.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_5.setObjectName("label_5")
+        self.gridLayout_2.addWidget(self.label_5, 0, 0, 1, 1)
+        
+        self.registerButton = QtWidgets.QPushButton(self.whiteContainer)
+        self.registerButton.setMinimumSize(QtCore.QSize(150, 50))
+        self.registerButton.setMaximumSize(QtCore.QSize(500, 16777215))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(8)
         font.setBold(True)
+        font.setWeight(75)
+        font.setStrikeOut(False)
         self.registerButton.setFont(font)
-        self.registerButton.setStyleSheet("background-color:#53C851;")
-        self.registerButton.setDefault(True)
-        self.registerButton.setFlat(False)
+        self.registerButton.setMouseTracking(True)
+        self.registerButton.setTabletTracking(True)
+        self.registerButton.setStyleSheet("QPushButton {\n"
+" background-color: #10cc94;\n"
+"border-radius:12px;\n"
+"color:#fff;\n"
+"}\n"
+"QPushButton#quit_button {\n"
+"   background-color: green;\n"
+"}\n"
+"QPushButton::pressed {\n"
+"background-color: #fff;\n"
+"}\n"
+"QpushButton{\n"
+"border: 2px solid #555;\n"
+"    border-radius: 20px;\n"
+"    border-style: outset;\n"
+"border-width:200px;\n"
+"    \n"
+"}\n"
+"QPushButton:hover {\n"
+"   background-color: #0a9c73;\n"
+"   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"}\n"
+"\n"
+"border:none;\n"
+"")
         self.registerButton.setObjectName("registerButton")
-        self.registerButton.clicked.connect(self.register_admin)
-        self.horizontalLayout.addWidget(self.registerButton)
-
-        self.clearButton = QtWidgets.QPushButton(self.gridLayoutWidget)
+        self.gridLayout_2.addWidget(self.registerButton, 7, 0, 1, 1)
+        
+        self.clearButton = QtWidgets.QPushButton(self.whiteContainer)
+        self.clearButton.setMinimumSize(QtCore.QSize(150, 50))
+        self.clearButton.setMaximumSize(QtCore.QSize(500, 16777215))
         font = QtGui.QFont()
         font.setFamily("Segoe UI")
-        font.setPointSize(10)
+        font.setPointSize(8)
         font.setBold(True)
+        font.setWeight(75)
+        font.setStrikeOut(False)
         self.clearButton.setFont(font)
-        self.clearButton.setStyleSheet("background-color:#E14545;\n"
-                                    "")
-        self.clearButton.setDefault(True)
+        self.clearButton.setMouseTracking(True)
+        self.clearButton.setTabletTracking(True)
+        self.clearButton.setStyleSheet("QPushButton {\n"
+" background-color: #F88379;\n"
+"border-radius:12px;\n"
+"color:#fff;\n"
+"}\n"
+"QPushButton#quit_button {\n"
+"   background-color: green;\n"
+"}\n"
+"QPushButton::pressed {\n"
+"background-color: #fff;\n"
+"}\n"
+"QpushButton{\n"
+"border: 2px solid #555;\n"
+"border-radius: 20px;\n"
+"border-style: outset;\n"
+"border-width:200px;\n"
+"    \n"
+"}\n"
+"QPushButton:hover {\n"
+"   background-color: #F66150;\n"
+"   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"}\n"
+"\n"
+"border:none;\n"
+"")
         self.clearButton.setObjectName("clearButton")
-        self.clearButton.clicked.connect(self.clear_text)
-        self.horizontalLayout.addWidget(self.clearButton)
-
-        self.verticalLayout.addLayout(self.horizontalLayout)
-
-        self.gridLayout.addLayout(self.verticalLayout, 1, 0, 1, 1)
-
-        self.setCentralWidget(self.centralwidget)
-        self.statusbar = QtWidgets.QStatusBar(self)
-        self.statusbar.setObjectName("statusbar")
-        self.setStatusBar(self.statusbar)
+        self.backButton = QtWidgets.QPushButton(self.whiteContainer)
+        self.backButton.setMinimumSize(QtCore.QSize(0, 0))
+        self.backButton.setMaximumSize(QtCore.QSize(50, 16777215))
+        font = QtGui.QFont()
+        font.setFamily("Malgun Gothic")
+        font.setPointSize(28)
+        font.setBold(False)
+        font.setWeight(50)
+        self.backButton.setFont(font)
+        self.backButton.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.backButton.setStyleSheet("QPushButton {\n"
+"    background-color: transparent;\n"
+"    border: none;\n"
+"    color:#3d3d3d    ;\n"
+"    padding: 0;\n"
+"}\n"
+"\n"
+"QPushButton:hover {\n"
+"    text-decoration: underline;\n"
+"}\n"
+"\n"
+"QPushButton:pressed {\n"
+"    color: #265C42;\n"
+"}\n"
+"")
+        self.backButton.setIconSize(QtCore.QSize(16, 16))
+        self.backButton.setFlat(True)
+        self.backButton.setObjectName("backButton")
+        self.gridLayout_2.addWidget(self.backButton, 0, 0, 1, 1)
+        self.gridLayout_2.addWidget(self.clearButton, 8, 0, 1, 1)
+        
+        self.gridLayout_3.addWidget(self.whiteContainer, 0, 1, 1, 1)
+        self.gridLayout_4.addLayout(self.gridLayout_3, 0, 0, 1, 1)
 
         self.retranslateUi()
         QtCore.QMetaObject.connectSlotsByName(self)
+        
+        self.backButton.clicked.connect(self.go_back)
+        self.registerButton.clicked.connect(self.register_admin)
+        self.clearButton.clicked.connect(self.clear_text)
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
         self.setWindowTitle(_translate("AdminRegistration", "Admin Registration"))
-        self.Jewell7.setText(_translate("AdminRegistration", "Jewell 7"))
-        self.Hardware.setText(_translate("AdminRegistration", "Hardware"))
-        self.firstName_label.setText(_translate("AdminRegistration", "First Name:"))
-        self.middleName_label.setText(_translate("AdminRegistration", "Middle Name:"))
-        self.lastName_label.setText(_translate("AdminRegistration", "Last Name:"))
-        self.username_label.setText(_translate("AdminRegistration", "Username:"))
-        self.password_label.setText(_translate("AdminRegistration", "Password:"))
-        self.show_password_checkbox.setText(_translate("Login", "Show Password"))
-        self.birthdate_label.setText(_translate("AdminRegistration", "Birthdate:"))
-        self.loa_label.setText(_translate("AdminRegistration", "LOA:"))
-        self.loa_input.setText(_translate("AdminRegistration", "admin"))
+        self.lastName_input.setPlaceholderText(_translate("AdminRegistration", "Last Name"))
+        self.firstName_input.setPlaceholderText(_translate("AdminRegistration", "First Name"))
+        self.middleName_input.setPlaceholderText(_translate("AdminRegistration", "Middle Name"))
+        self.show_password_checkbox.setText(_translate("AdminRegistration", "Show Password"))
+        self.setBirthdate_label.setText(_translate("AdminRegistration", "Set Birthdate"))
+        self.username_input.setPlaceholderText(_translate("AdminRegistration", "Username"))
         self.registerButton.setText(_translate("AdminRegistration", "Register"))
         self.clearButton.setText(_translate("AdminRegistration", "Clear"))
+        self.password_input.setPlaceholderText(_translate("AdminRegistration", "Password"))
+        self.backButton.setText(_translate("AdminRegistration", "←"))
 
     def go_back(self):
-        from registerSelection import RegSelection
-        self.previous_window = RegSelection()
-        self.previous_window.show()
+        QtWidgets.QApplication.instance().activeWindow().close()
+        from registerSelection import Register
         self.close()
+        self.previous_window = Register()
+        self.previous_window.showFullScreen()
 
     def clear_text(self):
         self.firstName_input.clear()
@@ -270,8 +453,7 @@ class AdminRegistration(QtWidgets.QMainWindow):
         username = self.username_input.text().strip()
         password = self.password_input.text().strip()
         birthdate = self.birthdate_edit.date().toString(QtCore.Qt.ISODate)
-        loa = self.loa_input.text().strip()
-        
+        loa = "admin"
 
         # Validation: Check if any field is empty
         if not all([first_name, last_name, username, password]):
@@ -364,7 +546,7 @@ class AdminRegistration(QtWidgets.QMainWindow):
             self.password_input.setEchoMode(QtWidgets.QLineEdit.Normal)
         else:
             self.password_input.setEchoMode(QtWidgets.QLineEdit.Password)
-
+            
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     window = AdminRegistration()

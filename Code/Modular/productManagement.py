@@ -40,7 +40,9 @@ class ProductsTab(QtWidgets.QWidget):
         self.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         self.tableWidget.verticalHeader().setVisible(False)
 
-        self.tableWidget.setStyleSheet(""" QHeaderView::section { background-color: #ff7d7d;} """)
+        self.tableWidget.setStyleSheet(""" QTableWidget::item:selected { background-color: #3b352d; border: none;}
+                            QTableWidget::item { border: none;}
+                            QHeaderView::section { background-color: #ff7d7d;} """)
 
         self.scrollArea.setWidget(self.tableWidget)
         self.horizontalLayout_4.addWidget(self.scrollArea)
@@ -95,23 +97,20 @@ class ProductsTab(QtWidgets.QWidget):
         conn = sqlite3.connect('j7h.db')
         cur = conn.cursor()
         if search_query:
-            cur.execute("SELECT rowid, product_name, brand, var, size, price, qty, threshold, category, status FROM products WHERE "
-                    "product_name LIKE ? OR brand LIKE ? OR var LIKE ? OR size LIKE ? OR category LIKE ? OR status LIKE ? ORDER BY product_id DESC",
-                    ('%{}%'.format(search_query), '%{}%'.format(search_query), '%{}%'.format(search_query), '%{}%'.format(search_query), 
-                     '%{}%'.format(search_query), '%{}%'.format(search_query)))
+            cur.execute("SELECT rowid, product_name, brand, var, size, price, qty, category FROM products WHERE "
+                        "product_name LIKE ? OR brand LIKE ? OR var LIKE ? OR size LIKE ? OR category LIKE ? ORDER BY product_id DESC",
+                        ('%{}%'.format(search_query), '%{}%'.format(search_query), '%{}%'.format(search_query), '%{}%'.format(search_query), '%{}%'.format(search_query)))
         else:
-            cur.execute("SELECT rowid, product_name, brand, var, size, price, qty, threshold, category, status FROM products ORDER BY product_id DESC")
+            cur.execute("SELECT rowid, product_name, brand, var, size, price, qty, category FROM products ORDER BY product_id DESC")
 
         products = cur.fetchall()
         self.tableWidget.setRowCount(len(products))
-        self.tableWidget.setColumnCount(10)
-        self.tableWidget.setHorizontalHeaderLabels(['RowID', 'Product', 'Brand', 'Variation', 'Size', 'Price', 'Items in Stock', 'Minimum Threshold Value', 'Category', 'Status'])
+        self.tableWidget.setColumnCount(8)
+        self.tableWidget.setHorizontalHeaderLabels(['RowID', 'Product', 'Brand', 'Variation', 'Size', 'Price', 'Items in Stock', 'Category'])
 
-        for row_number, row_data in enumerate(products):
-            for column_number, data in enumerate(row_data):
-                item = QtWidgets.QTableWidgetItem(str(data))
-                item.setTextAlignment(QtCore.Qt.AlignCenter)
-                self.tableWidget.setItem(row_number, column_number, item)
+        for i, product in enumerate(products):
+            for j, value in enumerate(product):
+                self.tableWidget.setItem(i, j, QtWidgets.QTableWidgetItem(str(value)))
 
         conn.close()
         self.tableWidget.setColumnHidden(0, True)
@@ -184,7 +183,7 @@ class AddProductDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Product Management")
-        self.setGeometry(100, 100, 300, 300)  # Adjust dimensions as needed
+        self.setGeometry(100, 100, 300, 200)
         layout = QtWidgets.QVBoxLayout()
 
         self.product_name_label = QtWidgets.QLabel("Product Name: *")
@@ -209,157 +208,68 @@ class AddProductDialog(QtWidgets.QDialog):
 
         self.price_label = QtWidgets.QLabel("Price: *")
         self.price_input = QtWidgets.QLineEdit()
-        self.price_input.setValidator(QtGui.QDoubleValidator(decimals=2))  # Set validator for 2 decimal places
         layout.addWidget(self.price_label)
         layout.addWidget(self.price_input)
 
         self.qty_label = QtWidgets.QLabel("Qty: *")
         self.qty_input = QtWidgets.QLineEdit()
-        self.qty_input.setValidator(QtGui.QIntValidator())  # Set validator for 2 decimal places
         layout.addWidget(self.qty_label)
         layout.addWidget(self.qty_input)
 
-        # Using QComboBox for Category with unique values from database
         self.category_label = QtWidgets.QLabel("Category: *")
-        self.category_combobox = QtWidgets.QComboBox()
-        self.category_combobox.addItem("")  # Add empty value
-        self.populate_category_combobox()  # Populate the combobox with unique values
-        self.new_category_checkbox = QtWidgets.QCheckBox("New Category")
-        self.new_category_input = QtWidgets.QLineEdit()
-        self.new_category_input.setEnabled(False)  # Initially disabled
-
-        self.new_category_checkbox.stateChanged.connect(self.toggle_new_category_input)
-
-        category_layout = QtWidgets.QHBoxLayout()
-        category_layout.addWidget(self.category_combobox)
-        category_layout.addWidget(self.new_category_checkbox)
+        self.category_input = QtWidgets.QLineEdit()
         layout.addWidget(self.category_label)
-        layout.addLayout(category_layout)
-        layout.addWidget(self.new_category_input)
-
-        self.threshold_label = QtWidgets.QLabel("Threshold:")
-        self.threshold_spinbox = QtWidgets.QSpinBox()
-        self.threshold_spinbox.setValue(5)  # Set initial value
-        self.threshold_spinbox.setMinimum(0)  # Set minimum value
-        self.threshold_spinbox.setMaximum(1000)  # Set maximum value
-        layout.addWidget(self.threshold_label)
-        layout.addWidget(self.threshold_spinbox)
-
-        # New field for Status using radio buttons
-        self.status_label = QtWidgets.QLabel("Status: *")
-        self.available_radio = QtWidgets.QRadioButton("Available")
-        self.unavailable_radio = QtWidgets.QRadioButton("Unavailable")
-        self.available_radio.setChecked(True)  # Default selection
-        self.status_group = QtWidgets.QButtonGroup(self)
-        self.status_group.addButton(self.available_radio)
-        self.status_group.addButton(self.unavailable_radio)
-        
-        status_layout = QtWidgets.QHBoxLayout()
-        status_layout.addWidget(self.available_radio)
-        status_layout.addWidget(self.unavailable_radio)
-        
-        layout.addWidget(self.status_label)
-        layout.addLayout(status_layout)
+        layout.addWidget(self.category_input)
 
         self.add_button = QtWidgets.QPushButton("Add")
         self.add_button.clicked.connect(self.add_product)
         layout.addWidget(self.add_button)
 
         self.setLayout(layout)
-
-    def populate_category_combobox(self):
-        # Assuming SQLite database connection and fetching unique values from 'transactions' table
-        try:
-            connection = sqlite3.connect('j7h.db')  # Replace with your database path
-            cursor = connection.cursor()
-            cursor.execute("SELECT DISTINCT category FROM transactions")
-            categories = cursor.fetchall()
-            for category in categories:
-                self.category_combobox.addItem(category[0])  # Assuming category is the first column
-        except sqlite3.Error as error:
-            print("Error while connecting to SQLite", error)
-        finally:
-            if connection:
-                connection.close()
-
-    def toggle_new_category_input(self, state):
-        if state == QtCore.Qt.Checked:
-            self.new_category_input.setEnabled(True)
-            self.category_combobox.setEnabled(False)
-            self.category_combobox.setCurrentIndex(0)  # Reset combobox selection
-        else:
-            self.new_category_input.setEnabled(False)
-            self.category_combobox.setEnabled(True)
-
-    def add_product(self):
-        # Implement the functionality to handle adding a product here
-        product_name = self.product_name_input.text().strip()
-        brand = self.brand_input.text().strip() or "-"
-        var = self.var_input.text().strip() or "-"
-        size = self.size_input.text().strip() or "-"
-        price_text = self.price_input.text().strip()
-        qty_text = self.qty_input.text().strip()
-        category = self.category_combobox.currentText().strip()
-        if self.new_category_checkbox.isChecked():
-            new_category = self.new_category_input.text().strip()
-            if new_category:
-                category = new_category
         
-        threshold = self.threshold_spinbox.value()
+    def add_product(self):
+        product_name = self.product_name_input.text().strip()
+        brand = self.brand_input.text().strip() or "None"
+        var = self.var_input.text().strip() or "None"
+        size = self.size_input.text().strip() or "None"
+        price = self.price_input.text().strip()
+        qty = self.qty_input.text().strip()
+        category = self.category_input.text().strip()
 
-        # Validate input
-        if not product_name or not price_text or not qty_text or not category:
+        # Check for required fields
+        if not product_name or not price or not qty or not category:
             QtWidgets.QMessageBox.warning(self, "Input Error", "Please fill in all required fields *.")
             return
 
         # Validate that price and qty are numeric
         try:
-            price = float(price_text)
+            float(price)
         except ValueError:
             QtWidgets.QMessageBox.warning(self, "Input Error", "Price must be a valid number.")
             return
 
         try:
-            qty = int(qty_text)
+            int(qty)
         except ValueError:
             QtWidgets.QMessageBox.warning(self, "Input Error", "Qty must be a valid integer.")
             return
 
-        # Check if a status is selected
-        if not self.available_radio.isChecked() and not self.unavailable_radio.isChecked():
-            QtWidgets.QMessageBox.warning(self, "Input Error", "Please select a Status (Available/Unavailable).")
-            return
-
-        # Determine the status based on radio button selection
-        if self.available_radio.isChecked():
-            status = "Available"
-        elif self.unavailable_radio.isChecked():
-            status = "Unavailable"
-        else:
-            status = ""  # Handle if neither is checked, though one should always be checked in this setup
-
         # Insert the new product into the database
-        try:
-            conn = sqlite3.connect('j7h.db')  # Replace with your database path
-            cur = conn.cursor()
-            cur.execute("INSERT INTO products (product_name, brand, var, size, price, qty, category, threshold, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                        (product_name, brand, var, size, price, qty, category, threshold, status))
-            conn.commit()
-        except sqlite3.Error as error:
-            print("Error while connecting to SQLite", error)
-            QtWidgets.QMessageBox.critical(self, "Database Error", "Failed to add product. Please try again.")
-        finally:
-            if conn:
-                conn.close()
+        conn = sqlite3.connect('j7h.db')
+        cur = conn.cursor()
+        cur.execute("INSERT INTO products (product_name, brand, var, size, price, qty, category) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (product_name, brand, var, size, price, qty, category))
+        
+        conn.commit()
+        conn.close()
 
         self.accept()
 
-
 class ModifyProductDialog(QtWidgets.QDialog):
-    def __init__(self, parent=None, rowid=None, product_name=None, brand=None, var=None, size=None, price=None, qty=None, category=None, threshold=None, status=None):
+    def __init__(self, parent=None, rowid=None, product_name=None, brand=None, var=None, size=None, price=None, qty=None, category=None):
         super().__init__(parent)
         self.setWindowTitle("Modify Product")
-        self.setGeometry(100, 100, 300, 300)
+        self.setGeometry(100, 100, 300, 200)
         self.rowid = rowid
 
         layout = QtWidgets.QVBoxLayout()
@@ -386,7 +296,6 @@ class ModifyProductDialog(QtWidgets.QDialog):
 
         self.price_label = QtWidgets.QLabel("Price: *")
         self.price_input = QtWidgets.QLineEdit(price)
-        self.price_input.setValidator(QtGui.QDoubleValidator(decimals=2))  # Set validator for 2 decimal places
         layout.addWidget(self.price_label)
         layout.addWidget(self.price_input)
 
@@ -395,179 +304,68 @@ class ModifyProductDialog(QtWidgets.QDialog):
         layout.addWidget(self.qty_label)
         layout.addWidget(self.qty_input)
 
-        # Using QComboBox for Category with unique values from database
         self.category_label = QtWidgets.QLabel("Category: *")
-        self.category_combobox = QtWidgets.QComboBox()
-        self.category_combobox.addItem("")  # Add empty value
-        self.populate_category_combobox()  # Populate the combobox with unique values
-        self.new_category_checkbox = QtWidgets.QCheckBox("New Category")
-        self.new_category_input = QtWidgets.QLineEdit()
-        self.new_category_input.setEnabled(False)  # Initially disabled
-
-        self.new_category_checkbox.stateChanged.connect(self.toggle_new_category_input)
-
-        category_layout = QtWidgets.QHBoxLayout()
-        category_layout.addWidget(self.category_combobox)
-        category_layout.addWidget(self.new_category_checkbox)
+        self.category_input = QtWidgets.QLineEdit(category)
         layout.addWidget(self.category_label)
-        layout.addLayout(category_layout)
-        layout.addWidget(self.new_category_input)
+        layout.addWidget(self.category_input)
 
-        # Threshold input
-        self.threshold_label = QtWidgets.QLabel("Threshold:")
-        self.threshold_spinbox = QtWidgets.QSpinBox()
-        self.threshold_spinbox.setMinimum(0)  # Set minimum value
-        self.threshold_spinbox.setMaximum(1000)  # Set maximum value
-        if threshold is not None:
-            self.threshold_spinbox.setValue(threshold)
-        layout.addWidget(self.threshold_label)
-        layout.addWidget(self.threshold_spinbox)
-
-        # Status input (radio buttons)
-        self.status_label = QtWidgets.QLabel("Status: *")
-        self.available_radio = QtWidgets.QRadioButton("Available")
-        self.unavailable_radio = QtWidgets.QRadioButton("Unavailable")
-        if status == "Available":
-            self.available_radio.setChecked(True)
-        else:
-            self.unavailable_radio.setChecked(True)
-        status_layout = QtWidgets.QHBoxLayout()
-        status_layout.addWidget(self.available_radio)
-        status_layout.addWidget(self.unavailable_radio)
-        layout.addWidget(self.status_label)
-        layout.addLayout(status_layout)
-
-        # Modify button
         self.modify_button = QtWidgets.QPushButton("Modify")
         self.modify_button.clicked.connect(self.modify_product)
         layout.addWidget(self.modify_button)
 
         self.setLayout(layout)
+        self.fetch_product_id()
 
-    def populate_category_combobox(self):
-        try:
-            conn = sqlite3.connect('j7h.db')
-            cur = conn.cursor()
-            cur.execute("SELECT DISTINCT category FROM products")
-            categories = cur.fetchall()
-            for category in categories:
-                self.category_combobox.addItem(category[0])
-        except sqlite3.Error as e:
-            print("Error fetching categories:", e)
-        finally:
-            if conn:
-                conn.close()
-
-    def toggle_new_category_input(self, checked):
-        self.new_category_input.setEnabled(checked)
-        if not checked:
-            self.new_category_input.clear()
-
-    def fetch_product_details(self):
+    def fetch_product_id(self):
         conn = sqlite3.connect('j7h.db')
         cur = conn.cursor()
-        cur.execute("SELECT product_name, brand, var, size, price, qty, category, threshold, status FROM products WHERE rowid=?", (self.rowid,))
+        cur.execute("SELECT product_id FROM products WHERE rowid=?", (self.rowid,))
         result = cur.fetchone()
         if result:
-            product_name, brand, var, size, price, qty, category, threshold, status = result
-            self.product_name_input.setText(product_name)
-            self.brand_input.setText(brand)
-            self.var_input.setText(var)
-            self.size_input.setText(size)
-            self.price_input.setText(str(price))
-            self.qty_input.setText(str(qty))
-            self.threshold_spinbox.setValue(int(str(threshold)))
-            
-            # Set category in combobox or new category input
-            if category:
-                if category in [self.category_combobox.itemText(i) for i in range(self.category_combobox.count())]:
-                    self.category_combobox.setCurrentText(category)
-                    self.new_category_checkbox.setChecked(False)
-                    self.new_category_input.setEnabled(False)
-                else:
-                    self.category_combobox.setEditText(category)
-                    self.new_category_checkbox.setChecked(True)
-                    self.new_category_input.setEnabled(True)
-                    self.new_category_input.setText(category)
-            else:
-                self.category_combobox.setCurrentIndex(-1)
-                self.new_category_checkbox.setChecked(False)
-                self.new_category_input.setEnabled(False)
-
-            # Set threshold
-            self.threshold_spinbox.setValue(threshold if threshold is not None else 0)
-
-            # Set status
-            if status == "Available":
-                self.available_radio.setChecked(True)
-            else:
-                self.unavailable_radio.setChecked(True)
-
+            self.product_id = result[0]
         conn.close()
 
     def modify_product(self):
-        # Implement the functionality to handle adding a product here
-        product_name = self.product_name_input.text().strip()
-        brand = self.brand_input.text().strip() or "-"
-        var = self.var_input.text().strip() or "-"
-        size = self.size_input.text().strip() or "-"
-        price_text = self.price_input.text().strip()
-        qty_text = self.qty_input.text().strip()
-        category = self.category_combobox.currentText().strip()
-        if self.new_category_checkbox.isChecked():
-            new_category = self.new_category_input.text().strip()
-            if new_category:
-                category = new_category
+        if self.product_id is None:
+            QtWidgets.QMessageBox.warning(self, "Error", "Product ID not found!")
+            return
         
-        threshold = self.threshold_spinbox.value()
+        product_name = self.product_name_input.text().strip()
+        brand = self.brand_input.text().strip() or "None"
+        var = self.var_input.text().strip() or "None"
+        size = self.size_input.text().strip() or "None"
+        price = self.price_input.text().strip()
+        qty = self.qty_input.text().strip()
+        category = self.category_input.text().strip()
 
-        # Validate input
-        if not product_name or not price_text or not qty_text or not category:
-            QtWidgets.QMessageBox.warning(self, "Input Error", "Please fill in all required fields *.")
+        # Check for required fields
+        if not product_name or not price or not qty or not category:
+            QtWidgets.QMessageBox.warning(self, "Input Error", "Please fill in all required fields *")
             return
 
         # Validate that price and qty are numeric
         try:
-            price = float(price_text)
+            float(price)
         except ValueError:
             QtWidgets.QMessageBox.warning(self, "Input Error", "Price must be a valid number.")
             return
 
         try:
-            qty = int(qty_text)
+            int(qty)
         except ValueError:
             QtWidgets.QMessageBox.warning(self, "Input Error", "Qty must be a valid integer.")
             return
+
+        # Update the product in the database
+        conn = sqlite3.connect('j7h.db')
+        cur = conn.cursor()
+
+        cur.execute("UPDATE products SET product_name=?, brand=?, var=?, size=?, price=?, qty=?, category=? WHERE rowid=?",
+                (product_name, brand, var, size, price, qty, category, self.rowid))
         
-        if threshold == 0:
-            QtWidgets.QMessageBox.warning(self, "Input Error", "Invalid threshold value.")
-            return
-
-        # Check if a status is selected
-        if not self.available_radio.isChecked() and not self.unavailable_radio.isChecked():
-            QtWidgets.QMessageBox.warning(self, "Input Error", "Please select a Status (Available/Unavailable).")
-            return
-
-        # Determine the status based on radio button selection
-        if self.available_radio.isChecked():
-            status = "Available"
-        elif self.unavailable_radio.isChecked():
-            status = "Unavailable"
-        else:
-            status = ""  # Handle if neither is checked, though one should always be checked in this setup
-
-        # Insert the new product into the database
-        try:
-            conn = sqlite3.connect('j7h.db')  # Replace with your database path
-            cur = conn.cursor()
-            cur.execute("UPDATE products SET product_name=?, brand=?, var=?, size=?, price=?, qty=?, category=?, threshold=?, status=? WHERE rowid=?",
-                        (product_name, brand, var, size, price, qty, category, threshold, status, self.rowid))
-            conn.commit()
-        except sqlite3.Error as error:
-            print("Error while connecting to SQLite", error)
-            QtWidgets.QMessageBox.critical(self, "Database Error", "Failed to add product. Please try again.")
-        finally:
-            if conn:
-                conn.close()
+        conn.commit()
+        conn.close()
 
         self.accept()
+
+    
