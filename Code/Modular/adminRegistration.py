@@ -263,6 +263,7 @@ class AdminRegistration(QtWidgets.QWidget):
 "color:#636364;\n"
 "}\n"
 "")
+        self.birthdate_edit.setCalendarPopup(True)
         self.birthdate_edit.setObjectName("birthdate_edit")
         self.horizontalLayout_2.addWidget(self.birthdate_edit)
         self.gridLayout_2.addLayout(self.horizontalLayout_2, 5, 0, 1, 1)
@@ -535,9 +536,4 @@ class AdminRegistration(QtWidgets.QWidget):
             self.password_input.setEchoMode(QtWidgets.QLineEdit.Normal)
         else:
             self.password_input.setEchoMode(QtWidgets.QLineEdit.Password)
-            
-if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-    window = AdminRegistration()
-    window.show()
-    sys.exit(app.exec_())
+        

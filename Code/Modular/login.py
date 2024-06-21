@@ -5,7 +5,7 @@ from datetime import datetime
 import sqlite3
 from main import Ui_MainWindow
 from selection_screen import Selection
-from forgotPassword import Ui_ForgotPassword
+from forgotPassword import ForgotPassword
 import logo_rc
 
 class Login(QtWidgets.QWidget):
@@ -290,9 +290,9 @@ class Login(QtWidgets.QWidget):
 
     def forgot_password(self):
         self.forgotPasswordWindow = QtWidgets.QMainWindow()
-        self.ui = Ui_ForgotPassword()
+        self.ui = ForgotPassword()
         self.ui.setupUi(self.forgotPasswordWindow)
-        self.forgotPasswordWindow.show()
+        self.forgotPasswordWindow.showFullScreen()
         self.close()
 
     def show_error_message(self, message):
