@@ -460,7 +460,7 @@ class StaffRegistration(QtWidgets.QWidget):
             self.window = QtWidgets.QMainWindow()
             self.ui = Selection()
             self.ui.setupUi(self.window)
-            self.window.show()
+            self.window.showFullScreen()
             self.close() 
         
     def toggle_password_visibility(self, state):
