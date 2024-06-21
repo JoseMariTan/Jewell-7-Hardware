@@ -4,6 +4,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from datetime import datetime
 import sqlite3
 import logo_rc
+import random
+import string
 
 class StaffRegistration(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -368,6 +370,54 @@ class StaffRegistration(QtWidgets.QWidget):
         self.username_input.clear()
         self.password_input.clear()
 
+    def generate_staff_id(self):
+        # Establishing connection with SQLite database
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+    
+        try:
+            while True:
+                # Get the current date in the format YYYYMMDD
+                current_date = datetime.now().strftime("%Y%m%d")
+            
+                # Generate a random letter from A to Z
+                random_letter = random.choice(string.ascii_uppercase)
+            
+                # Combine the parts to form the staff ID
+                staff_id = f"STAFF{current_date}{random_letter}"
+            
+                # Check if the staff ID already exists in the database
+                cursor.execute("SELECT 1 FROM staff WHERE staff_id = ?", (staff_id,))
+                if not cursor.fetchone():
+                    return staff_id
+        finally:
+            # Ensure the database connection is closed
+            conn.close()
+            
+    def generate_user_id(self):
+        # Establishing connection with SQLite database
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+    
+        try:
+            while True:
+                # Get the current date in the format YYYYMMDD
+                current_date = datetime.now().strftime("%Y%m%d")
+            
+                # Generate a random letter from A to Z
+                random_letter = random.choice(string.ascii_uppercase)
+            
+                # Combine the parts to form the user ID
+                user_id = f"USER{current_date}{random_letter}"
+            
+                # Check if the user ID already exists in the database
+                cursor.execute("SELECT 1 FROM users WHERE user_id = ?", (user_id,))
+                if not cursor.fetchone():
+                    return user_id
+        finally:
+            # Ensure the database connection is closed
+            conn.close()
+
     def register_staff(self):
             # Fetching data from input fields
             first_name = self.firstName_input.text().strip()
@@ -376,6 +426,8 @@ class StaffRegistration(QtWidgets.QWidget):
             password = self.password_input.text().strip()
             birthdate = self.birthdate_edit.date().toString(QtCore.Qt.ISODate)
             loa = "staff"
+            user_id = self.generate_user_id()
+            staff_id = self.generate_staff_id()
 
             # Validation: Check if any field is empty
             if not all([first_name, last_name, username, password]):
@@ -429,15 +481,12 @@ class StaffRegistration(QtWidgets.QWidget):
                 return
 
             # Inserting data into the users table
-            cursor.execute('''INSERT INTO users (first_name, last_name, username, password, loa) 
-                    VALUES (?, ?, ?, ?, ?)''', (first_name, last_name, username, password, loa))
-
-            # Retrieve the user_id of the newly inserted user
-            user_id = cursor.lastrowid  # This fetches the last inserted row id, which is the user_id
+            cursor.execute('''INSERT INTO users (user_id, first_name, last_name, username, password, loa) 
+                    VALUES (?, ?, ?, ?, ?, ?)''', (user_id, first_name, last_name, username, password, loa))
 
             # Inserting data into the staff table using the retrieved user_id
-            cursor.execute('''INSERT INTO staff (first_name, last_name, birthdate, date_started, user_id) 
-                    VALUES (?, ?, ?, ?, ?)''', (first_name, last_name, birthdate, date_log, user_id))
+            cursor.execute('''INSERT INTO staff (staff_id, first_name, last_name, birthdate, date_started, user_id) 
+                    VALUES (?, ?, ?, ?, ?, ?)''', (staff_id, first_name, last_name, birthdate, date_log, user_id))
 
             action = "register"
             

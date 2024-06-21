@@ -1,6 +1,9 @@
 import sys
 import sqlite3
 import re
+import datetime
+import random
+import string
 from PyQt5 import QtCore, QtGui, QtWidgets
 from datetime import datetime
 import logo_rc
@@ -435,6 +438,54 @@ class AdminRegistration(QtWidgets.QWidget):
         self.username_input.clear()
         self.password_input.clear()
 
+    def generate_admin_id(self):
+        # Establishing connection with SQLite database
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+    
+        try:
+            while True:
+                # Get the current date in the format YYYYMMDD
+                current_date = datetime.now().strftime("%Y%m%d")
+            
+                # Generate a random letter from A to Z
+                random_letter = random.choice(string.ascii_uppercase)
+            
+                # Combine the parts to form the admin ID
+                admin_id = f"ADMIN{current_date}{random_letter}"
+            
+                # Check if the admin ID already exists in the database
+                cursor.execute("SELECT 1 FROM admin WHERE admin_id = ?", (admin_id,))
+                if not cursor.fetchone():
+                    return admin_id
+        finally:
+            # Ensure the database connection is closed
+            conn.close()
+            
+    def generate_user_id(self):
+        # Establishing connection with SQLite database
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+    
+        try:
+            while True:
+                # Get the current date in the format YYYYMMDD
+                current_date = datetime.now().strftime("%Y%m%d")
+            
+                # Generate a random letter from A to Z
+                random_letter = random.choice(string.ascii_uppercase)
+            
+                # Combine the parts to form the user ID
+                user_id = f"USER{current_date}{random_letter}"
+            
+                # Check if the user ID already exists in the database
+                cursor.execute("SELECT 1 FROM users WHERE user_id = ?", (user_id,))
+                if not cursor.fetchone():
+                    return user_id
+        finally:
+            # Ensure the database connection is closed
+            conn.close()
+
     def register_admin(self):
         # Fetching data from input fields
         first_name = self.firstName_input.text().strip()
@@ -444,6 +495,8 @@ class AdminRegistration(QtWidgets.QWidget):
         password = self.password_input.text().strip()
         birthdate = self.birthdate_edit.date().toString(QtCore.Qt.ISODate)
         loa = "admin"
+        admin_id = self.generate_admin_id()
+        user_id = self.generate_user_id()
 
         # Validation: Check if any field is empty
         if not all([first_name, last_name, username, password]):
@@ -497,15 +550,12 @@ class AdminRegistration(QtWidgets.QWidget):
             return
 
         # Inserting data into the users table
-        cursor.execute('''INSERT INTO users (first_name, last_name, username, password, loa) 
-                      VALUES (?, ?, ?, ?, ?)''', (first_name, last_name, username, password, loa))
-
-        # Retrieve the user_id of the newly inserted user
-        user_id = cursor.lastrowid  # This fetches the last inserted row id, which is the user_id
+        cursor.execute('''INSERT INTO users (user_id, first_name, last_name, username, password, loa) 
+                      VALUES (?, ?, ?, ?, ?, ?)''', (user_id, first_name, last_name, username, password, loa))
 
         # Inserting data into the admin table using the retrieved user_id
-        cursor.execute('''INSERT INTO admin (first_name, last_name, birthdate, date_started, middle_name, user_id) 
-                      VALUES (?, ?, ?, ?, ?, ?)''', (first_name, last_name, birthdate, date_log, middle_name, user_id))
+        cursor.execute('''INSERT INTO admin (admin_id, first_name, last_name, birthdate, date_started, middle_name, user_id) 
+                      VALUES (?, ?, ?, ?, ?, ?, ?)''', (admin_id, first_name, last_name, birthdate, date_log, middle_name, user_id))
         
         action = "register"
         
@@ -536,4 +586,7 @@ class AdminRegistration(QtWidgets.QWidget):
             self.password_input.setEchoMode(QtWidgets.QLineEdit.Normal)
         else:
             self.password_input.setEchoMode(QtWidgets.QLineEdit.Password)
+
+
+    
         

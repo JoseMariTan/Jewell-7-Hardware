@@ -155,39 +155,48 @@ class ModifyUserDialog(QtWidgets.QDialog):
         self.rowid = rowid
 
         self.layout = QtWidgets.QVBoxLayout()
-        validator = QtGui.QRegExpValidator(QtCore.QRegExp("[A-Za-z0-9]+"))
 
-        self.firstName_label = QtWidgets.QLabel("First Name (required)")
+        # Validators
+        name_validator = QtGui.QRegExpValidator(QtCore.QRegExp("[A-Za-z]+"))
+        password_validator = QtGui.QRegExpValidator(QtCore.QRegExp(".{8,12}"))
+
+        # First Name
+        self.firstName_label = QtWidgets.QLabel("First Name: *")
         self.firstName_input = QtWidgets.QLineEdit()
         self.firstName_input.setText(user[0])
-        self.firstName_input.setValidator(validator)
+        self.firstName_input.setValidator(name_validator)
         self.layout.addWidget(self.firstName_label)
         self.layout.addWidget(self.firstName_input)
 
-        self.lastName_label = QtWidgets.QLabel("Last_Name (required)")
+        # Last Name
+        self.lastName_label = QtWidgets.QLabel("Last Name: *")
         self.lastName_input = QtWidgets.QLineEdit()
         self.lastName_input.setText(user[1])
-        self.lastName_input.setValidator(validator)
+        self.lastName_input.setValidator(name_validator)
         self.layout.addWidget(self.lastName_label)
         self.layout.addWidget(self.lastName_input)
 
-        self.username_label = QtWidgets.QLabel("Username (required)")
+        # Username
+        self.username_label = QtWidgets.QLabel("Username: *")
         self.username_input = QtWidgets.QLineEdit()
         self.username_input.setText(user[2])
-        self.username_input.setValidator(validator)
+        self.username_input.setValidator(name_validator)
         self.layout.addWidget(self.username_label)
         self.layout.addWidget(self.username_input)
 
-        self.password_label = QtWidgets.QLabel("Password (required)")
+        # Password
+        self.password_label = QtWidgets.QLabel("Password: *")
         self.password_input = QtWidgets.QLineEdit()
-        self.password_input.setValidator(validator)
         self.password_input.setText(user[3] or "")
+        self.password_input.setValidator(password_validator)
         self.layout.addWidget(self.password_label)
         self.layout.addWidget(self.password_input)
 
-        self.modify_button = QtWidgets.QPushButton("Modify")
+        # Modify Button
+        self.modify_button = QtWidgets.QPushButton("Update")
         self.modify_button.clicked.connect(self.modify_user)
         self.layout.addWidget(self.modify_button)
+
         self.setLayout(self.layout)
 
     def modify_user(self):
@@ -197,7 +206,11 @@ class ModifyUserDialog(QtWidgets.QDialog):
         password = self.password_input.text()
 
         if not first_name or not last_name or not username or not password:
-            QtWidgets.QMessageBox.warning(self, "Input Error", "All fields must be filled")
+            QtWidgets.QMessageBox.warning(self, "Input Error", "All required fields must be filled")
+            return
+
+        if not (8 <= len(password) <= 12):
+            QtWidgets.QMessageBox.warning(self, "Input Error", "Password must be between 8 and 12 characters")
             return
 
         conn = sqlite3.connect('j7h.db')
