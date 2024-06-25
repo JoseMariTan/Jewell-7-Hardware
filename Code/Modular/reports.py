@@ -489,10 +489,9 @@ class ReportsTab(QtWidgets.QWidget):
         payment_id_item = self.transactions_table.item(row, 14) 
         if payment_id_item:
             payment_id = payment_id_item.text()
-            print("Selected payment_id:", payment_id)  # Debug print
-
             # Get the transaction details from the database based on payment_id
             transaction_details = self.get_transaction_details(payment_id)
+            print(transaction_details)
 
             if not transaction_details:
                 QMessageBox.warning(self, 'Error', 'Failed to retrieve transaction details.')
@@ -504,8 +503,6 @@ class ReportsTab(QtWidgets.QWidget):
             # Insert into returns table
             if self.insert_into_returns(return_id, transaction_details):
                 QMessageBox.information(self, 'Success', 'Item returned successfully.')
-                selected_row = self.transactions_table.currentRow()
-                self.transactions_table.removeRow(selected_row)
                 self.load_returns()
             else:
                 QMessageBox.warning(self, 'Error', 'Failed to return item.')
@@ -518,7 +515,7 @@ class ReportsTab(QtWidgets.QWidget):
         conn = sqlite3.connect('j7h.db')
         cursor = conn.cursor()
 
-        cursor.execute("""SELECT payment_id, product_name, brand, var, size, qty, date 
+        cursor.execute("""SELECT transaction_id, product_name, brand, var, size, qty, date 
                         FROM transactions 
                         WHERE payment_id = ?""", (payment_id,))
         transaction_details = cursor.fetchone()
@@ -531,8 +528,12 @@ class ReportsTab(QtWidgets.QWidget):
         cursor = conn.cursor()
 
         try:
+            # Extract transaction details
+            transaction_id, product_name, brand, var, size, qty, date = transaction_details
+            
+            # Insert into returns table
             cursor.execute("""INSERT INTO returns (return_id, product_name, brand, var, size, qty, date, transaction_id)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)""", (return_id, *transaction_details))
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)""", (return_id, product_name, brand, var, size, qty, date, transaction_id))
             conn.commit()
             return True
         except sqlite3.Error as e:
