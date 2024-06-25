@@ -419,7 +419,7 @@ class CartTab(QtWidgets.QWidget):
                 cursor.execute("SELECT status FROM cart WHERE product_name = ? AND brand = ? AND var = ? AND size = ?", (product_name, brand, var, size))
                 status_result = cursor.fetchone()
                 if status_result and status_result[0] == 'return':
-                    transaction_type = "returns"
+                    transaction_type = "replacement"
                     # Insert return details into the returns table
                     return_id = self.generate_return_id()
                     cursor.execute('''
