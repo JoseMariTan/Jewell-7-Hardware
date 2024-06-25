@@ -42,7 +42,7 @@ class ReceiptDialog(QtWidgets.QDialog):
 
         # Add another separator
         layout.addWidget(separator)
-
+        
         # Add product details in a table format
         products_table = QtWidgets.QTableWidget()
         products_table.setColumnCount(5)
@@ -67,7 +67,7 @@ class ReceiptDialog(QtWidgets.QDialog):
         close_button = QtWidgets.QPushButton("Close")
         close_button.clicked.connect(self.close)
         layout.addWidget(close_button)
-
+        
         self.setLayout(layout)
         self.returns_table.itemSelectionChanged.connect(self.on_selection_changed)
 
@@ -106,6 +106,7 @@ class ReportsTab(QtWidgets.QWidget):
         self.tab_widget.addTab(self.reports_tab, "User Logs")  
         self.tab_widget.addTab(self.transactions_tab, "Transactions")
         self.tab_widget.addTab(self.returns_tab, "Returns")
+        self.tab_widget.setStyleSheet(""" QHeaderView::section { background-color: #ff7d7d;} """)
 
         # Set layouts for each sub-tab
         self.initReportsTab()
