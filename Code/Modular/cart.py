@@ -67,7 +67,7 @@ class CartTab(QtWidgets.QWidget):
         # Create buttons for cart operations
         self.pay_button = QtWidgets.QPushButton("Check Out")
         self.remove_button = QtWidgets.QPushButton("Remove Item")
-        self.mark_button = QtWidgets.QPushButton("Mark as Return")
+        self.mark_button = QtWidgets.QPushButton("Mark as Replacement")
         self.clear_button = QtWidgets.QPushButton("Clear Cart")
   
         self.layout.addWidget(self.pay_button)
@@ -186,19 +186,18 @@ class CartTab(QtWidgets.QWidget):
         conn = sqlite3.connect('j7h.db')
         cursor = conn.cursor()
         for row in selected_rows:
-            product_id_item = self.cart_table.item(row, 5)  # Assuming the first column is product_id
-            if product_id_item is not None:
-                product_id = product_id_item.text()
+            product_name_item = self.cart_table.item(row, 1)  
+            if product_name_item is not None:
+                product_name = product_name_item.text()
                 # Update the status to "return" in the cart table
-                cursor.execute("UPDATE cart SET status = 'return' WHERE rowid = ?", (product_id,))
-                # Update the total_price to 0 in the cart table
-                cursor.execute("UPDATE cart SET total_price = 0 WHERE rowid = ?", (product_id,))
+                cursor.execute("UPDATE cart SET status = 'return', total_price = 0 WHERE product_name =?", (product_name,))
                 # Update the QTableWidget directly
-                total_price_item = self.cart_table.item(row, 6) 
+                total_price_item = self.cart_table.item(row, 6)  # Column index for total price
                 total_price_item.setText("0.00")
         conn.commit()
         conn.close()
         self.update_total_label()
+
 
 
     def clear_cart(self):
@@ -317,12 +316,13 @@ class CartTab(QtWidgets.QWidget):
                     continue  # Skip this item
 
                 
-                # Check if there's any item with status "return"
-                cursor.execute("SELECT 1 FROM cart WHERE status = 'return' LIMIT 1")
-                has_returned_items = cursor.fetchone() is not None
-
-                # Set transaction type
-                transaction_type = "transaction with return" if has_returned_items else "purchase"
+                # Check the status of the item in the cart
+                cursor.execute("SELECT status FROM cart WHERE product_name = ? AND brand = ? AND var = ? AND size = ?", (product_name, brand, var, size))
+                status_result = cursor.fetchone()
+                if status_result and status_result[0] == 'return':
+                    transaction_type = "returns"
+                else:
+                    transaction_type = "purchase"
 
                 cursor.execute('''
                     INSERT INTO transactions ( transaction_id, customer, product_name, qty, total_price, date, time, type, product_id, log_id, brand, var, size, user_id, payment_id, contact)
