@@ -1,5 +1,7 @@
 import sqlite3
 import uuid
+import random
+import string
 from datetime import datetime
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QSpinBox, QPushButton, QMessageBox
 from PyQt5 import QtWidgets, QtCore
@@ -216,7 +218,32 @@ class CartTab(QtWidgets.QWidget):
 
         # Return the quantities of all products removed
         return quantities_removed
-        
+    
+    def generate_transaction_id(self):
+        # Establishing connection with SQLite database
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+    
+        try:
+            while True:
+                # Get the current date in the format YYYYMMDD
+                current_date = datetime.now().strftime("%Y%m%d")
+            
+                # Generate three random letters from A to Z
+                random_letters = ''.join(random.choices(string.ascii_uppercase, k=3))
+            
+                # Combine the parts to form the transaction ID
+                transaction_id = f"TRANSAC{current_date}{random_letters}"
+            
+                # Check if the transaction ID already exists in the database
+                cursor.execute("SELECT 1 FROM transactions WHERE transaction_id = ?", (transaction_id,))
+                if not cursor.fetchone():
+                    return transaction_id
+        finally:
+            # Ensure the database connection is closed
+            conn.close()
+            
+
     def checkout(self, customer_name, payment_id, contact):
         if not payment_id:
             QMessageBox.warning(self, "Error", "Payment ID is missing.")
@@ -259,6 +286,7 @@ class CartTab(QtWidgets.QWidget):
                 brand = brand_item.text() if brand_item.text() else None
                 var = var_item.text() if var_item.text() else None
                 size = size_item.text() if size_item.text() else None
+                transaction_id = self.generate_transaction_id()
 
                 query = """
                     SELECT product_id 
@@ -283,8 +311,6 @@ class CartTab(QtWidgets.QWidget):
                 # Replace with actual transaction type logic
                 transaction_type = "purchase"
 
-                transaction_id = str(uuid.uuid4())
-                # Insert into transactions table
                 cursor.execute('''
                     INSERT INTO transactions ( transaction_id, customer, product_name, qty, total_price, date, time, type, product_id, log_id, brand, var, size, user_id, payment_id, contact)
                     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)

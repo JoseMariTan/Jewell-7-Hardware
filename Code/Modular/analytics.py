@@ -4,6 +4,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from datetime import datetime, timedelta
+from sklearn.linear_model import LinearRegression
+import numpy as np
 
 class AnalyticsTab(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -11,10 +13,25 @@ class AnalyticsTab(QtWidgets.QWidget):
         self.setupUi()
 
     def setupUi(self):
-        self.main_layout = QtWidgets.QHBoxLayout(self)
+        self.main_layout = QtWidgets.QVBoxLayout(self)
+
+        # Right side layout (chart placeholder)
+        self.chart_layout = QtWidgets.QVBoxLayout()
+        self.chart_placeholder = QtWidgets.QLabel("Chart or Graph Placeholder", self)
+        self.chart_placeholder.setAlignment(QtCore.Qt.AlignCenter)
+        self.chart_placeholder.setStyleSheet("border: 1px solid black; height: 600px;")  # Increased height
+        self.chart_layout.addWidget(self.chart_placeholder)
+
+        self.main_layout.addLayout(self.chart_layout, 3)  # Larger weight for chart layout
+
+        # Spacer between chart and controls
+        self.main_layout.addItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
 
         # Left side layout (controls)
         self.controls_layout = QtWidgets.QVBoxLayout()
+
+        # Spacer on the left of controls
+        self.controls_layout.addItem(QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
 
         # Chart type layout
         self.chart_type_layout = QtWidgets.QHBoxLayout()
@@ -71,18 +88,6 @@ class AnalyticsTab(QtWidgets.QWidget):
 
         self.main_layout.addLayout(self.controls_layout, 1)  # Smaller weight for controls layout
 
-        # Spacer between controls and chart placeholder
-        self.main_layout.addItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
-
-        # Right side layout (chart placeholder)
-        self.chart_layout = QtWidgets.QVBoxLayout()
-        self.chart_placeholder = QtWidgets.QLabel("Chart or Graph Placeholder", self)
-        self.chart_placeholder.setAlignment(QtCore.Qt.AlignCenter)
-        self.chart_placeholder.setStyleSheet("border: 1px solid black;")
-        self.chart_layout.addWidget(self.chart_placeholder)
-
-        self.main_layout.addLayout(self.chart_layout, 3)  # Larger weight for chart layout
-
         # Connect save button to a method
         self.save_button.clicked.connect(self.save_analytics_data)
 
@@ -118,7 +123,7 @@ class AnalyticsTab(QtWidgets.QWidget):
             if chart_type == "Pie Chart":
                 self.generate_pie_chart(df, f'Customer {transaction_type.capitalize()} Distribution from the {time_period} per {data_type.capitalize()}', data_type)
             elif chart_type == "Line Chart":
-                self.generate_line_chart(df, f'Customer {transaction_type.capitalize()} over {time_period} per {data_type.capitalize()}', data_type)
+                self.generate_line_chart(df, f'Customer {transaction_type.capitalize()} over {time_period}', data_type)
             elif chart_type == "Bar Chart":
                 self.generate_bar_chart(df, f'Customer {transaction_type.capitalize()} Distribution from the {time_period} per {data_type.capitalize()}', data_type)
 
@@ -149,7 +154,7 @@ class AnalyticsTab(QtWidgets.QWidget):
     def generate_pie_chart(self, df, title, data_type):
         counts = df[data_type].value_counts().head(8)
 
-        fig, ax = plt.subplots(figsize=(8, 6))
+        fig, ax = plt.subplots(figsize=(6, 4))  # Adjusted figsize
         ax.pie(counts, labels=counts.index, autopct=self.autopct_format(counts), startangle=90)
         ax.set_title(title)
         ax.axis('equal')
@@ -160,7 +165,7 @@ class AnalyticsTab(QtWidgets.QWidget):
         self.chart_layout.addWidget(canvas)
 
     def generate_line_chart(self, df, title, data_type):
-        fig, ax = plt.subplots(figsize=(10, 5))
+        fig, ax = plt.subplots(figsize=(6, 4))  # Adjusted figsize
 
         if self.time_period_combo.currentText() == 'Last 24 Hours':
             times_24h = [(datetime.now().replace(hour=h, minute=0, second=0, microsecond=0),
@@ -176,10 +181,26 @@ class AnalyticsTab(QtWidgets.QWidget):
             days_labels = [day.strftime('%a') for day in days]
             ax.plot(days_labels, counts, marker='o')
 
+            # Implementing Linear Regression
+            X = np.arange(len(days)).reshape(-1, 1)
+            y = np.array(counts)
+
+            model = LinearRegression()
+            model.fit(X, y)
+
+            # Predict for an additional day
+            next_day_index = len(days)
+            next_day_pred = model.predict([[next_day_index]])[0]
+
+            # Extend labels for prediction day
+            days_labels.append("Next Day")
+            counts.append(next_day_pred)
+            ax.plot(days_labels, counts, marker='o', linestyle='--', color='r')
+
         elif self.time_period_combo.currentText() == 'Last Month':
             weeks = [(datetime.now() - timedelta(days=i * 7), datetime.now() - timedelta(days=(i - 1) * 7)) for i in range(4, 0, -1)]
             counts = [len(df[(df['datetime'] >= start) & (df['datetime'] < end)]) for start, end in weeks]
-            weeks_labels = [f'Week {i + 1}' for i in range(4)]
+            weeks_labels = [start.strftime('%B %d') + ' - ' + (end - timedelta(days=1)).strftime('%d') for start, end in weeks]
             ax.plot(weeks_labels, counts, marker='o')
 
         elif self.time_period_combo.currentText() == 'Last Year':
@@ -201,7 +222,7 @@ class AnalyticsTab(QtWidgets.QWidget):
     def generate_bar_chart(self, df, title, data_type):
         counts = df[data_type].value_counts().head(8)
 
-        fig, ax = plt.subplots(figsize=(10, 5))
+        fig, ax = plt.subplots(figsize=(6, 4))  # Adjusted figsize
         ax.bar(counts.index, counts, color='skyblue')
         ax.set_title(title)
         ax.set_xlabel(data_type.capitalize())
