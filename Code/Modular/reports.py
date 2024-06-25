@@ -2,6 +2,8 @@ import sqlite3
 from PyQt5.QtWidgets import QTableWidgetItem, QMessageBox
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt
+from datetime import datetime
+import random, string
 
 class ReceiptDialog(QtWidgets.QDialog):
     def __init__(self, transaction_details):
@@ -175,6 +177,7 @@ class ReportsTab(QtWidgets.QWidget):
 
         # Create buttons for clearing logs, flagging transactions, and generating receipts
         buttons_layout = QtWidgets.QHBoxLayout()
+        return_button = QtWidgets.QPushButton("Return Item")
         clear_logs_button = QtWidgets.QPushButton("Clear Transaction Logs")
         flag_transaction_button = QtWidgets.QPushButton("Flag Transaction")
         delete_log_button = QtWidgets.QPushButton("Remove Transaction")
@@ -185,8 +188,10 @@ class ReportsTab(QtWidgets.QWidget):
         flag_transaction_button.clicked.connect(self.flag_transaction)
         delete_log_button.clicked.connect(self.remove_log)
         receipt_button.clicked.connect(self.generate_receipt)
+        return_button.clicked.connect(self.return_selected_item)
 
         # Add buttons to the layout
+        buttons_layout.addWidget(return_button)
         buttons_layout.addWidget(clear_logs_button)
         buttons_layout.addWidget(flag_transaction_button)
         buttons_layout.addWidget(delete_log_button)
@@ -473,6 +478,70 @@ class ReportsTab(QtWidgets.QWidget):
         conn.commit()
         conn.close()
         
+    def return_selected_item(self):
+        selected_items = self.transactions_table.selectedItems()
+        if not selected_items:
+            QMessageBox.warning(self, 'No Selection', 'Please select a transaction to return.')
+            return
+
+        # Assuming payment_id is in the 15th column (index 14)
+        row = selected_items[0].row()
+        payment_id_item = self.transactions_table.item(row, 14) 
+        if payment_id_item:
+            payment_id = payment_id_item.text()
+            print("Selected payment_id:", payment_id)  # Debug print
+
+            # Get the transaction details from the database based on payment_id
+            transaction_details = self.get_transaction_details(payment_id)
+
+            if not transaction_details:
+                QMessageBox.warning(self, 'Error', 'Failed to retrieve transaction details.')
+                return
+
+            # Generate a return_id
+            return_id = self.generate_return_id()
+
+            # Insert into returns table
+            if self.insert_into_returns(return_id, transaction_details):
+                QMessageBox.information(self, 'Success', 'Item returned successfully.')
+                selected_row = self.transactions_table.currentRow()
+                self.transactions_table.removeRow(selected_row)
+                self.load_returns()
+            else:
+                QMessageBox.warning(self, 'Error', 'Failed to return item.')
+        else:
+            print("No payment_id found in selected items.")  # Debug print
+            QMessageBox.warning(self, 'Error', 'No payment ID found in selected items.')
+
+
+    def get_transaction_details(self, payment_id):
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+
+        cursor.execute("""SELECT payment_id, product_name, brand, var, size, qty, date 
+                        FROM transactions 
+                        WHERE payment_id = ?""", (payment_id,))
+        transaction_details = cursor.fetchone()
+
+        conn.close()
+        return transaction_details
+
+    def insert_into_returns(self, return_id, transaction_details):
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute("""INSERT INTO returns (return_id, product_name, brand, var, size, qty, date, transaction_id)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)""", (return_id, *transaction_details))
+            conn.commit()
+            return True
+        except sqlite3.Error as e:
+            print("Error inserting into returns table:", e)
+            conn.rollback()
+            return False
+        finally:
+            conn.close()
+    
     def generate_return_id(self):
         conn = sqlite3.connect('j7h.db')
         cursor = conn.cursor()
@@ -490,38 +559,4 @@ class ReportsTab(QtWidgets.QWidget):
             conn.close()
             
     def generate_receipt(self):
-        selected_items = self.transactions_table.selectedItems()
-        if not selected_items:
-            QMessageBox.warning(self, 'No Selection', 'Please select a transaction to generate a receipt.')
-            return
-
-        # Get the unique transaction IDs from the selected items
-        transaction_ids = set()
-        for item in selected_items:
-            transaction_id = self.transactions_table.item(item.row(), 0).text()
-            transaction_ids.add(transaction_id)
-
-        if len(transaction_ids) != 1:
-            QMessageBox.warning(self, 'Multiple Selections', 'Please select items from a single transaction.')
-            return
-
-        transaction_id = transaction_ids.pop()
-
-        # Get the row index of the selected transaction
-        row = selected_items[0].row()
-
-        transaction_details = {
-            'Transaction ID': self.transactions_table.item(row, 0).text(),
-            'Customer': self.transactions_table.item(row, 1).text(),
-            'Date and Time': self.transactions_table.item(row, 3).text(),
-            'Total Price': self.transactions_table.item(row, 4).text(),
-            'Product ID': self.transactions_table.item(row, 5).text(),
-            'Product Name': self.transactions_table.item(row, 6).text(),
-            'Brand': self.transactions_table.item(row, 7).text(),
-            'Size': self.transactions_table.item(row, 8).text(),
-            'Variation': self.transactions_table.item(row, 9).text(),
-        }
-
-        # Show the receipt dialog with transaction details
-        receipt_dialog = ReceiptDialog(transaction_details)
-        receipt_dialog.exec_()
+        pass
