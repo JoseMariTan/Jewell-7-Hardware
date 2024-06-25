@@ -7,6 +7,86 @@ from datetime import datetime
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QMessageBox
 
+import sqlite3
+from PyQt5 import QtWidgets, QtGui
+
+class AdminLoginDialog(QtWidgets.QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle('Admin Login')
+        self.setGeometry(200, 200, 300, 180)
+
+        self.layout = QtWidgets.QVBoxLayout(self)
+
+        self.help_label = QtWidgets.QLabel("Ask an Admin for Help", self)
+        self.layout.addWidget(self.help_label)
+
+        self.username_input = QtWidgets.QLineEdit(self)
+        self.username_input.setPlaceholderText('Username')
+        self.layout.addWidget(self.username_input)
+
+        self.password_input = QtWidgets.QLineEdit(self)
+        self.password_input.setPlaceholderText('Password')
+        self.password_input.setEchoMode(QtWidgets.QLineEdit.Password)
+        self.layout.addWidget(self.password_input)
+
+        self.login_button = QtWidgets.QPushButton('Login', self)
+        self.layout.addWidget(self.login_button)
+        self.login_button.clicked.connect(self.check_credentials)
+
+    def check_credentials(self):
+        username = self.username_input.text().strip()
+        password = self.password_input.text().strip()
+
+        if not all([username, password]):
+            QtWidgets.QMessageBox.warning(self, 'Login Failed', 'Please fill in all the fields.')
+            return
+
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+
+        try:
+            query = "SELECT user_id FROM users WHERE username = ? AND password = ?"
+            cursor.execute(query, (username, password))
+            result = cursor.fetchone()
+
+            if result:
+                user_id = result[0]
+                if self.is_admin(user_id):
+                    self.accept()  # Close dialog with accept status if credentials are correct and user is admin
+                else:
+                    QtWidgets.QMessageBox.warning(self, 'Login Failed', 'You are not authorized as an admin.')
+            else:
+                QtWidgets.QMessageBox.warning(self, 'Login Failed', 'Invalid username or password.')
+
+        except sqlite3.Error as e:
+            QtWidgets.QMessageBox.warning(self, 'Database Error', f'Database error: {e}')
+
+        finally:
+            conn.close()
+
+    def is_admin(self, user_id):
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+
+        try:
+            query = "SELECT 1 FROM admin WHERE user_id = ?"
+            cursor.execute(query, (user_id,))
+            result = cursor.fetchone()
+
+            return result is not None
+
+        except sqlite3.Error as e:
+            QtWidgets.QMessageBox.warning(self, 'Database Error', f'Database error: {e}')
+
+        finally:
+            conn.close()
+
+    @staticmethod
+    def get_credentials(parent=None):
+        dialog = AdminLoginDialog(parent)
+        result = dialog.exec_()
+        return result == QtWidgets.QDialog.Accepted
 
 class CartTab(QtWidgets.QWidget):
     def __init__(self, user_id):
@@ -182,8 +262,8 @@ class CartTab(QtWidgets.QWidget):
     def mark_return(self):
         # Check if admin user is logged in
         if not self.is_admin():
-            QMessageBox.warning(self, "Permission Denied", "Only admin users can mark items as replacements.")
-            return
+            if not self.show_admin_login_dialog():
+                return
     
         selected_rows = set()
         for item in self.cart_table.selectedItems():
@@ -394,7 +474,10 @@ class CartTab(QtWidgets.QWidget):
                 return False
         finally:
             conn.close()
-
+            
+    def show_admin_login_dialog(self):
+        return AdminLoginDialog.get_credentials(self)
+    
     def resize_table(self):
         header = self.cart_table.horizontalHeader()
         for i in range(1, self.cart_table.columnCount() - 1):
