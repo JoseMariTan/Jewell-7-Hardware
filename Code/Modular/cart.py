@@ -332,23 +332,6 @@ class CartTab(QtWidgets.QWidget):
         finally:
             # Ensure the database connection is closed
             conn.close()
-            
-    def generate_return_id(self):
-        conn = sqlite3.connect('j7h.db')
-        cursor = conn.cursor()
-
-        try:
-            while True:
-                current_date = datetime.now().strftime("%Y%m%d")
-                random_letters = ''.join(random.choices(string.ascii_uppercase, k=3))
-                return_id = f"RETURN{current_date}{random_letters}"
-
-                cursor.execute("SELECT 1 FROM returns WHERE return_id = ?", (return_id,))
-                if not cursor.fetchone():
-                    return return_id
-        finally:
-            conn.close()
-
         
     def checkout(self, customer_name, payment_id, contact):
         if not payment_id:
@@ -414,18 +397,11 @@ class CartTab(QtWidgets.QWidget):
                     transaction_successful = False
                     continue  # Skip this item
 
-                
-             # Check the status of the item in the cart
+            # Check the status of the item in the cart
                 cursor.execute("SELECT status FROM cart WHERE product_name = ? AND brand = ? AND var = ? AND size = ?", (product_name, brand, var, size))
                 status_result = cursor.fetchone()
                 if status_result and status_result[0] == 'return':
                     transaction_type = "replacement"
-                    # Insert return details into the returns table
-                    return_id = self.generate_return_id()
-                    cursor.execute('''
-                        INSERT INTO returns (return_id, product_name, brand, var, size, qty, date, transaction_id)
-                        VALUES (?,?,?,?,?,?,?,?)
-                    ''', (return_id, product_name, brand, var, size, qty, current_date, transaction_id))
                 else:
                     transaction_type = "purchase"
 
