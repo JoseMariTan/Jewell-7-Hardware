@@ -180,6 +180,11 @@ class CartTab(QtWidgets.QWidget):
         self.update_total_label()
 
     def mark_return(self):
+        # Check if admin user is logged in
+        if not self.is_admin():
+            QMessageBox.warning(self, "Permission Denied", "Only admin users can mark items as replacements.")
+            return
+    
         selected_rows = set()
         for item in self.cart_table.selectedItems():
             selected_rows.add(item.row())
@@ -373,8 +378,22 @@ class CartTab(QtWidgets.QWidget):
             QMessageBox.information(self, "Checkout", "Checkout successful!")
         else:
             QMessageBox.warning(self, "Checkout", "Checkout failed. Some items were not processed.")
+            
+    def is_admin(self):
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
 
+        try:
+            query = "SELECT 1 FROM admin WHERE user_id = ?"
+            cursor.execute(query, (self.user_id,))
+            result = cursor.fetchone()
 
+            if result:
+                return True
+            else:
+                return False
+        finally:
+            conn.close()
 
     def resize_table(self):
         header = self.cart_table.horizontalHeader()
