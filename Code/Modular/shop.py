@@ -98,8 +98,8 @@ class ShopTab(QtWidgets.QWidget):
             self.tableWidget.setItem(row_number, 3, QtWidgets.QTableWidgetItem(str(row_data[4])))  # size
             self.tableWidget.setItem(row_number, 4, QtWidgets.QTableWidgetItem(str(row_data[5])))  # price
             qty = row_data[6]  # qty
-            self.tableWidget.setItem(row_number, 5, QtWidgets.QTableWidgetItem(str(qty)))  # Convert qty to string before setting it as text
-            self.tableWidget.setItem(row_number, 6, QtWidgets.QTableWidgetItem(str(row_data[7])))  # category
+            self.tableWidget.setItem(row_number, 5, QtWidgets.QTableWidgetItem(str(qty)))  # Items in Stock
+            self.tableWidget.setItem(row_number, 6, QtWidgets.QTableWidgetItem(str(row_data[8])))  # category
         conn.close()
 
     def search_products(self):
