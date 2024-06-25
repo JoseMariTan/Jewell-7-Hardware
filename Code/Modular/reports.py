@@ -69,6 +69,7 @@ class ReceiptDialog(QtWidgets.QDialog):
         layout.addWidget(close_button)
 
         self.setLayout(layout)
+        self.returns_table.itemSelectionChanged.connect(self.on_selection_changed)
 
 #Class for Reports Tab
 class ReportsTab(QtWidgets.QWidget):
@@ -98,23 +99,24 @@ class ReportsTab(QtWidgets.QWidget):
         self.tab_widget = QtWidgets.QTabWidget()
         self.reports_tab = QtWidgets.QWidget()
         self.transactions_tab = QtWidgets.QWidget()
+        self.returns_tab = QtWidgets.QWidget()
 
 
         # Add sub-tabs to the tab widget
         self.tab_widget.addTab(self.reports_tab, "User Logs")  
         self.tab_widget.addTab(self.transactions_tab, "Transactions")
-
+        self.tab_widget.addTab(self.returns_tab, "Returns")
 
         # Set layouts for each sub-tab
         self.initReportsTab()
         self.initTransactionsTab()
-
+        self.initReturnsTab()
 
         self.layout.addWidget(self.tab_widget)
 
         # Connect itemSelectionChanged signal to handle row selection
         self.transactions_table.itemSelectionChanged.connect(self.on_selection_changed)
-
+        self.returns_table.itemSelectionChanged.connect(self.on_selection_row)
 
         # Connect tabChanged signal to clear the search query
         self.tab_widget.currentChanged.connect(self.clear_search_query)
@@ -191,6 +193,23 @@ class ReportsTab(QtWidgets.QWidget):
 
         # Add buttons layout to the main layout
         layout.addLayout(buttons_layout)
+        
+    def initReturnsTab(self):
+        layout = QtWidgets.QVBoxLayout(self.returns_tab)
+
+        # Create the table widget for returns
+        self.returns_table = QtWidgets.QTableWidget()
+        self.returns_table.setColumnCount(8)  # Set column count to match the number of columns in returns
+        self.returns_table.setHorizontalHeaderLabels(['Return ID', 'Product Name', 'Brand', 'Variation', 'Size', 'Quantity', 'Date', 'Transaction ID'])
+        self.returns_table.horizontalHeader().setStretchLastSection(True)
+        self.returns_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        self.returns_table.verticalHeader().setVisible(False)
+
+        # Add the table widget to the layout
+        layout.addWidget(self.returns_table)
+
+        # Load returns into the table
+        self.load_returns()
 
     def search_logs(self):
         search_query = self.search_input.text()
@@ -204,7 +223,17 @@ class ReportsTab(QtWidgets.QWidget):
         self.search_input.clear()
         self.search_logs()
         self.search_transactions()
-
+        
+    def on_selection_row(self):
+        selected_rows = set()
+        for item in self.returns_table.selectedItems():
+            selected_rows.add(item.row())
+        for row in selected_rows:
+            for column in range(self.returns_table.columnCount()):
+                item = self.returns_table.item(row, column)
+                if item:
+                    item.setSelected(True)
+                    
     def on_selection_changed(self):
         selected_rows = set()
         selected_payment_ids = set()  # Track selected payment_ids
@@ -322,6 +351,30 @@ class ReportsTab(QtWidgets.QWidget):
                 item = QTableWidgetItem(str(formatted_total_price))
                 item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
                 self.transactions_table.setItem(row_number - span_length, 0, item)
+                
+    def load_returns(self, search_query=None):
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+
+        if search_query:
+            query = """SELECT return_id, product_name, brand, var, size, qty, date, transaction_id 
+                    FROM returns 
+                    WHERE return_id LIKE ? OR product_name LIKE ? OR brand LIKE ? OR date LIKE ?"""
+            cursor.execute(query, (f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%"))
+        else:
+            cursor.execute("SELECT return_id, product_name, brand, var, size, qty, date, transaction_id FROM returns")
+
+        rows = cursor.fetchall()
+        conn.close()
+
+        # Set the number of rows in the table
+        self.returns_table.setRowCount(len(rows))
+
+        # Populate the table with returns data
+        for row_number, row_data in enumerate(rows):
+            for column_number, data in enumerate(row_data):
+                item = QTableWidgetItem(str(data))
+                self.returns_table.setItem(row_number, column_number, item)
 
     #button functionalities
 
