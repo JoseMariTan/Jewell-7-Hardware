@@ -157,10 +157,10 @@ class ReportsTab(QtWidgets.QWidget):
         
         # Create the table widget
         self.transactions_table = QtWidgets.QTableWidget()
-        self.transactions_table.setColumnCount(15)  # Update column count to match the number of columns
+        self.transactions_table.setColumnCount(16)  # Update column count to match the number of columns
         self.transactions_table.setHorizontalHeaderLabels([
             'Total Amount',  'Price', 'Quantity', 'Customer', 'Product','Brand', 'Variation', 'Size', 'Category', 'Time', 
-            'Date', 'User ID', 'Cashier', 'Payment ID', 'Contact'
+            'Date', 'Type', 'User ID', 'Cashier', 'Payment ID', 'Contact'
         ])
         
         self.transactions_table.horizontalHeader().setStretchLastSection(True)
@@ -242,13 +242,13 @@ class ReportsTab(QtWidgets.QWidget):
         # Iterate over selected items to collect rows and payment_ids
         for item in self.transactions_table.selectedItems():
             row = item.row()
-            payment_id = self.transactions_table.item(row, 13).text()  # Get payment_id from the 14th column
+            payment_id = self.transactions_table.item(row, 14).text()  # Get payment_id from the 14th column
             selected_rows.add(row)
             selected_payment_ids.add(payment_id)
 
         # Find all rows with the same payment_id as selected
         for row in range(self.transactions_table.rowCount()):
-            payment_id = self.transactions_table.item(row, 13).text()  # Get payment_id from the 14th column
+            payment_id = self.transactions_table.item(row, 14).text()  # Get payment_id from the 14th column
             if payment_id in selected_payment_ids:
                 selected_rows.add(row)
 
@@ -288,15 +288,20 @@ class ReportsTab(QtWidgets.QWidget):
         cursor = conn.cursor()
 
         if search_query:
-            query = """SELECT transaction_id, total_price, qty, customer, product_name, brand, 
-                           var, size, category, time, date, user_id, users.first_name, payment_id, contact, product_id
-                    FROM transactions
-                    WHERE user_id LIKE ? OR customer LIKE ? OR date LIKE ? OR time LIKE ?"""
+            query = """SELECT t.transaction_id, t.total_price, t.qty, t.customer, t.product_name, t.brand, 
+                            t.var, t.size, t.category, t.time, t.date, t.type, t.user_id, u.first_name, 
+                            t.payment_id, t.contact, t.product_id
+                    FROM transactions t
+                    LEFT JOIN users u ON t.user_id = u.user_id
+                    WHERE t.user_id LIKE ? OR t.customer LIKE ? OR t.date LIKE ? OR t.time LIKE ?"""
             cursor.execute(query, (f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%"))
         else:
-            cursor.execute("""SELECT transaction_id, total_price, qty, customer, product_name, brand, 
-                           var, size, category, time, date, user_id, payment_id, contact, product_id
-                    FROM transactions""")
+            query = """SELECT t.transaction_id, t.total_price, t.qty, t.customer, t.product_name, t.brand, 
+                            t.var, t.size, t.category, t.time, t.date, t.type, t.user_id, u.first_name, 
+                            t.payment_id, t.contact, t.product_id
+                    FROM transactions t
+                    LEFT JOIN users u ON t.user_id = u.user_id"""
+            cursor.execute(query)
 
         rows = cursor.fetchall()
         conn.close()
@@ -467,7 +472,23 @@ class ReportsTab(QtWidgets.QWidget):
         cursor.execute("DELETE FROM user_logs")
         conn.commit()
         conn.close()
+        
+    def generate_return_id(self):
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
 
+        try:
+            while True:
+                current_date = datetime.now().strftime("%Y%m%d")
+                random_letters = ''.join(random.choices(string.ascii_uppercase, k=3))
+                return_id = f"RETURN{current_date}{random_letters}"
+
+                cursor.execute("SELECT 1 FROM returns WHERE return_id = ?", (return_id,))
+                if not cursor.fetchone():
+                    return return_id
+        finally:
+            conn.close()
+            
     def generate_receipt(self):
         selected_items = self.transactions_table.selectedItems()
         if not selected_items:
