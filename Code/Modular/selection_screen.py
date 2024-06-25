@@ -1,6 +1,8 @@
 
 import sys
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Selection(object):
     def setupUi(self, MainWindow):

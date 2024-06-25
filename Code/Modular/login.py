@@ -1,12 +1,14 @@
+import sqlite3
 import sys
+from datetime import datetime
+
+import logo_rc
+from forgotPassword import ForgotPassword
+from main import Ui_MainWindow
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMessageBox
-from datetime import datetime
-import sqlite3
-from main import Ui_MainWindow
 from selection_screen import Selection
-from forgotPassword import ForgotPassword
-import logo_rc
+
 
 class Login(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -169,7 +171,7 @@ class Login(QtWidgets.QWidget):
         self.loginButton.setMouseTracking(True)
         self.loginButton.setTabletTracking(True)
         self.loginButton.setStyleSheet("QPushButton {\n"
-                                       " background-color: #10cc94;\n"
+                                       " background-color:  "
                                        " border-radius: 12px;\n"
                                        " color: #fff;\n"
                                        "}\n"

@@ -1,28 +1,12 @@
-import sqlite3
-import uuid
 import random
+import sqlite3
 import string
+import uuid
 from datetime import datetime
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QSpinBox, QPushButton, QMessageBox
-from PyQt5 import QtWidgets, QtCore
-    
-class AddToCartDialog(QDialog):
-    def __init__(self, parent=None, max_quantity=10):
-        super().__init__(parent)
-        self.setWindowTitle("Add to Cart")
-        self.layout = QVBoxLayout()
-        self.label = QLabel("Enter quantity:")
-        self.layout.addWidget(self.label)
-        self.spin_box = QSpinBox()
-        self.spin_box.setMaximum(max_quantity)
-        self.layout.addWidget(self.spin_box)
-        self.add_button = QPushButton("Add")
-        self.add_button.clicked.connect(self.accept)
-        self.layout.addWidget(self.add_button)
-        self.setLayout(self.layout)
 
-    def get_quantity(self):
-        return self.spin_box.value()
+from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtWidgets import QMessageBox
+
 
 class CartTab(QtWidgets.QWidget):
     def __init__(self, user_id):
@@ -83,16 +67,18 @@ class CartTab(QtWidgets.QWidget):
         # Create buttons for cart operations
         self.pay_button = QtWidgets.QPushButton("Check Out")
         self.remove_button = QtWidgets.QPushButton("Remove Item")
+        self.mark_button = QtWidgets.QPushButton("Mark as Return")
         self.clear_button = QtWidgets.QPushButton("Clear Cart")
   
-
         self.layout.addWidget(self.pay_button)
         self.layout.addWidget(self.remove_button)
+        self.layout.addWidget(self.mark_button)
         self.layout.addWidget(self.clear_button)
 
         # Connect buttons to methods
         self.pay_button.clicked.connect(self.pay)
         self.remove_button.clicked.connect(self.remove_item)
+        self.mark_button.clicked.connect(self.mark_return)
         self.clear_button.clicked.connect(self.clear_cart)
 
         # Connect itemSelectionChanged signal to handle row selection
@@ -192,6 +178,28 @@ class CartTab(QtWidgets.QWidget):
         conn.close()
         self.load_cart_items()
         self.update_total_label()
+
+    def mark_return(self):
+        selected_rows = set()
+        for item in self.cart_table.selectedItems():
+            selected_rows.add(item.row())
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+        for row in selected_rows:
+            product_id_item = self.cart_table.item(row, 5)  # Assuming the first column is product_id
+            if product_id_item is not None:
+                product_id = product_id_item.text()
+                # Update the status to "return" in the cart table
+                cursor.execute("UPDATE cart SET status = 'return' WHERE rowid = ?", (product_id,))
+                # Update the total_price to 0 in the cart table
+                cursor.execute("UPDATE cart SET total_price = 0 WHERE rowid = ?", (product_id,))
+                # Update the QTableWidget directly
+                total_price_item = self.cart_table.item(row, 6) 
+                total_price_item.setText("0.00")
+        conn.commit()
+        conn.close()
+        self.update_total_label()
+
 
     def clear_cart(self):
         conn = sqlite3.connect('j7h.db')
@@ -308,8 +316,13 @@ class CartTab(QtWidgets.QWidget):
                     transaction_successful = False
                     continue  # Skip this item
 
-                # Replace with actual transaction type logic
-                transaction_type = "purchase"
+                
+                # Check if there's any item with status "return"
+                cursor.execute("SELECT 1 FROM cart WHERE status = 'return' LIMIT 1")
+                has_returned_items = cursor.fetchone() is not None
+
+                # Set transaction type
+                transaction_type = "transaction with return" if has_returned_items else "purchase"
 
                 cursor.execute('''
                     INSERT INTO transactions ( transaction_id, customer, product_name, qty, total_price, date, time, type, product_id, log_id, brand, var, size, user_id, payment_id, contact)
