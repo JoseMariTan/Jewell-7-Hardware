@@ -72,22 +72,21 @@ class ShopTab(QtWidgets.QWidget):
     def load_products(self, search_query=None):
         conn = sqlite3.connect('j7h.db')
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM products WHERE qty > 0 ORDER BY product_id DESC")
 
         if search_query:
             query = """
                 SELECT * FROM products 
-                WHERE qty > 0 
+                WHERE status = 'Available'
                 AND (product_name LIKE ? 
                 OR brand LIKE ? 
                 OR var LIKE ? 
                 OR size LIKE ?
                 OR category LIKE ?) 
-                ORDER BY product_id DESC
+                ORDER BY date_added DESC, time_added DESC
                 """
             cursor.execute(query, (f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%"))
         else:
-            cursor.execute("SELECT * FROM products WHERE qty > 0 ORDER BY product_id DESC")
+            cursor.execute("SELECT * FROM products WHERE status = 'Available' ORDER BY date_added DESC, time_added DESC")
 
         rows = cursor.fetchall()
         self.tableWidget.setRowCount(len(rows))
@@ -98,9 +97,12 @@ class ShopTab(QtWidgets.QWidget):
             self.tableWidget.setItem(row_number, 3, QtWidgets.QTableWidgetItem(str(row_data[4])))  # size
             self.tableWidget.setItem(row_number, 4, QtWidgets.QTableWidgetItem(str(row_data[5])))  # price
             qty = row_data[6]  # qty
-            self.tableWidget.setItem(row_number, 5, QtWidgets.QTableWidgetItem(str(qty)))  # Items in Stock
+            threshold = row_data[7]  # threshold
+            items_in_stock = qty - threshold  # subtract threshold
+            self.tableWidget.setItem(row_number, 5, QtWidgets.QTableWidgetItem(str(items_in_stock)))  # Items in Stock
             self.tableWidget.setItem(row_number, 6, QtWidgets.QTableWidgetItem(str(row_data[8])))  # category
         conn.close()
+
 
     def search_products(self):
         search_query = self.search_input.text()

@@ -67,11 +67,35 @@ class ProductsTab(QtWidgets.QWidget):
         self.voidProduct_button.setIcon(QtGui.QIcon("bin_icon.png"))
         self.voidProduct_button.setFont(font)
         self.voidProduct_button.setFixedHeight(40)  # Adjust height as needed
-        self.voidProduct_button.clicked.connect(self.void_product)
+        self.voidProduct_button.clicked.connect(self.product_status)
         self.horizontalLayout_5.addWidget(self.voidProduct_button)
     
         self.verticalLayout.addLayout(self.horizontalLayout_5)
 
+    def product_status(self):
+        selected_items = self.tableWidget.selectedItems()
+        if not selected_items:
+            QtWidgets.QMessageBox.warning(self, "Warning", "Please select a product to void.")
+            return
+
+        row = selected_items[0].row()
+        rowid = self.tableWidget.item(row, 0).text()
+
+        dialog = CustomDialog(self)
+        if dialog.exec() == QtWidgets.QDialog.Accepted:
+            new_status = dialog.get_selected_status()
+            if new_status:
+                conn = sqlite3.connect('j7h.db')
+                cur = conn.cursor()
+                cur.execute("UPDATE products SET status=? WHERE rowid=?", (new_status, rowid))
+                conn.commit()
+                conn.close()
+                self.load_data()
+                QtWidgets.QMessageBox.information(self, "Success", f"Product status successfully updated to {new_status}.")
+            else:
+                QtWidgets.QMessageBox.warning(self, "Warning", "Please select a status before proceeding.")
+        else:
+            QtWidgets.QMessageBox.information(self, "Cancelled", "Operation cancelled.")
 
     def apply_stock_alert(self, row, column, color):
         item = self.tableWidget.item(row, column)
@@ -80,39 +104,39 @@ class ProductsTab(QtWidgets.QWidget):
 
     def stock_alert(self):
         for row in range(self.tableWidget.rowCount()):
-            qty_item = self.tableWidget.item(row, 6)
+            qty_item = self.tableWidget.item(row, 7)
             if qty_item is not None:
                 try:
                     qty = float(qty_item.text())
                     if qty <= 5:
-                        self.apply_stock_alert(row, 6, "#ffcccc")
+                        self.apply_stock_alert(row, 7, "#ffcccc")
                     elif 5 < qty < 15:
-                        self.apply_stock_alert(row, 6, "#ffcc99")
+                        self.apply_stock_alert(row, 7, "#ffcc99")
                     else:
-                        self.apply_stock_alert(row, 6, "#ccffcc")
+                        self.apply_stock_alert(row, 7, "#ccffcc")
                 except ValueError:
-                    self.apply_stock_alert(row, 6, "#ffffff")
+                    self.apply_stock_alert(row, 7, "#ffffff")
 
     def load_data(self, search_query=None):
         conn = sqlite3.connect('j7h.db')
         cur = conn.cursor()
         if search_query:
-            cur.execute("SELECT rowid, product_name, brand, var, size, price, qty, threshold, category, status FROM products WHERE "
-                    "product_name LIKE ? OR brand LIKE ? OR var LIKE ? OR size LIKE ? OR category LIKE ? OR status LIKE ? ORDER BY product_id DESC",
+            cur.execute("SELECT rowid, product_id, product_name, brand, var, size, price, qty, threshold, category, status, supplier FROM products WHERE "
+                    "product_name LIKE ? OR brand LIKE ? OR var LIKE ? OR size LIKE ? OR category LIKE ? OR status LIKE ? OR supplier LIKE ? ORDER BY date_added DESC, time_added DESC",
                     ('%{}%'.format(search_query), '%{}%'.format(search_query), '%{}%'.format(search_query), '%{}%'.format(search_query), 
-                     '%{}%'.format(search_query), '%{}%'.format(search_query)))
+                     '%{}%'.format(search_query), '%{}%'.format(search_query), '%{}%'.format(search_query)))
         else:
-            cur.execute("SELECT rowid, product_name, brand, var, size, price, qty, threshold, category, status FROM products ORDER BY product_id DESC")
+            cur.execute("SELECT rowid, product_id, product_name, brand, var, size, price, qty, threshold, category, status, supplier FROM products ORDER BY date_added DESC, time_added DESC")
 
         products = cur.fetchall()
         self.tableWidget.setRowCount(len(products))
-        self.tableWidget.setColumnCount(10)
-        self.tableWidget.setHorizontalHeaderLabels(['RowID', 'Product', 'Brand', 'Variation', 'Size', 'Price', 'Items in Stock', 'Minimum Threshold Value', 'Category', 'Status'])
+        self.tableWidget.setColumnCount(12)
+        self.tableWidget.setHorizontalHeaderLabels(['RowID', 'Product ID', 'Product', 'Brand', 'Variation', 'Size', 'Price', 'Stock', 'Threshold', 'Category', 'Status', 'Supplier'])
 
         for row_number, row_data in enumerate(products):
             for column_number, data in enumerate(row_data):
                 item = QtWidgets.QTableWidgetItem(str(data))
-                item.setTextAlignment(QtCore.Qt.AlignCenter)
+                item.setTextAlignment(QtCore.Qt.AlignLeft)
                 self.tableWidget.setItem(row_number, column_number, item)
 
         conn.close()
@@ -157,37 +181,12 @@ class ProductsTab(QtWidgets.QWidget):
         dialog = ModifyProductDialog(parent=self, rowid=rowid, product_name=product_name, brand=brand, var=var, size=size, price=price, qty=qty, category=category)
         dialog.exec_()
         self.load_data()
-
-    def void_product(self):
-        selected_items = self.tableWidget.selectedItems()
-        if not selected_items:
-            QtWidgets.QMessageBox.warning(self, "Warning", "Please select a product to void.")
-            return
-
-        row = selected_items[0].row()
-        rowid = self.tableWidget.item(row, 0).text()
-        
-        confirmation = QtWidgets.QMessageBox.question(self, "Confirm Deletion",
-                                                    "Are you sure you want to void this product?",
-                                                    QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
-        
-        if confirmation == QtWidgets.QMessageBox.Yes:
-            conn = sqlite3.connect('j7h.db')
-            cur = conn.cursor()
-
-            # Delete the product
-            cur.execute("DELETE FROM products WHERE rowid=?", (rowid,))
-            conn.commit()
-            conn.close()
-            self.load_data()
-            QtWidgets.QMessageBox.information(self, "Success", "Product successfully voided.")
-
-
+    
 class AddProductDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Product Management")
-        self.setGeometry(100, 100, 300, 300)  # Adjust dimensions as needed
+        self.setGeometry(100, 100, 300, 400)  # Adjust dimensions as needed for additional fields
         layout = QtWidgets.QVBoxLayout()
 
         # Product ID input field
@@ -272,11 +271,18 @@ class AddProductDialog(QtWidgets.QDialog):
         layout.addWidget(self.status_label)
         layout.addLayout(status_layout)
 
+        # Supplier input field (moved to the bottom)
+        self.supplier_label = QtWidgets.QLabel("Supplier:")
+        self.supplier_input = QtWidgets.QLineEdit()
+        layout.addWidget(self.supplier_label)
+        layout.addWidget(self.supplier_input)
+
         self.add_button = QtWidgets.QPushButton("Add")
         self.add_button.clicked.connect(self.add_product)
         layout.addWidget(self.add_button)
 
         self.setLayout(layout)
+
 
     def generate_product_id(self):
         # Establishing connection with SQLite database
@@ -328,7 +334,7 @@ class AddProductDialog(QtWidgets.QDialog):
 
     def add_product(self):
         # Implement the functionality to handle adding a product here
-        product_id = self.generate_product_id()
+        product_id = self.product_id_input.text().strip()
         product_name = self.product_name_input.text().strip()
         brand = self.brand_input.text().strip() or "-"
         var = self.var_input.text().strip() or "-"
@@ -336,12 +342,20 @@ class AddProductDialog(QtWidgets.QDialog):
         price_text = self.price_input.text().strip()
         qty_text = self.qty_input.text().strip()
         category = self.category_combobox.currentText().strip()
+        supplier = self.supplier_input.text().strip() or "-"
         if self.new_category_checkbox.isChecked():
             new_category = self.new_category_input.text().strip()
             if new_category:
                 category = new_category
         
         threshold = self.threshold_spinbox.value()
+        # Determine the status based on radio button selection
+        if self.available_radio.isChecked():
+            status = "Available"
+        elif self.unavailable_radio.isChecked():
+            status = "Unavailable"
+        else:
+            status = ""  # Handle if neither is checked, though one should always be checked in this setup
 
         # Validate input
         if not product_name or not price_text or not qty_text or not category:
@@ -366,20 +380,17 @@ class AddProductDialog(QtWidgets.QDialog):
             QtWidgets.QMessageBox.warning(self, "Input Error", "Please select a Status (Available/Unavailable).")
             return
 
-        # Determine the status based on radio button selection
-        if self.available_radio.isChecked():
-            status = "Available"
-        elif self.unavailable_radio.isChecked():
-            status = "Unavailable"
-        else:
-            status = ""  # Handle if neither is checked, though one should always be checked in this setup
+        current_datetime = datetime.today()
+        date_log = current_datetime.strftime('%Y-%m-%d')
+        time_log = current_datetime.strftime("%I:%M %p")
 
         # Insert the new product into the database
         try:
             conn = sqlite3.connect('j7h.db')  # Replace with your database path
             cur = conn.cursor()
-            cur.execute("INSERT INTO products (product_id, product_name, brand, var, size, price, qty, category, threshold, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                        (product_id, product_name, brand, var, size, price, qty, category, threshold, status))
+            cur.execute("""INSERT INTO products (product_id, product_name, brand, var, size, price, qty, category, threshold, status, time_added, date_added, supplier) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (product_id, product_name, brand, var, size, price, qty, category, threshold, status, time_log, date_log, supplier))
             conn.commit()
         except sqlite3.Error as error:
             print("Error while connecting to SQLite", error)
@@ -395,43 +406,45 @@ class ModifyProductDialog(QtWidgets.QDialog):
     def __init__(self, parent=None, rowid=None, product_name=None, brand=None, var=None, size=None, price=None, qty=None, category=None, threshold=None, status=None):
         super().__init__(parent)
         self.setWindowTitle("Modify Product")
-        self.setGeometry(100, 100, 300, 300)
+        self.setGeometry(100, 100, 300, 400)  # Adjust dimensions for additional fields if needed
         self.rowid = rowid
 
         layout = QtWidgets.QVBoxLayout()
 
-        self.product_name_label = QtWidgets.QLabel("Product Name: *")
-        self.product_name_input = QtWidgets.QLineEdit(product_name)
-        layout.addWidget(self.product_name_label)
-        layout.addWidget(self.product_name_input)
+        
 
+        # Brand input field
         self.brand_label = QtWidgets.QLabel("Brand:")
         self.brand_input = QtWidgets.QLineEdit(brand)
         layout.addWidget(self.brand_label)
         layout.addWidget(self.brand_input)
 
+        # Var input field
         self.var_label = QtWidgets.QLabel("Var:")
         self.var_input = QtWidgets.QLineEdit(var)
         layout.addWidget(self.var_label)
         layout.addWidget(self.var_input)
 
+        # Size input field
         self.size_label = QtWidgets.QLabel("Size:")
         self.size_input = QtWidgets.QLineEdit(size)
         layout.addWidget(self.size_label)
         layout.addWidget(self.size_input)
 
+        # Price input field
         self.price_label = QtWidgets.QLabel("Price: *")
         self.price_input = QtWidgets.QLineEdit(price)
         self.price_input.setValidator(QtGui.QDoubleValidator(decimals=2))  # Set validator for 2 decimal places
         layout.addWidget(self.price_label)
         layout.addWidget(self.price_input)
 
+        # Qty input field
         self.qty_label = QtWidgets.QLabel("Qty: *")
         self.qty_input = QtWidgets.QLineEdit(qty)
         layout.addWidget(self.qty_label)
         layout.addWidget(self.qty_input)
 
-        # Using QComboBox for Category with unique values from database
+        # Category input field (using QComboBox and checkbox for new category)
         self.category_label = QtWidgets.QLabel("Category: *")
         self.category_combobox = QtWidgets.QComboBox()
         self.category_combobox.addItem("")  # Add empty value
@@ -449,7 +462,7 @@ class ModifyProductDialog(QtWidgets.QDialog):
         layout.addLayout(category_layout)
         layout.addWidget(self.new_category_input)
 
-        # Threshold input
+        # Threshold input field
         self.threshold_label = QtWidgets.QLabel("Threshold:")
         self.threshold_spinbox = QtWidgets.QSpinBox()
         self.threshold_spinbox.setMinimum(0)  # Set minimum value
@@ -459,7 +472,7 @@ class ModifyProductDialog(QtWidgets.QDialog):
         layout.addWidget(self.threshold_label)
         layout.addWidget(self.threshold_spinbox)
 
-        # Status input (radio buttons)
+        # Status input field (radio buttons)
         self.status_label = QtWidgets.QLabel("Status: *")
         self.available_radio = QtWidgets.QRadioButton("Available")
         self.unavailable_radio = QtWidgets.QRadioButton("Unavailable")
@@ -479,6 +492,8 @@ class ModifyProductDialog(QtWidgets.QDialog):
         layout.addWidget(self.modify_button)
 
         self.setLayout(layout)
+
+
 
     def populate_category_combobox(self):
         try:
@@ -607,3 +622,36 @@ class ModifyProductDialog(QtWidgets.QDialog):
                 conn.close()
 
         self.accept()
+
+class CustomDialog(QtWidgets.QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Change Product Status")
+        self.layout = QtWidgets.QVBoxLayout(self)
+
+        self.label = QtWidgets.QLabel("Select the product status:")
+        self.layout.addWidget(self.label)
+
+        self.available_checkbox = QtWidgets.QCheckBox("Available")
+        self.unavailable_checkbox = QtWidgets.QCheckBox("Unavailable")
+        self.layout.addWidget(self.available_checkbox)
+        self.layout.addWidget(self.unavailable_checkbox)
+
+        # Create a QButtonGroup and add checkboxes to it
+        self.button_group = QtWidgets.QButtonGroup(self)
+        self.button_group.addButton(self.available_checkbox)
+        self.button_group.addButton(self.unavailable_checkbox)
+        self.button_group.setExclusive(True)
+
+        self.button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+        self.layout.addWidget(self.button_box)
+
+    def get_selected_status(self):
+        if self.available_checkbox.isChecked():
+            return 'Available'
+        elif self.unavailable_checkbox.isChecked():
+            return 'Unavailable'
+        else:
+            return None
