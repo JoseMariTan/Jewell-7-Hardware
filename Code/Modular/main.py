@@ -8,349 +8,646 @@ from productManagement import ProductsTab
 from reports import ReportsTab
 from users import UsersTab
 from analytics import AnalyticsTab
+from database import DatabaseTab
+
 class Ui_MainWindow(object):
     def __init__(self, user_id):
         self.user_id = user_id
 
-    def setupUi(self, MainWindow):
-        MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1081, 851)
-        self.centralwidget = QtWidgets.QWidget(MainWindow)
+    def setupUi(self, AdminDashboard):
+        AdminDashboard.setObjectName("AdminDashboard")
+        AdminDashboard.resize(1254, 1020)
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setBold(True)
+        font.setItalic(True)
+        font.setWeight(75)
+        AdminDashboard.setFont(font)
+        AdminDashboard.setToolTipDuration(-1)
+        AdminDashboard.setLayoutDirection(QtCore.Qt.LeftToRight)
+        AdminDashboard.setStyleSheet("background-color:#fff;\n"
+"")
+        AdminDashboard.setTabShape(QtWidgets.QTabWidget.Rounded)
+        self.centralwidget = QtWidgets.QWidget(AdminDashboard)
         self.centralwidget.setObjectName("centralwidget")
-        self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
-        self.verticalLayout.setObjectName("verticalLayout")
+        self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
+        self.gridLayout.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout.setObjectName("gridLayout")
+        spacerItem = QtWidgets.QSpacerItem(20, 783, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.gridLayout.addItem(spacerItem, 2, 2, 1, 1)
+        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
+        self.gridLayout.addItem(spacerItem1, 2, 1, 1, 1)
+        spacerItem2 = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        self.gridLayout.addItem(spacerItem2, 1, 1, 1, 1)
+        self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_3.setContentsMargins(30, 15, 70, -1)
+        self.horizontalLayout_3.setObjectName("horizontalLayout_3")
+        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        self.horizontalLayout_3.addLayout(self.horizontalLayout_2)
+        spacerItem3 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_3.addItem(spacerItem3)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
-        spacerItem = QtWidgets.QSpacerItem(55, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout.addItem(spacerItem)
-
-        self.label = QtWidgets.QLabel(self.centralwidget)
+        self.aboutUs_button = QtWidgets.QPushButton(self.centralwidget)
+        self.aboutUs_button.setMinimumSize(QtCore.QSize(150, 50))
+        self.aboutUs_button.setMaximumSize(QtCore.QSize(150, 50))
         font = QtGui.QFont()
-        font.setFamily("Bahnschrift SemiBold")
-        font.setPointSize(28)
+        font.setFamily("Segoe UI")
+        font.setPointSize(12)
+        font.setBold(False)
+        font.setItalic(False)
+        font.setWeight(50)
+        font.setStrikeOut(False)
+        self.aboutUs_button.setFont(font)
+        self.aboutUs_button.setMouseTracking(True)
+        self.aboutUs_button.setTabletTracking(True)
+        self.aboutUs_button.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.aboutUs_button.setStyleSheet("QPushButton {\n"
+" background-color: #f6f4f4;\n"
+"border-radius:25px;\n"
+"color:black;\n"
+";\n"
+"}\n"
+"QPushButton#quit_button {\n"
+"   background-color: green;\n"
+"}\n"
+"QPushButton::pressed {\n"
+"background-color: #fff;\n"
+"}\n"
+"QpushButton{\n"
+"border: 2px solid #555;\n"
+"    border-radius: 20px;\n"
+"    border-style: outset;\n"
+"border-width:200px;\n"
+"    \n"
+"}\n"
+"QPushButton:hover {\n"
+"   background-color: #81cdc6;\n"
+"   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"color:#fff;\n"
+"}\n"
+"\n"
+"shoppingbag:hover{\n"
+"color:#fff;\n"
+"background-repeat:no-repeat;\n"
+"}\n"
+"\n"
+"border:none;\n"
+"")
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(":/Help/help.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.aboutUs_button.setIcon(icon)
+        self.aboutUs_button.setIconSize(QtCore.QSize(30, 30))
+        self.aboutUs_button.setObjectName("aboutUs_button")
+        self.horizontalLayout.addWidget(self.aboutUs_button)
+        self.line = QtWidgets.QFrame(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(25)
+        sizePolicy.setHeightForWidth(self.line.sizePolicy().hasHeightForWidth())
+        self.line.setSizePolicy(sizePolicy)
+        self.line.setMinimumSize(QtCore.QSize(0, 25))
+        self.line.setMaximumSize(QtCore.QSize(16777215, 25))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
         font.setBold(True)
         font.setWeight(75)
-        self.label.setFont(font)
-        self.label.setObjectName("label")
-        self.horizontalLayout.addWidget(self.label)
-        spacerItem1 = QtWidgets.QSpacerItem(13, 13, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout.addItem(spacerItem1)
+        self.line.setFont(font)
+        self.line.setFrameShape(QtWidgets.QFrame.VLine)
+        self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.line.setObjectName("line")
+        self.horizontalLayout.addWidget(self.line)
         self.help_button = QtWidgets.QPushButton(self.centralwidget)
         self.help_button.setMinimumSize(QtCore.QSize(50, 50))
         self.help_button.setMaximumSize(QtCore.QSize(50, 50))
         font = QtGui.QFont()
-        font.setFamily("Times New Roman")
-        font.setPointSize(24)
-        font.setBold(True)
-        font.setWeight(75)
+        font.setFamily("Segoe UI")
+        font.setPointSize(14)
+        font.setBold(False)
+        font.setItalic(False)
+        font.setWeight(50)
+        font.setStrikeOut(False)
         self.help_button.setFont(font)
-        self.help_button.setStyleSheet("QPushButton{\n"
-"    background-color: #c6c6c8;\n"
+        self.help_button.setMouseTracking(True)
+        self.help_button.setTabletTracking(True)
+        self.help_button.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.help_button.setStyleSheet("QPushButton {\n"
+" background-color: #f6f4f4;\n"
+"border-radius:25px;\n"
+"color:black;\n"
+";\n"
+"}\n"
+"QPushButton#quit_button {\n"
+"   background-color: green;\n"
+"}\n"
+"QPushButton::pressed {\n"
+"background-color: #fff;\n"
+"}\n"
+"QpushButton{\n"
+"border: 2px solid #555;\n"
+"    border-radius: 20px;\n"
 "    border-style: outset;\n"
-"    border: 2px;\n"
-"    border-radius: 25px;\n"
-"    border-color: black;\n"
-"    padding: 4px;\n"
-"    color: black;\n"
+"border-width:200px;\n"
+"    \n"
+"}\n"
+"QPushButton:hover {\n"
+"   background-color: #81cdc6;\n"
+"   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"color:#fff;\n"
 "}\n"
 "\n"
-"\n"
-"QPushButton:hover{\n"
-"    background-color: #575759; \n"
-"    color: white;\n"
+"shoppingbag:hover{\n"
+"color:#fff;\n"
+"background-repeat:no-repeat;\n"
 "}\n"
 "\n"
+"border:none;\n"
 "")
+        self.help_button.setText("")
+        icon1 = QtGui.QIcon()
+        icon1.addPixmap(QtGui.QPixmap(":/Info/info.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.help_button.setIcon(icon1)
+        self.help_button.setIconSize(QtCore.QSize(20, 20))
         self.help_button.setObjectName("help_button")
         self.horizontalLayout.addWidget(self.help_button)
-        self.aboutUs_button = QtWidgets.QPushButton(self.centralwidget)
-        self.aboutUs_button.setMinimumSize(QtCore.QSize(50, 50))
-        self.aboutUs_button.setMaximumSize(QtCore.QSize(50, 50))
-        font = QtGui.QFont()
-        font.setFamily("Times New Roman")
-        font.setPointSize(24)
-        font.setBold(True)
-        font.setWeight(75)
-        self.aboutUs_button.setFont(font)
-        self.aboutUs_button.setStyleSheet("QPushButton{\n"
-"    background-color: #c6c6c8;\n"
-"    border-style: outset;\n"
-"    border: 2px;\n"
-"    border-radius: 25px;\n"
-"    border-color: black;\n"
-"    padding: 4px;\n"
-"    color: black;\n"
-"}\n"
-"\n"
-"\n"
-"QPushButton:hover {\n"
-"    background-color: #575759; \n"
-"    color: white;\n"
-"}\n"
-"\n"
-"")
-        self.aboutUs_button.setObjectName("aboutUs_button")
-        self.horizontalLayout.addWidget(self.aboutUs_button)
-        self.logout_button = QtWidgets.QPushButton(self.centralwidget)
-        self.logout_button.setMinimumSize(QtCore.QSize(50, 50))
-        self.logout_button.setMaximumSize(QtCore.QSize(50, 50))
-        font = QtGui.QFont()
-        font.setFamily("Times New Roman")
-        font.setPointSize(24)
-        font.setBold(True)
-        font.setWeight(75)
-        self.logout_button.setFont(font)
-        self.logout_button.setStyleSheet("QPushButton{\n"
-"    background-color: #c6c6c8;\n"
-"    border-style: outset;\n"
-"    border: 2px;\n"
-"    border-radius: 25px;\n"
-"    border-color: black;\n"
-"    padding: 4px;\n"
-"    color: black;\n"
-"}\n"
-"\n"
-"\n"
-"QPushButton:hover {\n"
-"    background-color: #575759; \n"
-"    color: white;\n"
-"}\n"
-"\n"
-"")
-        self.logout_button.setObjectName("logout_button")
-        self.horizontalLayout.addWidget(self.logout_button)
-        spacerItem2 = QtWidgets.QSpacerItem(3, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout.addItem(spacerItem2)
-        self.verticalLayout.addLayout(self.horizontalLayout)
-        spacerItem3 = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
-        self.verticalLayout.addItem(spacerItem3)
-        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        spacerItem4 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_2.addItem(spacerItem4)
-        self.verticalLayout.addLayout(self.horizontalLayout_2)
-        self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_4.setObjectName("horizontalLayout_4")
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_2.setContentsMargins(10, -1, -1, -1)
-        self.verticalLayout_2.setSpacing(10)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.shop_button = QtWidgets.QPushButton(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.shop_button.sizePolicy().hasHeightForWidth())
-        self.shop_button.setSizePolicy(sizePolicy)
-        self.shop_button.setMinimumSize(QtCore.QSize(400, 75))
-        font = QtGui.QFont()
-        font.setFamily("Bahnschrift")
-        font.setPointSize(20)
-        font.setBold(True)
-        font.setWeight(75)
-        self.shop_button.setFont(font)
-        self.shop_button.setStyleSheet("QPushButton{\n"
-"    background-color: #c6c6c8;\n"
-"    border-width: 2px;\n"
-"    border-style: outset;;\n"
-"    border-radius: 20px;\n"
-"    border-color: black;\n"
-"    padding: 4px;\n"
-"    color: black;\n"
-"}\n"
-"\n"
-"\n"
-"QPushButton:focus {\n"
-"    background-color: #575759; \n"
-"    color: white;\n"
-"}\n"
-"")
+        self.horizontalLayout_3.addLayout(self.horizontalLayout)
+        
+        # Create a new button
+        self.database_button = QtWidgets.QPushButton(self.centralwidget)
+        self.database_button.setMinimumSize(QtCore.QSize(50, 50))
+        self.database_button.setMaximumSize(QtCore.QSize(50, 50))
+        icon_temp = QtGui.QIcon()
+        icon_temp.addPixmap(QtGui.QPixmap(":/Icon/temp_icon.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.database_button.setIcon(icon_temp)
+        self.database_button.setIconSize(QtCore.QSize(30, 30))
+        self.database_button.setObjectName("database_button")
 
-        self.shop_button.setObjectName("shop_button")
-        self.verticalLayout_2.addWidget(self.shop_button)
-        self.cart_button = QtWidgets.QPushButton(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
+        # Add the button to the layout
+        self.horizontalLayout.addWidget(self.database_button)
+        self.gridLayout.addLayout(self.horizontalLayout_3, 0, 1, 1, 2)
+        self.widget_2 = QtWidgets.QWidget(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.cart_button.sizePolicy().hasHeightForWidth())
-        self.cart_button.setSizePolicy(sizePolicy)
-        self.cart_button.setMinimumSize(QtCore.QSize(400, 75))
+        sizePolicy.setHeightForWidth(self.widget_2.sizePolicy().hasHeightForWidth())
+        self.widget_2.setSizePolicy(sizePolicy)
+        self.widget_2.setMinimumSize(QtCore.QSize(325, 0))
+        self.widget_2.setMaximumSize(QtCore.QSize(325, 16777215))
         font = QtGui.QFont()
-        font.setFamily("Bahnschrift")
-        font.setPointSize(20)
-        font.setBold(True)
-        font.setWeight(75)
-        self.cart_button.setFont(font)
-        self.cart_button.setStyleSheet("QPushButton{\n"
-"    background-color: #c6c6c8;\n"
-"    border-width: 2px;\n"
-"    border-style: outset;;\n"
-"    border-radius: 20px;\n"
-"    border-color: black;\n"
-"    padding: 4px;\n"
-"    color: black;\n"
-"}\n"
-"\n"
-"\n"
-"QPushButton:focus {\n"
-"    background-color: #575759; \n"
-"    color: white;\n"
-"}\n"
+        font.setPointSize(10)
+        self.widget_2.setFont(font)
+        self.widget_2.setToolTipDuration(-1)
+        self.widget_2.setStyleSheet("background-color: #f6f4f4 ;\n"
 "")
-        self.cart_button.setObjectName("cart_button")
-        self.verticalLayout_2.addWidget(self.cart_button)
-        self.products_button = QtWidgets.QPushButton(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.products_button.sizePolicy().hasHeightForWidth())
-        self.products_button.setSizePolicy(sizePolicy)
-        self.products_button.setMinimumSize(QtCore.QSize(400, 75))
+        self.widget_2.setObjectName("widget_2")
+        self.gridLayout_2 = QtWidgets.QGridLayout(self.widget_2)
+        self.gridLayout_2.setObjectName("gridLayout_2")
+        self.verticalLayout_5 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_5.setContentsMargins(20, -1, 20, -1)
+        self.verticalLayout_5.setObjectName("verticalLayout_5")
+        self.line_3 = QtWidgets.QFrame(self.widget_2)
+        self.line_3.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line_3.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.line_3.setObjectName("line_3")
+        self.verticalLayout_5.addWidget(self.line_3)
+        spacerItem4 = QtWidgets.QSpacerItem(20, 150, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        self.verticalLayout_5.addItem(spacerItem4)
+        self.gridLayout_2.addLayout(self.verticalLayout_5, 1, 0, 1, 1)
+        self.verticalLayout_3 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_3.setContentsMargins(-1, 0, -1, -1)
+        self.verticalLayout_3.setSpacing(0)
+        self.verticalLayout_3.setObjectName("verticalLayout_3")
+        self.verticalLayout = QtWidgets.QVBoxLayout()
+        self.verticalLayout.setContentsMargins(10, -1, 40, -1)
+        self.verticalLayout.setSpacing(30)
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.shop_button = QtWidgets.QPushButton(self.widget_2)
+        self.shop_button.setMinimumSize(QtCore.QSize(150, 40))
+        self.shop_button.setMaximumSize(QtCore.QSize(500, 16777215))
         font = QtGui.QFont()
-        font.setFamily("Bahnschrift")
-        font.setPointSize(20)
-        font.setBold(True)
-        font.setWeight(75)
-        self.products_button.setFont(font)
-        self.products_button.setStyleSheet("QPushButton{\n"
-"    background-color: #c6c6c8;\n"
-"    border-width: 2px;\n"
-"    border-style: outset;;\n"
-"    border-radius: 20px;\n"
-"    border-color: black;\n"
-"    padding: 4px;\n"
-"    color: black;\n"
-"}\n"
-"\n"
-"\n"
-"QPushButton:focus {\n"
-"    background-color: #575759; \n"
-"    color: white;\n"
-"}\n"
-"")
-        self.products_button.setObjectName("products_button")
-        self.verticalLayout_2.addWidget(self.products_button)
-        self.users_button = QtWidgets.QPushButton(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.users_button.sizePolicy().hasHeightForWidth())
-        self.users_button.setSizePolicy(sizePolicy)
-        self.users_button.setMinimumSize(QtCore.QSize(400, 75))
-        font = QtGui.QFont()
-        font.setFamily("Bahnschrift")
-        font.setPointSize(20)
-        font.setBold(True)
-        font.setWeight(75)
-        self.users_button.setFont(font)
-        self.users_button.setStyleSheet("QPushButton{\n"
-"    background-color: #c6c6c8;\n"
-"    border-width: 2px;\n"
-"    border-style: outset;;\n"
-"    border-radius: 20px;\n"
-"    border-color: black;\n"
-"    padding: 4px;\n"
-"    color: black;\n"
-"}\n"
-"\n"
-"\n"
-"QPushButton:focus {\n"
-"    background-color: #575759; \n"
-"    color: white;\n"
-"}\n"
-"")
-        self.users_button.setObjectName("users_button")
-        self.verticalLayout_2.addWidget(self.users_button)
-        self.reports_button = QtWidgets.QPushButton(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.reports_button.sizePolicy().hasHeightForWidth())
-        self.reports_button.setSizePolicy(sizePolicy)
-        self.reports_button.setMinimumSize(QtCore.QSize(400, 75))
-        font = QtGui.QFont()
-        font.setFamily("Bahnschrift")
-        font.setPointSize(20)
-        font.setBold(True)
-        font.setWeight(75)
-        self.reports_button.setFont(font)
-        self.reports_button.setStyleSheet("QPushButton{\n"
-"    background-color: #c6c6c8;\n"
-"    border-width: 2px;\n"
-"    border-style: outset;;\n"
-"    border-radius: 20px;\n"
-"    border-color: black;\n"
-"    padding: 4px;\n"
-"    color: black;\n"
-"}\n"
-"\n"
-"\n"
-"QPushButton:focus {\n"
-"    background-color: #575759; \n"
-"    color: white;\n"
-"}\n"
-"")
-        self.reports_button.setObjectName("reports_button")
-        self.verticalLayout_2.addWidget(self.reports_button)
-        self.analytics_button = QtWidgets.QPushButton(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.analytics_button.sizePolicy().hasHeightForWidth())
-        self.analytics_button.setSizePolicy(sizePolicy)
-        self.analytics_button.setMinimumSize(QtCore.QSize(400, 75))
-        font = QtGui.QFont()
-        font.setFamily("Bahnschrift")
-        font.setPointSize(20)
-        font.setBold(True)
-        font.setWeight(75)
-        self.analytics_button.setFont(font)
-        self.analytics_button.setStyleSheet("QPushButton{\n"
-"    background-color: #c6c6c8;\n"
-"    border-width: 2px;\n"
-"    border-style: outset;;\n"
-"    border-radius: 20px;\n"
-"    border-color: black;\n"
-"    padding: 4px;\n"
-"    color: black;\n"
-"}\n"
-"\n"
-"\n"
-"QPushButton:focus {\n"
-"    background-color: #575759; \n"
-"    color: white;\n"
-"}\n"
-"")
-        self.analytics_button.setObjectName("analytics_button")
-        self.verticalLayout_2.addWidget(self.analytics_button)
- 
-        spacerItem5 = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
-        self.verticalLayout_2.addItem(spacerItem5)
-        self.horizontalLayout_4.addLayout(self.verticalLayout_2)
-        spacerItem6 = QtWidgets.QSpacerItem(13, 13, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_4.addItem(spacerItem6)
-        self.stackedWidget = QtWidgets.QStackedWidget(self.centralwidget)
-        font = QtGui.QFont()
-        font.setFamily("Bahnschrift SemiLight")
+        font.setFamily("Segoe UI")
+        font.setPointSize(14)
         font.setBold(False)
+        font.setItalic(False)
         font.setWeight(50)
-        self.stackedWidget.setFont(font)
+        font.setStrikeOut(False)
+        self.shop_button.setFont(font)
+        self.shop_button.setMouseTracking(True)
+        self.shop_button.setTabletTracking(True)
+        self.shop_button.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.shop_button.setStyleSheet("QPushButton {\n"
+" background-color: #f6f4f4;\n"
+"border-radius:17px;\n"
+"color:black;\n"
+"padding-right:98px;\n"
+"}\n"
+"QPushButton#quit_button {\n"
+"   background-color: green;\n"
+"}\n"
+"QPushButton::pressed {\n"
+"background-color: #fff;\n"
+"}\n"
+"QpushButton{\n"
+"border: 2px solid #555;\n"
+"    border-radius: 20px;\n"
+"    border-style: outset;\n"
+"border-width:200px;\n"
+"    \n"
+"}\n"
+"QPushButton:hover {\n"
+"   background-color: #81cdc6;\n"
+"   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"color:#fff;\n"
+"}\n"
+"QPushButton:focus {\n"
+"   background-color: #81cdc6;\n"
+"   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"color:#fff;\n"
+"}\n"
+"\n"
+"shoppingbag:hover{\n"
+"color:#fff;\n"
+"background-repeat:no-repeat;\n"
+"}\n"
+"\n"
+"border:none;\n"
+"")
+        icon2 = QtGui.QIcon()
+        icon2.addPixmap(QtGui.QPixmap(":/Shop/shopping-bag.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon2.addPixmap(QtGui.QPixmap(":/Shop/white_bag.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        self.shop_button.setIcon(icon2)
+        self.shop_button.setIconSize(QtCore.QSize(20, 20))
+        self.shop_button.setObjectName("shop_button")
+        self.verticalLayout.addWidget(self.shop_button)
+        self.cart_button = QtWidgets.QPushButton(self.widget_2)
+        self.cart_button.setMinimumSize(QtCore.QSize(150, 40))
+        self.cart_button.setMaximumSize(QtCore.QSize(500, 16777215))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(14)
+        font.setBold(False)
+        font.setItalic(False)
+        font.setWeight(50)
+        font.setStrikeOut(False)
+        self.cart_button.setFont(font)
+        self.cart_button.setMouseTracking(True)
+        self.cart_button.setTabletTracking(True)
+        self.cart_button.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.cart_button.setStyleSheet("QPushButton {\n"
+" background-color: #f6f4f4;\n"
+"border-radius:17px;\n"
+"color:black;\n"
+"padding-right:106px;\n"
+"}\n"
+"QPushButton#quit_button {\n"
+"   background-color: green;\n"
+"}\n"
+"QPushButton::pressed {\n"
+"background-color: #fff;\n"
+"}\n"
+"QpushButton{\n"
+"border: 2px solid #555;\n"
+"    border-radius: 20px;\n"
+"    border-style: outset;\n"
+"border-width:200px;\n"
+"    \n"
+"}\n"
+"QPushButton:hover {\n"
+"   background-color: #81cdc6;\n"
+"   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"color:#fff;\n"
+"}\n"
+"QPushButton:focus {\n"
+"   background-color: #81cdc6;\n"
+"   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"color:#fff;\n"
+"}\n"
+"\n"
+"border:none;\n"
+"")
+        icon3 = QtGui.QIcon()
+        icon3.addPixmap(QtGui.QPixmap(":/Cart/cart.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.cart_button.setIcon(icon3)
+        self.cart_button.setIconSize(QtCore.QSize(22, 22))
+        self.cart_button.setObjectName("cart_button")
+        self.verticalLayout.addWidget(self.cart_button)
+        self.products_button = QtWidgets.QPushButton(self.widget_2)
+        self.products_button.setMinimumSize(QtCore.QSize(150, 40))
+        self.products_button.setMaximumSize(QtCore.QSize(500, 16777215))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(14)
+        font.setBold(False)
+        font.setItalic(False)
+        font.setWeight(50)
+        font.setStrikeOut(False)
+        self.products_button.setFont(font)
+        self.products_button.setMouseTracking(True)
+        self.products_button.setTabletTracking(True)
+        self.products_button.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.products_button.setStyleSheet("QPushButton {\n"
+" background-color: #f6f4f4;\n"
+"border-radius:17px;\n"
+"color:black;\n"
+"padding-right:73px;\n"
+"}\n"
+"QPushButton#quit_button {\n"
+"   background-color: green;\n"
+"}\n"
+"QPushButton::pressed {\n"
+"background-color: #fff;\n"
+"}\n"
+"QpushButton{\n"
+"border: 2px solid #555;\n"
+"    border-radius: 20px;\n"
+"    border-style: outset;\n"
+"border-width:200px;\n"
+"    \n"
+"}\n"
+"QPushButton:hover {\n"
+"   background-color: #81cdc6;\n"
+"   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"color:#fff;\n"
+"}\n"
+"QPushButton:focus {\n"
+"   background-color: #81cdc6;\n"
+"   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"color:#fff;\n"
+"}\n"
+"\n"
+"border:none;\n"
+"")
+        icon4 = QtGui.QIcon()
+        icon4.addPixmap(QtGui.QPixmap(":/Tools/products.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.products_button.setIcon(icon4)
+        self.products_button.setIconSize(QtCore.QSize(20, 20))
+        self.products_button.setObjectName("products_button")
+        self.verticalLayout.addWidget(self.products_button)
+        self.users_button = QtWidgets.QPushButton(self.widget_2)
+        self.users_button.setMinimumSize(QtCore.QSize(150, 40))
+        self.users_button.setMaximumSize(QtCore.QSize(500, 16777215))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(14)
+        font.setBold(False)
+        font.setItalic(False)
+        font.setWeight(50)
+        font.setStrikeOut(False)
+        self.users_button.setFont(font)
+        self.users_button.setMouseTracking(True)
+        self.users_button.setTabletTracking(True)
+        self.users_button.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.users_button.setStyleSheet("QPushButton {\n"
+" background-color: #f6f4f4;\n"
+"border-radius:17px;\n"
+"color:black;\n"
+"padding-right:95px;\n"
+"}\n"
+"QPushButton#quit_button {\n"
+"   background-color: green;\n"
+"}\n"
+"QPushButton::pressed {\n"
+"background-color: #fff;\n"
+"}\n"
+"QpushButton{\n"
+"border: 2px solid #555;\n"
+"    border-radius: 20px;\n"
+"    border-style: outset;\n"
+"border-width:200px;\n"
+"    \n"
+"}\n"
+"QPushButton:hover {\n"
+"   background-color: #81cdc6;\n"
+"   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"color:#fff;\n"
+"}\n"
+"QPushButton:focus {\n"
+"   background-color: #81cdc6;\n"
+"   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"color:#fff;\n"
+"}\n"
+"\n"
+"border:none;\n"
+"")
+        icon5 = QtGui.QIcon()
+        icon5.addPixmap(QtGui.QPixmap(":/user/user.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.users_button.setIcon(icon5)
+        self.users_button.setIconSize(QtCore.QSize(24, 24))
+        self.users_button.setObjectName("users_button")
+        self.verticalLayout.addWidget(self.users_button)
+        self.reports_button = QtWidgets.QPushButton(self.widget_2)
+        self.reports_button.setMinimumSize(QtCore.QSize(150, 40))
+        self.reports_button.setMaximumSize(QtCore.QSize(500, 16777215))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(14)
+        font.setBold(False)
+        font.setItalic(False)
+        font.setWeight(50)
+        font.setStrikeOut(False)
+        self.reports_button.setFont(font)
+        self.reports_button.setMouseTracking(True)
+        self.reports_button.setTabletTracking(True)
+        self.reports_button.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.reports_button.setStyleSheet("QPushButton {\n"
+" background-color: #f6f4f4;\n"
+"border-radius:17px;\n"
+"color:black;\n"
+"padding-right:80px;\n"
+"}\n"
+"QPushButton#quit_button {\n"
+"   background-color: green;\n"
+"}\n"
+"QPushButton::pressed {\n"
+"background-color: #fff;\n"
+"}\n"
+"QpushButton{\n"
+"border: 2px solid #555;\n"
+"    border-radius: 20px;\n"
+"    border-style: outset;\n"
+"border-width:200px;\n"
+"    \n"
+"}\n"
+"QPushButton:hover {\n"
+"   background-color: #81cdc6;\n"
+"   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"color:#fff;\n"
+"}\n"
+"QPushButton:focus {\n"
+"   background-color: #81cdc6;\n"
+"   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"color:#fff;\n"
+"}\n"
+"\n"
+"border:none;\n"
+"")
+        icon6 = QtGui.QIcon()
+        icon6.addPixmap(QtGui.QPixmap(":/reports/reports.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.reports_button.setIcon(icon6)
+        self.reports_button.setIconSize(QtCore.QSize(20, 20))
+        self.reports_button.setObjectName("reports_button")
+        self.verticalLayout.addWidget(self.reports_button)
+        self.analytics_button = QtWidgets.QPushButton(self.widget_2)
+        self.analytics_button.setMinimumSize(QtCore.QSize(150, 40))
+        self.analytics_button.setMaximumSize(QtCore.QSize(500, 16777215))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(14)
+        font.setBold(False)
+        font.setItalic(False)
+        font.setWeight(50)
+        font.setStrikeOut(False)
+        self.analytics_button.setFont(font)
+        self.analytics_button.setMouseTracking(True)
+        self.analytics_button.setTabletTracking(True)
+        self.analytics_button.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.analytics_button.setStyleSheet("QPushButton {\n"
+" background-color: #f6f4f4;\n"
+"border-radius:17px;\n"
+"color:black;\n"
+"padding-right:70px;\n"
+"}\n"
+"QPushButton#quit_button {\n"
+"   background-color: green;\n"
+"}\n"
+"QPushButton::pressed {\n"
+"background-color: #fff;\n"
+"}\n"
+"QpushButton{\n"
+"border: 2px solid #555;\n"
+"    border-radius: 20px;\n"
+"    border-style: outset;\n"
+"border-width:200px;\n"
+"    \n"
+"}\n"
+"QPushButton:hover {\n"
+"   background-color: #81cdc6;\n"
+"   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"color:#fff;\n"
+"}\n"
+"QPushButton:focus {\n"
+"   background-color: #81cdc6;\n"
+"   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"color:#fff;\n"
+"}\n"
+"\n"
+"border:none;\n"
+"")
+        icon7 = QtGui.QIcon()
+        icon7.addPixmap(QtGui.QPixmap(":/analytics/analytics.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.analytics_button.setIcon(icon7)
+        self.analytics_button.setIconSize(QtCore.QSize(20, 20))
+        self.analytics_button.setObjectName("analytics_button")
+        self.verticalLayout.addWidget(self.analytics_button)
+        self.verticalLayout_3.addLayout(self.verticalLayout)
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_2.setContentsMargins(25, 190, 25, -1)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.line_2 = QtWidgets.QFrame(self.widget_2)
+        self.line_2.setStyleSheet("background-color:none;")
+        self.line_2.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line_2.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.line_2.setObjectName("line_2")
+        self.verticalLayout_2.addWidget(self.line_2)
+        self.logout_button = QtWidgets.QPushButton(self.widget_2)
+        self.logout_button.setMinimumSize(QtCore.QSize(100, 40))
+        self.logout_button.setMaximumSize(QtCore.QSize(300, 16777215))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(12)
+        font.setBold(False)
+        font.setItalic(False)
+        font.setWeight(50)
+        font.setStrikeOut(False)
+        self.logout_button.setFont(font)
+        self.logout_button.setMouseTracking(True)
+        self.logout_button.setTabletTracking(True)
+        self.logout_button.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.logout_button.setStyleSheet("QPushButton {\n"
+" background-color: #f6f4f4;\n"
+"border-radius:13px;\n"
+"color: #636363;\n"
+";\n"
+"}\n"
+"QPushButton#quit_button {\n"
+"   background-color: green;\n"
+"}\n"
+"QPushButton::pressed {\n"
+"background-color: #fff;\n"
+"}\n"
+"QpushButton{\n"
+"border: 2px solid #555;\n"
+"    border-radius: 20px;\n"
+"    border-style: outset;\n"
+"border-width:200px;\n"
+"    \n"
+"}\n"
+"QPushButton:hover {\n"
+"   background-color: #81cdc6;\n"
+"   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"color:#fff;\n"
+"}\n"
+"\n"
+"shoppingbag:hover{\n"
+"color:#fff;\n"
+"background-repeat:no-repeat;\n"
+"}\n"
+"\n"
+"border:none;\n"
+"")
+        icon8 = QtGui.QIcon()
+        icon8.addPixmap(QtGui.QPixmap(":/logout/logout.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.logout_button.setIcon(icon8)
+        self.logout_button.setIconSize(QtCore.QSize(25, 25))
+        self.logout_button.setObjectName("logout_button")
+        self.verticalLayout_2.addWidget(self.logout_button)
+        self.verticalLayout_3.addLayout(self.verticalLayout_2)
+        self.gridLayout_2.addLayout(self.verticalLayout_3, 2, 0, 1, 1)
+        self.verticalLayout_4 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_4.setContentsMargins(50, 10, -1, 10)
+        self.verticalLayout_4.setSpacing(0)
+        self.verticalLayout_4.setObjectName("verticalLayout_4")
+        self.logo = QtWidgets.QLabel(self.widget_2)
+        self.logo.setMinimumSize(QtCore.QSize(200, 150))
+        self.logo.setMaximumSize(QtCore.QSize(200, 150))
+        self.logo.setStyleSheet("image: url(:/Icon/logo.png);")
+        self.logo.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.logo.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.logo.setText("")
+        self.logo.setScaledContents(False)
+        self.logo.setAlignment(QtCore.Qt.AlignCenter)
+        self.logo.setObjectName("logo")
+        self.verticalLayout_4.addWidget(self.logo)
+        self.adminLabel = QtWidgets.QLabel(self.widget_2)
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(14)
+        font.setBold(True)
+        font.setItalic(True)
+        font.setWeight(75)
+        self.adminLabel.setFont(font)
+        self.adminLabel.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.adminLabel.setStyleSheet("background:none;")
+        self.adminLabel.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.adminLabel.setObjectName("adminLabel")
+        self.verticalLayout_4.addWidget(self.adminLabel)
+        self.gridLayout_2.addLayout(self.verticalLayout_4, 0, 0, 1, 1)
+        self.gridLayout.addWidget(self.widget_2, 0, 0, 3, 1)
+        self.stackedWidget = QtWidgets.QStackedWidget(self.centralwidget)
         self.stackedWidget.setObjectName("stackedWidget")
-        self.horizontalLayout_4.addWidget(self.stackedWidget)
-        self.verticalLayout.addLayout(self.horizontalLayout_4)
-        self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_5.setObjectName("horizontalLayout_5")
-        spacerItem7 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_5.addItem(spacerItem7)
-        self.verticalLayout.addLayout(self.horizontalLayout_5)
-        MainWindow.setCentralWidget(self.centralwidget)
-        self.statusbar = QtWidgets.QStatusBar(MainWindow)
-        self.statusbar.setObjectName("statusbar")
-        MainWindow.setStatusBar(self.statusbar)
+        self.page = QtWidgets.QWidget()
+        self.page.setObjectName("page")
+        self.stackedWidget.addWidget(self.page)
+        self.page_2 = QtWidgets.QWidget()
+        self.page_2.setObjectName("page_2")
+        self.stackedWidget.addWidget(self.page_2)
+        self.gridLayout.addWidget(self.stackedWidget, 2, 2, 1, 1)
+        AdminDashboard.setCentralWidget(self.centralwidget)
 
-
-        self.retranslateUi(MainWindow)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
-
+        self.retranslateUi(AdminDashboard)
+        QtCore.QMetaObject.connectSlotsByName(AdminDashboard)
+        
         # Connect buttons to methods
         self.shop_button.clicked.connect(self.open_shop)
         self.cart_button.clicked.connect(self.open_cart)
@@ -359,20 +656,22 @@ class Ui_MainWindow(object):
         self.reports_button.clicked.connect(self.open_reports)
         self.analytics_button.clicked.connect(self.open_analytics)
         self.logout_button.clicked.connect(self.logout)
+        self.database_button.clicked.connect(self.database_options)
 
-    def retranslateUi(self, MainWindow):
+    def retranslateUi(self, AdminDashboard):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Jewell 7 Hardware"))
-        self.label.setText(_translate("MainWindow", "Admin Dashboard"))
-        self.help_button.setText(_translate("MainWindow", "?"))
-        self.aboutUs_button.setText(_translate("MainWindow", "i"))
-        self.logout_button.setText(_translate("MainWindow", "↩"))
-        self.shop_button.setText(_translate("MainWindow", "Shop"))
-        self.cart_button.setText(_translate("MainWindow", "Cart"))
-        self.products_button.setText(_translate("MainWindow", "Products"))
-        self.users_button.setText(_translate("MainWindow", "Users"))
-        self.reports_button.setText(_translate("MainWindow", "Reports"))
-        self.analytics_button.setText(_translate("MainWindow", "Analytics"))
+        AdminDashboard.setWindowTitle(_translate("AdminDashboard", "AdminDashboard"))
+        self.aboutUs_button.setText(_translate("AdminDashboard", "About us"))
+        self.shop_button.setText(_translate("AdminDashboard", "  Shop"))
+        self.cart_button.setText(_translate("AdminDashboard", "  Cart"))
+        self.products_button.setText(_translate("AdminDashboard", "  Products"))
+        self.users_button.setText(_translate("AdminDashboard", "  Users"))
+        self.reports_button.setText(_translate("AdminDashboard", "  Reports"))
+        self.analytics_button.setText(_translate("AdminDashboard", "  Analytics"))
+        self.logout_button.setText(_translate("AdminDashboard", "Sign out"))
+        self.adminLabel.setText(_translate("AdminDashboard", "    Admin Dashboard"))
+    from assets import mainlogo_rc
+
 
     # Navigation Functions
     def open_shop(self):
@@ -398,7 +697,7 @@ class Ui_MainWindow(object):
         self.stackedWidget.setCurrentWidget(self.users_tab)
 
     def open_reports(self):
-        self.reports_tab = ReportsTab()
+        self.reports_tab = ReportsTab(self.user_id)
         self.stackedWidget.addWidget(self.reports_tab)
         self.stackedWidget.setCurrentWidget(self.reports_tab)
 
@@ -410,6 +709,11 @@ class Ui_MainWindow(object):
     def update_cart_tab(self):
         if hasattr(self, 'cart_tab'):
             self.cart_tab.load_cart_items()
+            
+    def database_options(self):
+        self.database_tab = DatabaseTab()
+        self.stackedWidget.addWidget(self.database_tab)
+        self.stackedWidget.setCurrentWidget(self.database_tab)
 
     def logout(self):
         conn = sqlite3.connect('j7h.db')
