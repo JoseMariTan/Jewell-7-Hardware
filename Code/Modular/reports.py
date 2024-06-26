@@ -277,7 +277,6 @@ class ReportsTab(QtWidgets.QWidget):
     def load_transactions(self, search_query=None):
         conn = sqlite3.connect('j7h.db')
         cursor = conn.cursor()
-
         if search_query:
             query = """SELECT t.transaction_id, t.total_price, t.qty, t.customer, t.product_name, t.brand, 
                             t.var, t.size, t.category, t.time, t.date, t.type, t.user_id, u.first_name, 
@@ -340,19 +339,6 @@ class ReportsTab(QtWidgets.QWidget):
                     item = QTableWidgetItem(str(data))
                     self.transactions_table.setItem(row_number, column_number, item)
 
-                # Check if the transaction is flagged and set the background color
-                is_flagged = row_data[17]
-                if is_flagged == 1:
-                    for column in range(self.transactions_table.columnCount()):
-                        item = self.transactions_table.item(row_number, column)
-                        if item:
-                            item.setBackground(QtGui.QColor('orange'))  # Set background to orange if flagged
-                else:
-                    for column in range(self.transactions_table.columnCount()):
-                        item = self.transactions_table.item(row_number, column)
-                        if item:
-                            item.setBackground(QtGui.QColor(Qt.white))  # Set background to white if not flagged
-
                 row_number += 1
 
             # Set the total_total_price if there's more than one product in the group
@@ -361,6 +347,19 @@ class ReportsTab(QtWidgets.QWidget):
                 item = QTableWidgetItem(str(formatted_total_price))
                 item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
                 self.transactions_table.setItem(row_number - span_length, 0, item)
+
+        # Apply colors based on the is_flagged value
+        for row_number in range(self.transactions_table.rowCount()):
+            item = self.transactions_table.item(row_number, 17)
+            if item:
+                is_flagged = int(item.text())  # Only access text if item exists
+                for column in range(self.transactions_table.columnCount()):
+                    item = self.transactions_table.item(row_number, column)
+                    if item:
+                        if is_flagged == 1:
+                            item.setBackground(QtGui.QColor('orange'))
+                        else:
+                            item.setBackground(QtGui.QColor(Qt.white))
                 
     def load_returns(self, search_query=None):
         conn = sqlite3.connect('j7h.db')
