@@ -173,7 +173,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.help_button)
         self.horizontalLayout_3.addLayout(self.horizontalLayout)
         
-        # Create a new button
         self.database_button = QtWidgets.QPushButton(self.centralwidget)
         self.database_button.setMinimumSize(QtCore.QSize(50, 50))
         self.database_button.setMaximumSize(QtCore.QSize(50, 50))
@@ -182,7 +181,44 @@ class Ui_MainWindow(object):
         self.database_button.setIcon(icon_temp)
         self.database_button.setIconSize(QtCore.QSize(30, 30))
         self.database_button.setObjectName("database_button")
-
+        self.database_button.setStyleSheet("QPushButton {\n"
+" background-color: #f6f4f4;\n"
+"border-radius:25px;\n"
+"color:black;\n"
+";\n"
+"}\n"
+"QPushButton#quit_button {\n"
+"   background-color: green;\n"
+"}\n"
+"QPushButton::pressed {\n"
+"background-color: #fff;\n"
+"}\n"
+"QpushButton{\n"
+"border: 2px solid #555;\n"
+"    border-radius: 20px;\n"
+"    border-style: outset;\n"
+"border-width:200px;\n"
+"    \n"
+"}\n"
+"QPushButton:hover {\n"
+"   background-color: #81cdc6;\n"
+"   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"color:#fff;\n"
+"}\n"
+"\n"
+"shoppingbag:hover{\n"
+"color:#fff;\n"
+"background-repeat:no-repeat;\n"
+"}\n"
+"\n"
+"border:none;\n"
+"")
+        self.database_button.setText("")
+        icon1 = QtGui.QIcon()
+        icon1.addPixmap(QtGui.QPixmap(":/Database/database.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.database_button.setIcon(icon1)
+        self.database_button.setIconSize(QtCore.QSize(20, 20))
+        self.database_button.setObjectName("help_button")
         # Add the button to the layout
         self.horizontalLayout.addWidget(self.database_button)
         self.gridLayout.addLayout(self.horizontalLayout_3, 0, 1, 1, 2)
