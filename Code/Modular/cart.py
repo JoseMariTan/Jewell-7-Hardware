@@ -332,6 +332,30 @@ class CartTab(QtWidgets.QWidget):
         finally:
             # Ensure the database connection is closed
             conn.close()
+            
+    def generate_log_id(self):
+        # Establishing connection with SQLite database
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+    
+        try:
+            while True:
+                # Get the current date in the format YYYYMMDD
+                current_date = datetime.now().strftime("%Y%m%d")
+            
+                # Generate three random letters from A to Z
+                random_letters = ''.join(random.choices(string.ascii_uppercase, k=3))
+            
+                # Combine the parts to form the transaction ID
+                log_id = f"LOG{current_date}{random_letters}"
+            
+                # Check if the transaction ID already exists in the database
+                cursor.execute("SELECT 1 FROM user_logs WHERE log_id = ?", (log_id,))
+                if not cursor.fetchone():
+                    return log_id
+        finally:
+            # Ensure the database connection is closed
+            conn.close()            
         
     def checkout(self, customer_name, payment_id, contact):
         if not payment_id:
@@ -349,16 +373,6 @@ class CartTab(QtWidgets.QWidget):
 
         # Use the stored user_id
         user_id = self.user_id
-
-        # Retrieve the next available log_id
-        cursor.execute("SELECT IFNULL(MAX(log_id), 0) + 1 FROM user_logs")
-        log_id_result = cursor.fetchone()
-        if log_id_result:
-            log_id = log_id_result[0]
-        else:
-            QMessageBox.warning(self, "Error", "Unable to determine next log ID!")
-            conn.close()
-            return
         
         for row in range(self.cart_table.rowCount()):
             product_name_item = self.cart_table.item(row, 1)
@@ -376,6 +390,7 @@ class CartTab(QtWidgets.QWidget):
                 var = var_item.text() if var_item.text() else None
                 size = size_item.text() if size_item.text() else None
                 transaction_id = self.generate_transaction_id()
+                log_id = self.generate_log_id()
                 is_flagged = 0
 
                 query = """
@@ -407,9 +422,9 @@ class CartTab(QtWidgets.QWidget):
                     transaction_type = "purchase"
 
                 cursor.execute('''
-                    INSERT INTO transactions ( transaction_id, customer, product_name, qty, total_price, date, time, type, product_id, log_id, brand, var, size, user_id, payment_id, contact, is_flagged)
-                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-                ''', (transaction_id, customer_name, product_name, qty, total_price, current_date, current_time, transaction_type, product_id, log_id, brand, var, size, user_id, payment_id, contact, is_flagged))
+                    INSERT INTO transactions ( transaction_id, customer, product_name, qty, total_price, date, time, type, product_id, brand, var, size, user_id, payment_id, contact, is_flagged)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                ''', (transaction_id, customer_name, product_name, qty, total_price, current_date, current_time, transaction_type, product_id, brand, var, size, user_id, payment_id, contact, is_flagged))
 
                 # Update the quantity in the products table
                 cursor.execute("UPDATE products SET qty = qty - ? WHERE product_id = ?", (qty, product_id))
@@ -417,12 +432,11 @@ class CartTab(QtWidgets.QWidget):
                 # Insert into user_logs table
                 action = "checkout"
                 cursor.execute('''
-                    INSERT INTO user_logs (user_id, action, time, date)
-                    VALUES (?,?,?,?)
-                ''', (user_id, action, current_time, current_date))
+                    INSERT INTO user_logs (log_id,user_id, action, time, date)
+                    VALUES (?,?,?,?,?)
+                ''', (log_id, user_id, action, current_time, current_date))
 
                 transaction_successful = True
-                log_id += 1  # Increment log_id for the next entry if there are multiple items
 
         conn.commit()
         conn.close()

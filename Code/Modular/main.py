@@ -398,7 +398,7 @@ class Ui_MainWindow(object):
         self.stackedWidget.setCurrentWidget(self.users_tab)
 
     def open_reports(self):
-        self.reports_tab = ReportsTab()
+        self.reports_tab = ReportsTab(self.user_id)
         self.stackedWidget.addWidget(self.reports_tab)
         self.stackedWidget.setCurrentWidget(self.reports_tab)
 

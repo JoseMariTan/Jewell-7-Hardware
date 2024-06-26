@@ -463,6 +463,7 @@ class StaffRegistration(QtWidgets.QWidget):
             current_datetime = datetime.today()
             date_log = current_datetime.strftime('%Y-%m-%d')
             time_log = current_datetime.strftime("%I:%M %p")
+            log_id = self.generate_log_id()
 
             # Establishing connection with SQLite database
             conn = sqlite3.connect('j7h.db')
@@ -491,8 +492,8 @@ class StaffRegistration(QtWidgets.QWidget):
             action = "register"
             
             # Inserting data into the user_logs table using the retrieved user_id
-            cursor.execute('''INSERT INTO user_logs (user_id, action, time, date) 
-                        VALUES (?, ?, ?, ?)''', (user_id, action, time_log, date_log))
+            cursor.execute('''INSERT INTO user_logs (log_id, user_id, action, time, date) 
+                        VALUES (?, ?, ?, ?, ?)''', (log_id, user_id, action, time_log, date_log))
 
             # Committing the transaction and closing connection
             conn.commit()
@@ -517,3 +518,27 @@ class StaffRegistration(QtWidgets.QWidget):
             self.password_input.setEchoMode(QtWidgets.QLineEdit.Normal)
         else:
             self.password_input.setEchoMode(QtWidgets.QLineEdit.Password)
+            
+    def generate_log_id(self):
+        # Establishing connection with SQLite database
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+    
+        try:
+            while True:
+                # Get the current date in the format YYYYMMDD
+                current_date = datetime.now().strftime("%Y%m%d")
+            
+                # Generate three random letters from A to Z
+                random_letters = ''.join(random.choices(string.ascii_uppercase, k=3))
+            
+                # Combine the parts to form the transaction ID
+                log_id = f"LOG{current_date}{random_letters}"
+            
+                # Check if the transaction ID already exists in the database
+                cursor.execute("SELECT 1 FROM user_logs WHERE log_id = ?", (log_id,))
+                if not cursor.fetchone():
+                    return log_id
+        finally:
+            # Ensure the database connection is closed
+            conn.close()    

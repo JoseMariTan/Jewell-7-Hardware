@@ -75,8 +75,9 @@ class ReceiptDialog(QtWidgets.QDialog):
 
 #Class for Reports Tab
 class ReportsTab(QtWidgets.QWidget):
-    def __init__(self):
+    def __init__(self, user_id):
         super().__init__()
+        self.user_id = user_id
         self.initUI()
         self.flagged_rows = set()
         
@@ -500,6 +501,17 @@ class ReportsTab(QtWidgets.QWidget):
             # Insert into returns table
             cursor.execute("""INSERT INTO returns (return_id, product_name, brand, var, size, qty, date, return_date, transaction_id)
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""", (return_id, product_name, brand, var, size, qty, date, return_date, transaction_id))
+            
+            log_id = self.generate_log_id()
+            current_datetime = datetime.today()
+            user_id = self.user_id
+            date_log = current_datetime.strftime('%Y-%m-%d')
+            time_log = current_datetime.strftime("%I:%M %p")
+            action = "returned item"
+            
+            # Inserting data into the user_logs table using the retrieved user_id
+            cursor.execute('''INSERT INTO user_logs (log_id, user_id, action, time, date) 
+                        VALUES (?, ?, ?, ?, ?)''', (log_id, user_id, action, time_log, date_log))
             conn.commit()
             return True
         except sqlite3.Error as e:
@@ -508,7 +520,31 @@ class ReportsTab(QtWidgets.QWidget):
             return False
         finally:
             conn.close()
-    
+            
+    def generate_log_id(self):
+        # Establishing connection with SQLite database
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+
+        try:
+            while True:
+                # Get the current date in the format YYYYMMDD
+                current_date = datetime.now().strftime("%Y%m%d")
+            
+                # Generate three random letters from A to Z
+                random_letters = ''.join(random.choices(string.ascii_uppercase, k=3))
+            
+                # Combine the parts to form the transaction ID
+                log_id = f"LOG{current_date}{random_letters}"
+            
+                # Check if the transaction ID already exists in the database
+                cursor.execute("SELECT 1 FROM user_logs WHERE log_id = ?", (log_id,))
+                if not cursor.fetchone():
+                    return log_id
+        finally:
+            # Ensure the database connection is closed
+            conn.close()   
+            
     def generate_return_id(self):
         conn = sqlite3.connect('j7h.db')
         cursor = conn.cursor()
