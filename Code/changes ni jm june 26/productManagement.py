@@ -115,7 +115,6 @@ class ProductsTab(QtWidgets.QWidget):
                 except ValueError:
                     self.apply_stock_alert(row, 7, "#ffffff")
 
-
     def load_data(self, search_query=None):
         conn = sqlite3.connect('j7h.db')
         cur = conn.cursor()
@@ -125,7 +124,7 @@ class ProductsTab(QtWidgets.QWidget):
                 search_param = '%{}%'.format(search_query)
                 exact_search_param = '{}'.format(search_query)
                 cur.execute("""
-                    SELECT rowid, product_id, product_name, brand, var, size, price, qty, threshold, category, status, supplier 
+                    SELECT rowid, product_id, product_name, brand, var, size, price, qty, threshold, category, status, date_added, time_added, supplier 
                     FROM products 
                     WHERE 
                         (product_id LIKE ? COLLATE NOCASE OR product_id = ?) OR
@@ -135,16 +134,17 @@ class ProductsTab(QtWidgets.QWidget):
                         (size LIKE ? COLLATE NOCASE OR size = ?) OR
                         (category LIKE ? COLLATE NOCASE OR category = ?) OR
                         (status LIKE ? COLLATE NOCASE OR status = ?) OR
+                        (date_added LIKE ? COLLATE NOCASE OR date_added = ?) OR
                         (supplier LIKE ? COLLATE NOCASE OR supplier = ?)
                     ORDER BY date_added DESC, time_added DESC
-                    LIMIT 50
                 """, (search_param, exact_search_param, search_param, exact_search_param,
-                    search_param, exact_search_param, search_param, exact_search_param,
-                    search_param, exact_search_param, search_param, exact_search_param,
-                    search_param, exact_search_param, search_param, exact_search_param))
+                      search_param, exact_search_param, search_param, exact_search_param,
+                      search_param, exact_search_param, search_param, exact_search_param,
+                      search_param, exact_search_param, search_param, exact_search_param,
+                      search_param, exact_search_param))
             else:
                 cur.execute("""
-                    SELECT rowid, product_id, product_name, brand, var, size, price, qty, threshold, category, status, supplier 
+                    SELECT rowid, product_id, product_name, brand, var, size, price, qty, threshold, category, status, date_added, time_added, supplier 
                     FROM products 
                     ORDER BY date_added DESC, time_added DESC
                     LIMIT 50
@@ -152,8 +152,8 @@ class ProductsTab(QtWidgets.QWidget):
 
             products = cur.fetchall()
             self.tableWidget.setRowCount(len(products))
-            self.tableWidget.setColumnCount(12)
-            self.tableWidget.setHorizontalHeaderLabels(['RowID', 'Product ID', 'Product', 'Brand', 'Variation', 'Size', 'Price', 'Stock', 'Threshold', 'Category', 'Status', 'Supplier'])
+            self.tableWidget.setColumnCount(14)
+            self.tableWidget.setHorizontalHeaderLabels(['RowID', 'Product ID', 'Product', 'Brand', 'Variation', 'Size', 'Price', 'Stock', 'Threshold', 'Category', 'Status', 'Date Added', 'Time Added', 'Supplier'])
 
             for row_number, row_data in enumerate(products):
                 for column_number, data in enumerate(row_data):
