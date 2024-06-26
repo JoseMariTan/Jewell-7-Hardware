@@ -122,19 +122,33 @@ class ProductsTab(QtWidgets.QWidget):
 
         try:
             if search_query:
+                search_param = '%{}%'.format(search_query)
+                exact_search_param = '{}'.format(search_query)
                 cur.execute("""
                     SELECT rowid, product_id, product_name, brand, var, size, price, qty, threshold, category, status, supplier 
                     FROM products 
-                    WHERE product_name LIKE ? OR brand LIKE ? OR var LIKE ? OR size LIKE ? OR category LIKE ? OR status LIKE ? OR supplier LIKE ? 
-                    ORDER BY date_added DESC, time_added DESC""",
-                    ('%{}%'.format(search_query), '%{}%'.format(search_query), '%{}%'.format(search_query), '%{}%'.format(search_query), 
-                    '%{}%'.format(search_query), '%{}%'.format(search_query), '%{}%'.format(search_query)))
+                    WHERE 
+                        (product_id LIKE ? COLLATE NOCASE OR product_id = ?) OR
+                        (product_name LIKE ? COLLATE NOCASE OR product_name = ?) OR
+                        (brand LIKE ? COLLATE NOCASE OR brand = ?) OR
+                        (var LIKE ? COLLATE NOCASE OR var = ?) OR
+                        (size LIKE ? COLLATE NOCASE OR size = ?) OR
+                        (category LIKE ? COLLATE NOCASE OR category = ?) OR
+                        (status LIKE ? COLLATE NOCASE OR status = ?) OR
+                        (supplier LIKE ? COLLATE NOCASE OR supplier = ?)
+                    ORDER BY date_added DESC, time_added DESC
+                    LIMIT 50
+                """, (search_param, exact_search_param, search_param, exact_search_param,
+                    search_param, exact_search_param, search_param, exact_search_param,
+                    search_param, exact_search_param, search_param, exact_search_param,
+                    search_param, exact_search_param, search_param, exact_search_param))
             else:
                 cur.execute("""
                     SELECT rowid, product_id, product_name, brand, var, size, price, qty, threshold, category, status, supplier 
                     FROM products 
                     ORDER BY date_added DESC, time_added DESC
-                    LIMIT 50""")  # Limit the result set to 50 rows
+                    LIMIT 50
+                """)
 
             products = cur.fetchall()
             self.tableWidget.setRowCount(len(products))
@@ -156,7 +170,6 @@ class ProductsTab(QtWidgets.QWidget):
 
         self.tableWidget.setColumnHidden(0, True)
         self.stock_alert()
-
 
     def on_selection_changed(self):
         selected_rows = set()
