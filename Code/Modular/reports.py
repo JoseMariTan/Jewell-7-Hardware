@@ -31,12 +31,13 @@ class QuantityInputDialog(QtWidgets.QDialog):
         return self.quantity_spinbox.value()
 
 class ReturnSelectionDialog(QtWidgets.QDialog):
-    def __init__(self, parent=None, selected_rows=None, transactions_table=None):
+    def __init__(self, parent=None, selected_rows=None, transactions_table=None, reports_tab=None):
         super().__init__(parent)
         self.selected_rows = selected_rows
         self.transactions_table = transactions_table
+        self.reports_tab = reports_tab 
         self.initUI()
-
+    
     def initUI(self):
         self.setWindowTitle('Select Items to Return')
         self.setGeometry(200, 200, 800, 400)
@@ -101,14 +102,25 @@ class ReturnSelectionDialog(QtWidgets.QDialog):
             if return_quantity is not None:
                 item_data.append(return_quantity)
                 transaction_details = tuple(item_data[:-1])  # Exclude the return quantity from transaction details
-                print(transaction_details)
+                
+                product_name = item_data[3]
+                brand = item_data[4]
+                var = item_data[5]
+                size = item_data[6]
+                payment_id = item_data[13]
+
+                transaction_id = self.get_transaction_id(product_name, brand, var, size, payment_id)
+                if transaction_id is None:
+                    QMessageBox.warning(self, 'Transaction Not Found', 'Failed to find transaction.')
+                    return
                 return_quantity = item_data[-1]  # Get the return quantity
-                transaction_id = "maya ko na ayusen shet"
+                
                 return_id = self.generate_return_id()
                 if not self.insert_into_returns(return_id, transaction_details, return_quantity, transaction_id):
                     QMessageBox.warning(self, 'Return Failed', 'Failed to return item.')
                 else:
                     QMessageBox.information(self, 'Return Complete', 'Item returned successfully.')
+                    self.reports_tab.load_returns() 
                     self.close()
 
     def generate_return_id(self):
@@ -171,6 +183,21 @@ class ReturnSelectionDialog(QtWidgets.QDialog):
                     return log_id
         finally:
             conn.close()
+            
+    def get_transaction_id(self, product_name, brand, var, size, payment_id):
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+
+        query = """
+        SELECT transaction_id
+        FROM transactions
+        WHERE product_name = ? AND brand = ? AND var = ? AND size = ? AND payment_id = ?
+        """
+        cursor.execute(query, (product_name, brand, var, size, payment_id))
+        result = cursor.fetchone()
+
+        conn.close()
+        return result[0] if result else None
 
 #Class for Reports Tab
 class ReportsTab(QtWidgets.QWidget):
@@ -554,7 +581,7 @@ class ReportsTab(QtWidgets.QWidget):
             QMessageBox.warning(self, 'No Selection', 'Please select a transaction to return.')
             return
 
-        dialog = ReturnSelectionDialog(self, selected_rows, self.transactions_table)
+        dialog = ReturnSelectionDialog(parent=self, selected_rows=selected_rows, transactions_table=self.transactions_table, reports_tab=self)
         dialog.exec_()
         
     def generate_log_id(self):
