@@ -1,4 +1,6 @@
 import sqlite3
+import random
+import string
 from datetime import datetime
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -180,12 +182,21 @@ class ProductsTab(QtWidgets.QWidget):
             self.load_data()
             QtWidgets.QMessageBox.information(self, "Success", "Product successfully voided.")
 
+
 class AddProductDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Product Management")
         self.setGeometry(100, 100, 300, 300)  # Adjust dimensions as needed
         layout = QtWidgets.QVBoxLayout()
+
+        # Product ID input field
+        self.product_id_label = QtWidgets.QLabel("Product ID:")
+        self.product_id_input = QtWidgets.QLineEdit()
+        self.product_id_input.setReadOnly(True)  # Make the input field read-only
+        self.product_id_input.setText(self.generate_product_id())  # Set the generated product ID
+        layout.addWidget(self.product_id_label)
+        layout.addWidget(self.product_id_input)
 
         self.product_name_label = QtWidgets.QLabel("Product Name: *")
         self.product_name_input = QtWidgets.QLineEdit()
@@ -215,7 +226,7 @@ class AddProductDialog(QtWidgets.QDialog):
 
         self.qty_label = QtWidgets.QLabel("Qty: *")
         self.qty_input = QtWidgets.QLineEdit()
-        self.qty_input.setValidator(QtGui.QIntValidator())  # Set validator for 2 decimal places
+        self.qty_input.setValidator(QtGui.QIntValidator())  # Set validator for integers
         layout.addWidget(self.qty_label)
         layout.addWidget(self.qty_input)
 
@@ -267,6 +278,30 @@ class AddProductDialog(QtWidgets.QDialog):
 
         self.setLayout(layout)
 
+    def generate_product_id(self):
+        # Establishing connection with SQLite database
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+    
+        try:
+            while True:
+                # Get the current date in the format YYYYMMDD
+                current_date = datetime.now().strftime("%Y%m%d")
+            
+                # Generate three random letters from A to Z
+                random_letters = ''.join(random.choices(string.ascii_uppercase, k=3))
+            
+                # Combine the parts to form the product ID
+                product_id = f"PRODUC{current_date}{random_letters}"
+            
+                # Check if the product ID already exists in the database
+                cursor.execute("SELECT 1 FROM products WHERE product_id = ?", (product_id,))
+                if not cursor.fetchone():
+                    return product_id
+        finally:
+            # Ensure the database connection is closed
+            conn.close()
+
     def populate_category_combobox(self):
         # Assuming SQLite database connection and fetching unique values from 'transactions' table
         try:
@@ -293,6 +328,7 @@ class AddProductDialog(QtWidgets.QDialog):
 
     def add_product(self):
         # Implement the functionality to handle adding a product here
+        product_id = self.generate_product_id()
         product_name = self.product_name_input.text().strip()
         brand = self.brand_input.text().strip() or "-"
         var = self.var_input.text().strip() or "-"
@@ -342,8 +378,8 @@ class AddProductDialog(QtWidgets.QDialog):
         try:
             conn = sqlite3.connect('j7h.db')  # Replace with your database path
             cur = conn.cursor()
-            cur.execute("INSERT INTO products (product_name, brand, var, size, price, qty, category, threshold, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                        (product_name, brand, var, size, price, qty, category, threshold, status))
+            cur.execute("INSERT INTO products (product_id, product_name, brand, var, size, price, qty, category, threshold, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        (product_id, product_name, brand, var, size, price, qty, category, threshold, status))
             conn.commit()
         except sqlite3.Error as error:
             print("Error while connecting to SQLite", error)
