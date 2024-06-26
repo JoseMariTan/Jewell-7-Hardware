@@ -141,15 +141,7 @@ class ReportsTab(QtWidgets.QWidget):
         # Load user logs into the table
         self.load_user_logs()
 
-        # Create buttons for clearing logs
         buttons_layout = QtWidgets.QHBoxLayout()
-        clear_logs_button = QtWidgets.QPushButton("Clear User Logs")
-        
-        # Connect button signals to slots
-        clear_logs_button.clicked.connect(self.clear_user_logs)
-
-        # Add buttons to the layout
-        buttons_layout.addWidget(clear_logs_button)
 
         # Add buttons layout to the main layout
         layout.addLayout(buttons_layout)
@@ -178,23 +170,17 @@ class ReportsTab(QtWidgets.QWidget):
         # Create buttons for clearing logs, flagging transactions, and generating receipts
         buttons_layout = QtWidgets.QHBoxLayout()
         return_button = QtWidgets.QPushButton("Return Item")
-        clear_logs_button = QtWidgets.QPushButton("Clear Transaction Logs")
         flag_transaction_button = QtWidgets.QPushButton("Flag Transaction")
-        delete_log_button = QtWidgets.QPushButton("Remove Transaction")
         receipt_button = QtWidgets.QPushButton("Generate Receipt")
 
         # Connect button signals to slots
-        clear_logs_button.clicked.connect(self.clear_logs)
         flag_transaction_button.clicked.connect(self.flag_transaction)
-        delete_log_button.clicked.connect(self.remove_log)
         receipt_button.clicked.connect(self.generate_receipt)
         return_button.clicked.connect(self.return_selected_item)
 
         # Add buttons to the layout
         buttons_layout.addWidget(return_button)
-        buttons_layout.addWidget(clear_logs_button)
         buttons_layout.addWidget(flag_transaction_button)
-        buttons_layout.addWidget(delete_log_button)
         buttons_layout.addWidget(receipt_button)
 
         # Add buttons layout to the main layout
@@ -442,42 +428,6 @@ class ReportsTab(QtWidgets.QWidget):
         conn.commit()
         conn.close()
 
-    def clear_logs(self):
-        reply = QMessageBox.question(self, 'Confirmation', 'Are you sure you want to clear all logs?', 
-                                     QMessageBox.Yes | QMessageBox.No, 
-                                     QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            # Clear the table
-            self.transactions_table.clearContents()
-            self.transactions_table.setRowCount(0)
-            # Delete all log entries from the database
-            self.delete_all_logs_from_database()
-
-    def delete_all_logs_from_database(self):
-        conn = sqlite3.connect('j7h.db')
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM transactions")
-        conn.commit()
-        conn.close()
-
-    def clear_user_logs(self):
-        reply = QMessageBox.question(self, 'Confirmation', 'Are you sure you want to clear all user logs?', 
-                                     QMessageBox.Yes | QMessageBox.No, 
-                                     QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            # Clear the table
-            self.user_logs_table.clearContents()
-            self.user_logs_table.setRowCount(0)
-            # Delete all log entries from the database
-            self.delete_all_user_logs_from_database()
-
-    def delete_all_user_logs_from_database(self):
-        conn = sqlite3.connect('j7h.db')
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM user_logs")
-        conn.commit()
-        conn.close()
-        
     def return_selected_item(self):
         selected_items = self.transactions_table.selectedItems()
         if not selected_items:
