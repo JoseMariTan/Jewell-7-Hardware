@@ -281,7 +281,7 @@ class ReportsTab(QtWidgets.QWidget):
         if search_query:
             query = """SELECT t.transaction_id, t.total_price, t.qty, t.customer, t.product_name, t.brand, 
                             t.var, t.size, t.category, t.time, t.date, t.type, t.user_id, u.first_name, 
-                            t.payment_id, t.contact, t.product_id
+                            t.payment_id, t.contact, t.product_id, t.is_flagged
                     FROM transactions t
                     LEFT JOIN users u ON t.user_id = u.user_id
                     WHERE t.user_id LIKE ? OR t.customer LIKE ? OR t.date LIKE ? OR t.time LIKE ?"""
@@ -289,7 +289,7 @@ class ReportsTab(QtWidgets.QWidget):
         else:
             query = """SELECT t.transaction_id, t.total_price, t.qty, t.customer, t.product_name, t.brand, 
                             t.var, t.size, t.category, t.time, t.date, t.type, t.user_id, u.first_name, 
-                            t.payment_id, t.contact, t.product_id
+                            t.payment_id, t.contact, t.product_id, t.is_flagged
                     FROM transactions t
                     LEFT JOIN users u ON t.user_id = u.user_id"""
             cursor.execute(query)
@@ -340,6 +340,19 @@ class ReportsTab(QtWidgets.QWidget):
                     item = QTableWidgetItem(str(data))
                     self.transactions_table.setItem(row_number, column_number, item)
 
+                # Check if the transaction is flagged and set the background color
+                is_flagged = row_data[17]
+                if is_flagged == 1:
+                    for column in range(self.transactions_table.columnCount()):
+                        item = self.transactions_table.item(row_number, column)
+                        if item:
+                            item.setBackground(QtGui.QColor('orange'))  # Set background to orange if flagged
+                else:
+                    for column in range(self.transactions_table.columnCount()):
+                        item = self.transactions_table.item(row_number, column)
+                        if item:
+                            item.setBackground(QtGui.QColor(Qt.white))  # Set background to white if not flagged
+
                 row_number += 1
 
             # Set the total_total_price if there's more than one product in the group
@@ -376,14 +389,20 @@ class ReportsTab(QtWidgets.QWidget):
     #button functionalities
 
     def flag_transaction(self):
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+        
         for row in set(item.row() for item in self.transactions_table.selectedItems()):
+            payment_id = self.transactions_table.item(row, 14).text()  # Assuming payment_id is in the 15th column (index 14)
+
             if row in self.flagged_rows:
-                # Unflag the row (remove red background)
+                # Unflag the row (remove orange background)
                 for column in range(self.transactions_table.columnCount()):
                     item = self.transactions_table.item(row, column)
                     if item:
                         item.setBackground(QtGui.QColor(Qt.white))  # Set background to white
                 self.flagged_rows.remove(row)
+                cursor.execute("UPDATE transactions SET is_flagged = 0 WHERE payment_id = ?", (payment_id,))
             else:
                 # Flag the row (set orange background)
                 for column in range(self.transactions_table.columnCount()):
@@ -391,7 +410,10 @@ class ReportsTab(QtWidgets.QWidget):
                     if item:
                         item.setBackground(QtGui.QColor('orange'))  # Set background to orange
                 self.flagged_rows.add(row)
+                cursor.execute("UPDATE transactions SET is_flagged = 1 WHERE payment_id = ?", (payment_id,))
 
+        conn.commit()
+        conn.close()
 
     def remove_log(self):
         selected_items = self.transactions_table.selectedItems()
