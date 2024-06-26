@@ -27,4 +27,7 @@
   <qresource prefix="Shop">
     <file>shopping-bag.png</file>
   </qresource>
+   <qresource prefix="Database">
+    <file>database.png</file>
+  </qresource>
 </RCC>
