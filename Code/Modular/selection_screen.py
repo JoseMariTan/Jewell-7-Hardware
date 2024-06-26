@@ -202,7 +202,7 @@ class Selection(object):
        self.MainWindow.setCentralWidget(self.register_widget)
 
 
-import logo_rc
+from assets import logo_rc
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)

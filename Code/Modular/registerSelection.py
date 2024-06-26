@@ -194,7 +194,7 @@ class Register(QtWidgets.QWidget):
         self.retranslateUi(registerSelection)
         QtCore.QMetaObject.connectSlotsByName(registerSelection)
     
-    import logo_rc
+    from assets import logo_rc
 
     def retranslateUi(self, registerSelection):
         _translate = QtCore.QCoreApplication.translate

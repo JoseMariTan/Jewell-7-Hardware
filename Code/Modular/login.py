@@ -6,7 +6,7 @@ import sqlite3
 from main import Ui_MainWindow
 from selection_screen import Selection
 from forgotPassword import ForgotPassword
-import logo_rc
+from assets import logo_rc
 import random, string
 
 class Login(QtWidgets.QWidget):

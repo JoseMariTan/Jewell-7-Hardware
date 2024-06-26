@@ -6,7 +6,7 @@ import random
 import string
 from PyQt5 import QtCore, QtGui, QtWidgets
 from datetime import datetime
-import logo_rc
+from assets import logo_rc
 
 
 class AdminRegistration(QtWidgets.QWidget):

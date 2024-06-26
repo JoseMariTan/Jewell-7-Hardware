@@ -2,7 +2,7 @@ import sqlite3
 from PyQt5 import QtCore, QtGui, QtWidgets
 from datetime import datetime
 import random, string
-import logo_rc
+from assets import logo_rc
 
 class ForgotPassword(object):
     def setupUi(self, forgotPassword):
