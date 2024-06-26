@@ -143,6 +143,8 @@ class Ui_Form(object):
 
 
 class DatabaseTab(QtWidgets.QWidget):
+    backupCompleted = QtCore.pyqtSignal(str)
+
     def __init__(self, parent=None):
         super(DatabaseTab, self).__init__(parent)
         self.layout = QtWidgets.QVBoxLayout(self)
@@ -173,6 +175,10 @@ class DatabaseTab(QtWidgets.QWidget):
         self.scheduler_thread = None
         
         self.update_schedule_label()
+        self.backupCompleted.connect(self.updateBackupLabel)
+    
+    def updateBackupLabel(self, backup_time):
+        self.ui_form.label_5.setText(backup_time)
 
     def manual_backup(self):
         # Implement manual backup functionality
@@ -377,10 +383,6 @@ class DatabaseTab(QtWidgets.QWidget):
             if not os.path.exists(backups_dir):
                 os.makedirs(backups_dir)
 
-            # Connect to the database
-            conn = sqlite3.connect("j7h.db")
-            cursor = conn.cursor()
-
             # Generate backup file name with current date and time
             current_datetime = QtCore.QDateTime.currentDateTime().toString("yyyyMMdd_hhmmss")
             backup_filename = f"j7h_backup_{current_datetime}.db"
@@ -389,15 +391,11 @@ class DatabaseTab(QtWidgets.QWidget):
             # Copy database file to backup location
             shutil.copyfile("j7h.db", backup_path)
 
-            # Insert backup information into backup_history table
-            cursor.execute("INSERT INTO backup_history (backup_file, created_at) VALUES (?, ?)", (backup_filename, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-            conn.commit()
-
-            # Close database connection
-            conn.close()
-
             # Update labels with new backup date and time
             self.ui_form.label_5.setText(QtCore.QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
+
+            # Emit signal for UI update
+            self.backupCompleted.emit(QtCore.QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
 
             QtWidgets.QMessageBox.information(self, "Backup Successful", "Backup saved successfully.")
         except Exception as e:
