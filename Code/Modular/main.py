@@ -322,37 +322,7 @@ class Ui_MainWindow(object):
 "")
         self.analytics_button.setObjectName("analytics_button")
         self.verticalLayout_2.addWidget(self.analytics_button)
-        self.returns_button = QtWidgets.QPushButton(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.returns_button.sizePolicy().hasHeightForWidth())
-        self.returns_button.setSizePolicy(sizePolicy)
-        self.returns_button.setMinimumSize(QtCore.QSize(400, 75))
-        font = QtGui.QFont()
-        font.setFamily("Bahnschrift")
-        font.setPointSize(20)
-        font.setBold(True)
-        font.setWeight(75)
-        self.returns_button.setFont(font)
-        self.returns_button.setStyleSheet("QPushButton{\n"
-"    background-color: #c6c6c8;\n"
-"    border-width: 2px;\n"
-"    border-style: outset;;\n"
-"    border-radius: 20px;\n"
-"    border-color: black;\n"
-"    padding: 4px;\n"
-"    color: black;\n"
-"}\n"
-"\n"
-"\n"
-"QPushButton:focus {\n"
-"    background-color: #575759; \n"
-"    color: white;\n"
-"}\n"
-"")
-        self.returns_button.setObjectName("returns_button")
-        self.verticalLayout_2.addWidget(self.returns_button)
+ 
         spacerItem5 = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         self.verticalLayout_2.addItem(spacerItem5)
         self.horizontalLayout_4.addLayout(self.verticalLayout_2)
@@ -388,7 +358,6 @@ class Ui_MainWindow(object):
         self.users_button.clicked.connect(self.open_users)
         self.reports_button.clicked.connect(self.open_reports)
         self.analytics_button.clicked.connect(self.open_analytics)
-        self.returns_button.clicked.connect(self.open_returns)
         self.logout_button.clicked.connect(self.logout)
 
     def retranslateUi(self, MainWindow):
@@ -404,7 +373,6 @@ class Ui_MainWindow(object):
         self.users_button.setText(_translate("MainWindow", "Users"))
         self.reports_button.setText(_translate("MainWindow", "Reports"))
         self.analytics_button.setText(_translate("MainWindow", "Analytics"))
-        self.returns_button.setText(_translate("MainWindow", "Returns"))
 
     # Navigation Functions
     def open_shop(self):
@@ -439,9 +407,6 @@ class Ui_MainWindow(object):
         self.stackedWidget.addWidget(self.analytics_tab)
         self.stackedWidget.setCurrentWidget(self.analytics_tab)
 
-    def open_returns(self):
-        pass  # Implement this function
-
     def update_cart_tab(self):
         if hasattr(self, 'cart_tab'):
             self.cart_tab.load_cart_items()
@@ -467,5 +432,3 @@ class Ui_MainWindow(object):
         self.selection_ui = Selection()
         self.selection_ui.setupUi(self.new_window)
         self.new_window.showFullScreen()
-   
-
