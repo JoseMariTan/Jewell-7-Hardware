@@ -376,7 +376,7 @@ class CartTab(QtWidgets.QWidget):
                 var = var_item.text() if var_item.text() else None
                 size = size_item.text() if size_item.text() else None
                 transaction_id = self.generate_transaction_id()
-                is_flagged = "0"
+                is_flagged = 0
 
                 query = """
                     SELECT product_id 
