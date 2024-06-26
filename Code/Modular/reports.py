@@ -5,73 +5,172 @@ from PyQt5.QtCore import Qt
 from datetime import datetime
 import random, string
 
-class ReceiptDialog(QtWidgets.QDialog):
-    def __init__(self, transaction_details):
-        super().__init__()
-        self.transaction_details = transaction_details
-        self.initUI()
-        
-    def initUI(self):
-        self.setWindowTitle('Receipt')
-        self.setGeometry(100, 100, 400, 600)
+class QuantityInputDialog(QtWidgets.QDialog):
+    def __init__(self, parent=None, max_quantity=1):
+        super().__init__(parent)
+        self.setWindowTitle('Enter Return Quantity')
+        self.setFixedSize(200, 100)
+
         layout = QtWidgets.QVBoxLayout()
 
-        # Add header
-        header_label = QtWidgets.QLabel("Receipt")
-        header_label.setAlignment(Qt.AlignCenter)
-        header_label.setStyleSheet("font-size: 18pt; font-weight: bold;")
-        layout.addWidget(header_label)
+        self.quantity_spinbox = QtWidgets.QSpinBox()
+        self.quantity_spinbox.setRange(1, max_quantity)
+        self.quantity_spinbox.setValue(max_quantity)
 
-        # Add store details
-        store_details_label = QtWidgets.QLabel("Store Name\nAddress Line 1\nAddress Line 2\nPhone Number")
-        store_details_label.setAlignment(Qt.AlignCenter)
-        store_details_label.setStyleSheet("font-size: 10pt;")
-        layout.addWidget(store_details_label)
+        button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        button_box.accepted.connect(self.accept)
+        button_box.rejected.connect(self.reject)
 
-        # Add a line separator
-        separator = QtWidgets.QFrame()
-        separator.setFrameShape(QtWidgets.QFrame.HLine)
-        separator.setFrameShadow(QtWidgets.QFrame.Sunken)
-        layout.addWidget(separator)
+        layout.addWidget(QtWidgets.QLabel('Return Quantity:'))
+        layout.addWidget(self.quantity_spinbox)
+        layout.addWidget(button_box)
 
-        # Add transaction details in a structured format
-        details_layout = QtWidgets.QFormLayout()
-
-        details_layout.addRow("Transaction ID:", QtWidgets.QLabel(self.transaction_details['Transaction ID']))
-        details_layout.addRow("Customer:", QtWidgets.QLabel(self.transaction_details['Customer']))
-        details_layout.addRow("Date and Time:", QtWidgets.QLabel(self.transaction_details['Date and Time']))
-        details_layout.addRow("Total Price:", QtWidgets.QLabel(self.transaction_details['Total Price']))
-
-        # Add another separator
-        layout.addWidget(separator)
-        
-        # Add product details in a table format
-        products_table = QtWidgets.QTableWidget()
-        products_table.setColumnCount(5)
-        products_table.setHorizontalHeaderLabels(['Product ID', 'Product Name', 'Brand', 'Size', 'Variation'])
-        products_table.setRowCount(1)
-        products_table.setItem(0, 0, QTableWidgetItem(self.transaction_details['Product ID']))
-        products_table.setItem(0, 1, QTableWidgetItem(self.transaction_details['Product Name']))
-        products_table.setItem(0, 2, QTableWidgetItem(self.transaction_details['Brand']))
-        products_table.setItem(0, 3, QTableWidgetItem(self.transaction_details['Size']))
-        products_table.setItem(0, 4, QTableWidgetItem(self.transaction_details['Variation']))
-        products_table.horizontalHeader().setStretchLastSection(True)
-        products_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
-        layout.addWidget(products_table)
-
-        # Add footer
-        footer_label = QtWidgets.QLabel("Thank you for shopping with us!")
-        footer_label.setAlignment(Qt.AlignCenter)
-        footer_label.setStyleSheet("font-size: 10pt; font-style: italic;")
-        layout.addWidget(footer_label)
-
-        # Add a close button
-        close_button = QtWidgets.QPushButton("Close")
-        close_button.clicked.connect(self.close)
-        layout.addWidget(close_button)
-        
         self.setLayout(layout)
-        self.returns_table.itemSelectionChanged.connect(self.on_selection_changed)
+
+    def get_quantity(self):
+        return self.quantity_spinbox.value()
+
+class ReturnSelectionDialog(QtWidgets.QDialog):
+    def __init__(self, parent=None, selected_rows=None, transactions_table=None):
+        super().__init__(parent)
+        self.selected_rows = selected_rows
+        self.transactions_table = transactions_table
+        self.initUI()
+
+    def initUI(self):
+        self.setWindowTitle('Select Items to Return')
+        self.setGeometry(200, 200, 800, 400)
+
+        layout = QtWidgets.QVBoxLayout()
+
+        # Create table widget to display selected items
+        self.selected_items_table = QtWidgets.QTableWidget()
+        self.selected_items_table.setColumnCount(15)  # Update column count to match transactions table
+        self.selected_items_table.setHorizontalHeaderLabels([
+            'Price', 'Quantity', 'Customer', 'Product', 'Brand', 'Variation', 
+            'Size', 'Category', 'Time', 'Date', 'Type', 'User ID', 'Cashier', 'Payment ID', 'Contact'
+        ])
+        
+        self.selected_items_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        
+        # Add selected items to the table
+        for row in self.selected_rows:
+            item_row = self.selected_items_table.rowCount()
+            self.selected_items_table.setRowCount(item_row + 1)
+
+            for col in range(1, 16):
+                item_text = self.transactions_table.item(row, col).text()
+                item = QTableWidgetItem(item_text)
+                self.selected_items_table.setItem(item_row, col - 1, item)
+
+        layout.addWidget(self.selected_items_table)
+
+        # Add buttons
+        button_layout = QtWidgets.QHBoxLayout()
+        return_button = QtWidgets.QPushButton('Return Selected')
+        return_button.clicked.connect(self.return_selected_items)
+        cancel_button = QtWidgets.QPushButton('Cancel')
+        cancel_button.clicked.connect(self.close)
+
+        button_layout.addWidget(return_button)
+        button_layout.addWidget(cancel_button)
+        layout.addLayout(button_layout)
+
+        self.setLayout(layout)
+
+    def open_quantity_dialog(self, max_quantity):
+        if max_quantity > 1:
+            dialog = QuantityInputDialog(self, max_quantity=max_quantity)
+            if dialog.exec_() == QtWidgets.QDialog.Accepted:
+                return dialog.get_quantity()
+        else:
+            return 1
+
+    def return_selected_items(self):
+        selected_rows = self.selected_items_table.selectionModel().selectedRows()
+        if not selected_rows:
+            QMessageBox.warning(self, 'No Selection', 'Please select an item to return.')
+            return
+
+        for row in selected_rows:
+            item_data = []
+            for col in range(15):
+                item_data.append(self.selected_items_table.item(row.row(), col).text())
+
+            return_quantity = self.open_quantity_dialog(int(item_data[1]))  # assuming quantity is in index 1
+            if return_quantity is not None:
+                item_data.append(return_quantity)
+                transaction_details = tuple(item_data[:-1])  # Exclude the return quantity from transaction details
+                print(transaction_details)
+                return_quantity = item_data[-1]  # Get the return quantity
+                transaction_id = "maya ko na ayusen shet"
+                return_id = self.generate_return_id()
+                if not self.insert_into_returns(return_id, transaction_details, return_quantity, transaction_id):
+                    QMessageBox.warning(self, 'Return Failed', 'Failed to return item.')
+                else:
+                    QMessageBox.information(self, 'Return Complete', 'Item returned successfully.')
+                    self.close()
+
+    def generate_return_id(self):
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+
+        try:
+            while True:
+                current_date = datetime.now().strftime("%Y%m%d")
+                random_letters = ''.join(random.choices(string.ascii_uppercase, k=3))
+                return_id = f"RETURN{current_date}{random_letters}"
+
+                cursor.execute("SELECT 1 FROM returns WHERE return_id = ?", (return_id,))
+                if not cursor.fetchone():
+                    return return_id
+        finally:
+            conn.close()
+
+    def insert_into_returns(self, return_id, transaction_details, return_quantity, transaction_id):
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+
+        try:
+            price, quantity, customer, product_name, brand, var, size, category, time, date, type, user_id, cashier, payment_id, contact = transaction_details
+            return_date = datetime.now().strftime("%Y-%m-%d")
+            cursor.execute("""INSERT INTO returns (return_id, product_name, brand, var, size, qty, date, return_date, transaction_id)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (return_id, product_name, brand, var, size, return_quantity, date, return_date, transaction_id))
+
+            log_id = self.generate_log_id()
+            current_datetime = datetime.today()
+            date_log = current_datetime.strftime('%Y-%m-%d')
+            time_log = current_datetime.strftime("%I:%M %p")
+            action = "returned item"
+
+            cursor.execute('''INSERT INTO user_logs (log_id, user_id, action, time, date) 
+                            VALUES (?, ?, ?, ?, ?)''',
+                        (log_id, user_id, action, time_log, date_log))
+            conn.commit()
+            return True
+        except sqlite3.Error as e:
+            print("Error inserting into returns table:", e)
+            conn.rollback()
+            return False
+        finally:
+            conn.close()
+
+    def generate_log_id(self):
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+
+        try:
+            while True:
+                current_date = datetime.now().strftime("%Y%m%d")
+                random_letters = ''.join(random.choices(string.ascii_uppercase, k=3))
+                log_id = f"LOG{current_date}{random_letters}"
+
+                cursor.execute("SELECT 1 FROM user_logs WHERE log_id = ?", (log_id,))
+                if not cursor.fetchone():
+                    return log_id
+        finally:
+            conn.close()
 
 #Class for Reports Tab
 class ReportsTab(QtWidgets.QWidget):
@@ -446,81 +545,18 @@ class ReportsTab(QtWidgets.QWidget):
         conn.close()
 
     def return_selected_item(self):
-        selected_items = self.transactions_table.selectedItems()
-        if not selected_items:
+        selected_rows = set()
+        for item in self.transactions_table.selectedItems():
+            row = item.row()
+            selected_rows.add(row)
+
+        if not selected_rows:
             QMessageBox.warning(self, 'No Selection', 'Please select a transaction to return.')
             return
 
-        # Assuming payment_id is in the 15th column (index 14)
-        row = selected_items[0].row()
-        payment_id_item = self.transactions_table.item(row, 14) 
-        if payment_id_item:
-            payment_id = payment_id_item.text()
-            # Get the transaction details from the database based on payment_id
-            transaction_details = self.get_transaction_details(payment_id)
-            print(transaction_details)
-
-            if not transaction_details:
-                QMessageBox.warning(self, 'Error', 'Failed to retrieve transaction details.')
-                return
-
-            # Generate a return_id
-            return_id = self.generate_return_id()
-
-            # Insert into returns table
-            if self.insert_into_returns(return_id, transaction_details):
-                QMessageBox.information(self, 'Success', 'Item returned successfully.')
-                self.load_returns()
-            else:
-                QMessageBox.warning(self, 'Error', 'Failed to return item.')
-        else:
-            print("No payment_id found in selected items.")  # Debug print
-            QMessageBox.warning(self, 'Error', 'No payment ID found in selected items.')
-
-
-    def get_transaction_details(self, payment_id):
-        conn = sqlite3.connect('j7h.db')
-        cursor = conn.cursor()
-
-        cursor.execute("""SELECT transaction_id, product_name, brand, var, size, qty, date 
-                        FROM transactions 
-                        WHERE payment_id = ?""", (payment_id,))
-        transaction_details = cursor.fetchone()
-
-        conn.close()
-        return transaction_details
-
-    def insert_into_returns(self, return_id, transaction_details):
-        conn = sqlite3.connect('j7h.db')
-        cursor = conn.cursor()
-
-        try:
-            # Extract transaction details
-            transaction_id, product_name, brand, var, size, qty, date = transaction_details
-            return_date = datetime.now().strftime("%Y-%m-%d")
-            # Insert into returns table
-            cursor.execute("""INSERT INTO returns (return_id, product_name, brand, var, size, qty, date, return_date, transaction_id)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""", (return_id, product_name, brand, var, size, qty, date, return_date, transaction_id))
-            
-            log_id = self.generate_log_id()
-            current_datetime = datetime.today()
-            user_id = self.user_id
-            date_log = current_datetime.strftime('%Y-%m-%d')
-            time_log = current_datetime.strftime("%I:%M %p")
-            action = "returned item"
-            
-            # Inserting data into the user_logs table using the retrieved user_id
-            cursor.execute('''INSERT INTO user_logs (log_id, user_id, action, time, date) 
-                        VALUES (?, ?, ?, ?, ?)''', (log_id, user_id, action, time_log, date_log))
-            conn.commit()
-            return True
-        except sqlite3.Error as e:
-            print("Error inserting into returns table:", e)
-            conn.rollback()
-            return False
-        finally:
-            conn.close()
-            
+        dialog = ReturnSelectionDialog(self, selected_rows, self.transactions_table)
+        dialog.exec_()
+        
     def generate_log_id(self):
         # Establishing connection with SQLite database
         conn = sqlite3.connect('j7h.db')
@@ -544,22 +580,6 @@ class ReportsTab(QtWidgets.QWidget):
         finally:
             # Ensure the database connection is closed
             conn.close()   
-            
-    def generate_return_id(self):
-        conn = sqlite3.connect('j7h.db')
-        cursor = conn.cursor()
-
-        try:
-            while True:
-                current_date = datetime.now().strftime("%Y%m%d")
-                random_letters = ''.join(random.choices(string.ascii_uppercase, k=3))
-                return_id = f"RETURN{current_date}{random_letters}"
-
-                cursor.execute("SELECT 1 FROM returns WHERE return_id = ?", (return_id,))
-                if not cursor.fetchone():
-                    return return_id
-        finally:
-            conn.close()
             
     def generate_receipt(self):
         pass
