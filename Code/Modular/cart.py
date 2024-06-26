@@ -408,7 +408,7 @@ class CartTab(QtWidgets.QWidget):
 
                 cursor.execute('''
                     INSERT INTO transactions ( transaction_id, customer, product_name, qty, total_price, date, time, type, product_id, log_id, brand, var, size, user_id, payment_id, contact, is_flagged)
-                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                 ''', (transaction_id, customer_name, product_name, qty, total_price, current_date, current_time, transaction_type, product_id, log_id, brand, var, size, user_id, payment_id, contact, is_flagged))
 
                 # Update the quantity in the products table
