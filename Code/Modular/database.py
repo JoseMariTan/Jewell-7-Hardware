@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import sqlite3
 import shutil
 import os
@@ -232,8 +234,20 @@ class DatabaseTab(QtWidgets.QWidget):
                     backup_path = os.path.join(backups_dir, backup_filename)
                     # Replace current database with selected backup
                     shutil.copyfile(backup_path, "j7h.db")
-                    self.ui_form.label_3.setText("j7h.db")  # Update displayed database name
-                    QtWidgets.QMessageBox.information(self, "Restore Successful", "Database restored successfully.")
+                    
+                    # Update displayed database name
+                    self.ui_form.label_3.setText("j7h.db")
+                    
+                    # Inform the user that the restore was successful and the app will restart
+                    message_box = QtWidgets.QMessageBox()
+                    message_box.setWindowTitle("Restore Successful")
+                    message_box.setText("Database restored successfully. The application will restart.")
+                    message_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
+                    message_box.exec_()
+                    
+                    # Set a delay before restarting the application
+                    QtCore.QTimer.singleShot(1000, self.restart_application)
+                    
                     dialog.accept()
                 else:
                     QtWidgets.QMessageBox.warning(self, "No Selection", "Please select a backup file to restore.")
@@ -245,6 +259,27 @@ class DatabaseTab(QtWidgets.QWidget):
             
         except Exception as e:
             QtWidgets.QMessageBox.critical(self, "Error", f"Error during restore: {str(e)}")
+
+    def restart_application(self):
+        from selection_screen import Selection
+        QtWidgets.QApplication.instance().activeWindow().close()
+        self.new_window = QtWidgets.QMainWindow()
+        self.selection_ui = Selection()
+        self.selection_ui.setupUi(self.new_window)
+        self.new_window.showFullScreen()
+        self.close()
+
+
+    def connect_to_database(self, db_path):
+        try:
+            self.conn = sqlite3.connect(db_path)
+            self.cursor = self.conn.cursor()
+            print(f"Connected to {db_path}")
+            # Perform any additional setup or UI updates here if needed
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(self, "Error", f"Failed to connect to database: {str(e)}")
+
+
             
     def schedule_backup(self):
         try:
