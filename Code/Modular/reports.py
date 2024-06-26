@@ -306,7 +306,6 @@ class ReportsTab(QtWidgets.QWidget):
                 grouped_rows[key] = []
             grouped_rows[key].append(row)
 
-
         # Calculate total number of rows after grouping
         total_rows = sum(len(group) for group in grouped_rows.values())
 
@@ -338,6 +337,11 @@ class ReportsTab(QtWidgets.QWidget):
                 for column_number, data in enumerate(row_data[1:], start=1):
                     item = QTableWidgetItem(str(data))
                     self.transactions_table.setItem(row_number, column_number, item)
+                    # Set the background color based on is_flagged value
+                    if row_data[-1] == 1:  # Assuming is_flagged is the last column
+                        item.setBackground(QtGui.QColor('orange'))
+                    else:
+                        item.setBackground(QtGui.QColor('white'))
 
                 row_number += 1
 
@@ -347,20 +351,12 @@ class ReportsTab(QtWidgets.QWidget):
                 item = QTableWidgetItem(str(formatted_total_price))
                 item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
                 self.transactions_table.setItem(row_number - span_length, 0, item)
+                # Set the background color for the total price cell
+                if group[0][-1] == 1:  # Check is_flagged of the first row in the group
+                    item.setBackground(QtGui.QColor('orange'))
+                else:
+                    item.setBackground(QtGui.QColor('white'))
 
-        # Apply colors based on the is_flagged value
-        for row_number in range(self.transactions_table.rowCount()):
-            item = self.transactions_table.item(row_number, 17)
-            if item:
-                is_flagged = int(item.text())  # Only access text if item exists
-                for column in range(self.transactions_table.columnCount()):
-                    item = self.transactions_table.item(row_number, column)
-                    if item:
-                        if is_flagged == 1:
-                            item.setBackground(QtGui.QColor('orange'))
-                        else:
-                            item.setBackground(QtGui.QColor(Qt.white))
-                
     def load_returns(self, search_query=None):
         conn = sqlite3.connect('j7h.db')
         cursor = conn.cursor()
@@ -390,7 +386,7 @@ class ReportsTab(QtWidgets.QWidget):
     def flag_transaction(self):
         conn = sqlite3.connect('j7h.db')
         cursor = conn.cursor()
-        
+
         for row in set(item.row() for item in self.transactions_table.selectedItems()):
             payment_id = self.transactions_table.item(row, 14).text()  # Assuming payment_id is in the 15th column (index 14)
 
