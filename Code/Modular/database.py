@@ -1,4 +1,8 @@
 import sqlite3
+import shutil
+import os
+import threading
+from datetime import datetime, timedelta
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 class Ui_Form(object):
@@ -154,6 +158,9 @@ class DatabaseTab(QtWidgets.QWidget):
         self.ui_form.label_5.setText("2024-06-25")  # Replace with actual last backup date/time
         self.ui_form.label_6.setText("Current Automatic Backup Time:")
         self.ui_form.label_7.setText("Not scheduled")  # Replace with actual automatic backup time
+        
+        # Initialize scheduler stop event
+        self.scheduler_stop_event = threading.Event()
 
         # Connect buttons from Ui_Form to corresponding methods
         self.ui_form.pushButton_2.clicked.connect(self.manual_backup)
@@ -162,22 +169,174 @@ class DatabaseTab(QtWidgets.QWidget):
 
     def manual_backup(self):
         # Implement manual backup functionality
-        pass
+        try:
+            # Ensure "backups" folder exists in the script directory
+            script_dir = os.path.dirname(os.path.realpath(__file__))
+            backups_dir = os.path.join(script_dir, "backups")
+            if not os.path.exists(backups_dir):
+                os.makedirs(backups_dir)
+
+            # Connect to the database
+            conn = sqlite3.connect("j7h.db")
+            cursor = conn.cursor()
+
+            # Generate backup file name with current date and time
+            current_datetime = QtCore.QDateTime.currentDateTime().toString("yyyyMMdd_hhmmss")
+            backup_filename = f"j7h_backup_{current_datetime}.db"
+            backup_path = os.path.join(backups_dir, backup_filename)
+
+            # Copy database file to backup location
+            shutil.copyfile("j7h.db", backup_path)
+
+            # Close database connection
+            conn.close()
+
+            # Update labels with new backup date and time
+            self.ui_form.label_5.setText(QtCore.QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
+
+            QtWidgets.QMessageBox.information(self, "Backup Successful", "Backup saved successfully.")
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(self, "Error", f"Error during backup: {str(e)}")
 
     def restore_backup(self):
-        # Implement restore backup functionality
-        pass
+        try:
+            # Ensure "backups" folder exists in the script directory
+            script_dir = os.path.dirname(os.path.realpath(__file__))
+            backups_dir = os.path.join(script_dir, "backups")
 
+            # List all backup files in the backups folder
+            backup_files = [f for f in os.listdir(backups_dir) if f.endswith(".db")]
+
+            if not backup_files:
+                QtWidgets.QMessageBox.information(self, "No Backups", "No backup files found.")
+                return
+
+            # Create a dialog to select a backup file
+            dialog = QtWidgets.QDialog()
+            dialog.setWindowTitle("Restore Backup")
+            layout = QtWidgets.QVBoxLayout()
+            
+            list_widget = QtWidgets.QListWidget()
+            list_widget.addItems(backup_files)
+            layout.addWidget(list_widget)
+            
+            button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+            layout.addWidget(button_box)
+            
+            dialog.setLayout(layout)
+            
+            def restore_selected_backup():
+                selected_item = list_widget.currentItem()
+                if selected_item:
+                    backup_filename = selected_item.text()
+                    backup_path = os.path.join(backups_dir, backup_filename)
+                    # Replace current database with selected backup
+                    shutil.copyfile(backup_path, "j7h.db")
+                    self.ui_form.label_3.setText("j7h.db")  # Update displayed database name
+                    QtWidgets.QMessageBox.information(self, "Restore Successful", "Database restored successfully.")
+                    dialog.accept()
+                else:
+                    QtWidgets.QMessageBox.warning(self, "No Selection", "Please select a backup file to restore.")
+            
+            button_box.accepted.connect(restore_selected_backup)
+            button_box.rejected.connect(dialog.reject)
+            
+            dialog.exec_()
+            
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(self, "Error", f"Error during restore: {str(e)}")
+            
     def schedule_backup(self):
-        # Implement schedule automatic backup functionality
-        pass
+        try:
+            # Create a time edit widget
+            time_edit = QtWidgets.QTimeEdit()
+            time_edit.setDisplayFormat("AP h:mm")
+            
+            # Create a dialog with the time edit widget and OK and Cancel buttons
+            dialog = QtWidgets.QDialog()
+            dialog.setWindowTitle("Schedule Backup")
+            dialog_layout = QtWidgets.QVBoxLayout()
+            dialog_layout.addWidget(QtWidgets.QLabel("Enter backup time:"))
+            dialog_layout.addWidget(time_edit)
+            button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+            dialog_layout.addWidget(button_box)
+            dialog.setLayout(dialog_layout)
+            button_box.accepted.connect(dialog.accept)
+            button_box.rejected.connect(dialog.reject)
+            
+            # Show the dialog and get the result
+            if dialog.exec_() == QtWidgets.QDialog.Accepted:
+                scheduled_time = time_edit.time().toPyTime()
+                self.ui_form.label_7.setText(time_edit.text())
+                self.update_schedule_label()
+                
+                # Create a timer to check the current time and trigger backup if it matches scheduled time
+                def backup_scheduler():
+                    while not self.scheduler_stop_event.wait(60):  # Check every minute
+                        current_time = datetime.now().time()
+                        if current_time.hour == scheduled_time.hour and current_time.minute == scheduled_time.minute:
+                            self.perform_auto_backup()
+                
+                # Start the scheduler in a separate thread
+                self.scheduler_stop_event.clear()
+                self.scheduler_thread = threading.Thread(target=backup_scheduler, daemon=True)
+                self.scheduler_thread.start()
+                
+                # Update UI with scheduled backup time
+                self.ui_form.label_7.setText(time_edit.text())
+                QtWidgets.QMessageBox.information(self, "Scheduled Backup", f"Backup scheduled for {time_edit.text()}.")
+            
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(self, "Error", f"Error scheduling backup: {str(e)}")
 
-# Main application entry point
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = DatabaseTab()
-    MainWindow.setCentralWidget(ui)
-    MainWindow.show()
-    sys.exit(app.exec_())
+
+    def update_schedule_label(self):
+        # Get the scheduled time from the label_7 text
+        scheduled_time_str = self.ui_form.label_7.text()
+        if not scheduled_time_str or scheduled_time_str.lower() == "not scheduled":
+            # If there is no scheduled time, set the label to "Not scheduled"
+            self.ui_form.label_7.setText("Not scheduled")
+        else:
+            # If there is a scheduled time, parse it and check if it's in the future
+            try:
+                scheduled_time = datetime.strptime(scheduled_time_str, "%I:%M %p").time()
+                current_time = datetime.now().time()
+                if current_time > scheduled_time:
+                    # If the scheduled time has passed, set the label to "Not scheduled"
+                    self.ui_form.label_7.setText("Not scheduled")
+                else:
+                    # If the scheduled time is in the future, keep the scheduled time in the label
+                    pass
+            except ValueError:
+                # If the scheduled time is invalid, set the label to "Not scheduled"
+                self.ui_form.label_7.setText("Not scheduled")
+                
+    def perform_auto_backup(self):
+        try:
+            # Ensure "backups" folder exists in the script directory
+            script_dir = os.path.dirname(os.path.realpath(__file__))
+            backups_dir = os.path.join(script_dir, "backups")
+            if not os.path.exists(backups_dir):
+                os.makedirs(backups_dir)
+
+            # Connect to the database
+            conn = sqlite3.connect("j7h.db")
+            cursor = conn.cursor()
+
+            # Generate backup file name with current date and time
+            current_datetime = QtCore.QDateTime.currentDateTime().toString("yyyyMMdd_hhmmss")
+            backup_filename = f"j7h_backup_{current_datetime}.db"
+            backup_path = os.path.join(backups_dir, backup_filename)
+
+            # Copy database file to backup location
+            shutil.copyfile("j7h.db", backup_path)
+
+            # Close database connection
+            conn.close()
+
+            # Update labels with new backup date and time
+            self.ui_form.label_5.setText(QtCore.QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
+
+            QtWidgets.QMessageBox.information(self, "Backup Successful", "Backup saved successfully.")
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(self, "Error", f"Error during backup: {str(e)}")
