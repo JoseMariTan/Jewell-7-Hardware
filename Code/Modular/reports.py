@@ -191,8 +191,8 @@ class ReportsTab(QtWidgets.QWidget):
 
         # Create the table widget for returns
         self.returns_table = QtWidgets.QTableWidget()
-        self.returns_table.setColumnCount(8)  # Set column count to match the number of columns in returns
-        self.returns_table.setHorizontalHeaderLabels(['Return ID', 'Product Name', 'Brand', 'Variation', 'Size', 'Quantity', 'Date', 'Transaction ID'])
+        self.returns_table.setColumnCount(9)  # Set column count to match the number of columns in returns
+        self.returns_table.setHorizontalHeaderLabels(['Return ID', 'Product Name', 'Brand', 'Variation', 'Size', 'Quantity', 'Date', 'Date of Return', 'Transaction ID'])
         self.returns_table.horizontalHeader().setStretchLastSection(True)
         self.returns_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         self.returns_table.verticalHeader().setVisible(False)
@@ -362,12 +362,12 @@ class ReportsTab(QtWidgets.QWidget):
         cursor = conn.cursor()
 
         if search_query:
-            query = """SELECT return_id, product_name, brand, var, size, qty, date, transaction_id 
+            query = """SELECT return_id, product_name, brand, var, size, qty, date, return_date, transaction_id 
                     FROM returns 
-                    WHERE return_id LIKE ? OR product_name LIKE ? OR brand LIKE ? OR date LIKE ?"""
+                    WHERE return_id LIKE? OR product_name LIKE? OR brand LIKE? OR date LIKE?"""
             cursor.execute(query, (f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%"))
         else:
-            cursor.execute("SELECT return_id, product_name, brand, var, size, qty, date, transaction_id FROM returns")
+            cursor.execute("SELECT return_id, product_name, brand, var, size, qty, date, return_date, transaction_id FROM returns")
 
         rows = cursor.fetchall()
         conn.close()
@@ -380,7 +380,6 @@ class ReportsTab(QtWidgets.QWidget):
             for column_number, data in enumerate(row_data):
                 item = QTableWidgetItem(str(data))
                 self.returns_table.setItem(row_number, column_number, item)
-
     #button functionalities
 
     def flag_transaction(self):
@@ -497,10 +496,10 @@ class ReportsTab(QtWidgets.QWidget):
         try:
             # Extract transaction details
             transaction_id, product_name, brand, var, size, qty, date = transaction_details
-            
+            return_date = datetime.now().strftime("%Y-%m-%d")
             # Insert into returns table
-            cursor.execute("""INSERT INTO returns (return_id, product_name, brand, var, size, qty, date, transaction_id)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)""", (return_id, product_name, brand, var, size, qty, date, transaction_id))
+            cursor.execute("""INSERT INTO returns (return_id, product_name, brand, var, size, qty, date, return_date, transaction_id)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""", (return_id, product_name, brand, var, size, qty, date, return_date, transaction_id))
             conn.commit()
             return True
         except sqlite3.Error as e:
