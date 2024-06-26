@@ -171,6 +171,8 @@ class DatabaseTab(QtWidgets.QWidget):
         
         # Initialize scheduler thread variable
         self.scheduler_thread = None
+        
+        self.update_schedule_label()
 
     def manual_backup(self):
         # Implement manual backup functionality
@@ -317,10 +319,45 @@ class DatabaseTab(QtWidgets.QWidget):
                 self.scheduler_thread = threading.Thread(target=self.backup_scheduler, args=(scheduled_time,), daemon=True)
                 self.scheduler_thread.start()
 
+                # Insert the scheduled time into the database
+                self.insert_schedule_into_db(scheduled_time)
+
                 QtWidgets.QMessageBox.information(self, "Scheduled Backup", f"Backup scheduled for {time_edit.text()}.")
 
         except Exception as e:
             QtWidgets.QMessageBox.critical(self, "Error", f"Error scheduling backup: {str(e)}")
+
+    def insert_schedule_into_db(self, scheduled_time):
+        try:
+            conn = sqlite3.connect("j7h.db")
+            cursor = conn.cursor()
+
+            # Insert scheduled time into backup_schedule table
+            cursor.execute("INSERT INTO backup_schedule (scheduled_time, created_at) VALUES (?, ?)", (scheduled_time.strftime("%H:%M %p"), datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+            conn.commit()
+
+            conn.close()
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(self, "Error", f"Failed to insert schedule into database: {str(e)}")
+
+    def update_schedule_label(self):
+        try:
+            conn = sqlite3.connect("j7h.db")
+            cursor = conn.cursor()
+
+            # Retrieve the latest scheduled time from backup_schedule table
+            cursor.execute("SELECT scheduled_time FROM backup_schedule ORDER BY created_at DESC LIMIT 1")
+            result = cursor.fetchone()
+
+            if result:
+                scheduled_time_str = result[0]
+                self.ui_form.label_7.setText(scheduled_time_str)
+            else:
+                self.ui_form.label_7.setText("Not scheduled")
+
+            conn.close()
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(self, "Error", f"Failed to retrieve schedule from database: {str(e)}")
 
     def backup_scheduler(self, scheduled_time):
         try:
@@ -331,53 +368,7 @@ class DatabaseTab(QtWidgets.QWidget):
                     self.scheduler_stop_event.set()  # Stop the scheduler after one backup
         except Exception as e:
             QtWidgets.QMessageBox.critical(self, "Error", f"Error in backup scheduler: {str(e)}")
-            
-    def perform_auto_backup(self):
-        try:
-            # Ensure "backups" folder exists in the script directory
-            script_dir = os.path.dirname(os.path.realpath(__file__))
-            backups_dir = os.path.join(script_dir, "backups")
-            if not os.path.exists(backups_dir):
-                os.makedirs(backups_dir)
 
-            # Generate backup file name with current date and time
-            current_datetime = QtCore.QDateTime.currentDateTime().toString("yyyyMMdd_hhmmss")
-            backup_filename = f"j7h_backup_{current_datetime}.db"
-            backup_path = os.path.join(backups_dir, backup_filename)
-
-            # Copy database file to backup location
-            shutil.copyfile("j7h.db", backup_path)
-
-            # Update labels with new backup date and time
-            self.ui_form.label_5.setText(QtCore.QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
-
-            QtWidgets.QMessageBox.information(self, "Backup Successful", "Backup saved successfully.")
-        except Exception as e:
-            QtWidgets.QMessageBox.critical(self, "Error", f"Error during backup: {str(e)}")
-
-
-
-    def update_schedule_label(self):
-        # Get the scheduled time from the label_7 text
-        scheduled_time_str = self.ui_form.label_7.text()
-        if not scheduled_time_str or scheduled_time_str.lower() == "not scheduled":
-            # If there is no scheduled time, set the label to "Not scheduled"
-            self.ui_form.label_7.setText("Not scheduled")
-        else:
-            # If there is a scheduled time, parse it and check if it's in the future
-            try:
-                scheduled_time = datetime.strptime(scheduled_time_str, "%I:%M %p").time()
-                current_time = datetime.now().time()
-                if current_time > scheduled_time:
-                    # If the scheduled time has passed, set the label to "Not scheduled"
-                    self.ui_form.label_7.setText("Not scheduled")
-                else:
-                    # If the scheduled time is in the future, keep the scheduled time in the label
-                    pass
-            except ValueError:
-                # If the scheduled time is invalid, set the label to "Not scheduled"
-                self.ui_form.label_7.setText("Not scheduled")
-                
     def perform_auto_backup(self):
         try:
             # Ensure "backups" folder exists in the script directory
@@ -397,6 +388,10 @@ class DatabaseTab(QtWidgets.QWidget):
 
             # Copy database file to backup location
             shutil.copyfile("j7h.db", backup_path)
+
+            # Insert backup information into backup_history table
+            cursor.execute("INSERT INTO backup_history (backup_file, created_at) VALUES (?, ?)", (backup_filename, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+            conn.commit()
 
             # Close database connection
             conn.close()
