@@ -492,8 +492,7 @@ class CartTab(QtWidgets.QWidget):
         if not self.ui.tableWidget.rowCount():
             QMessageBox.warning(self, "No items", "Your cart is empty.")
             return
-        
-        total_price_str = self.total_label.text().replace("Total Price: PHP", "")
+        total_price_str = self.ui.total_label.text().replace("Total Price: ₱", "")
         total_price = float(total_price_str)
         payment_form = PaymentForm(total_price=total_price, parent=self)
         
