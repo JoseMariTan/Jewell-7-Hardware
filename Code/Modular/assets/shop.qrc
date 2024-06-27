@@ -1,0 +1,30 @@
+<RCC>
+  <qresource prefix="Icon">
+    <file>logo.png</file>
+  </qresource>
+  <qresource prefix="search">
+    <file>search.png</file>
+  </qresource>
+  <qresource prefix="Info">
+    <file>info.png</file>
+    <file>info.png</file>
+  </qresource>
+  <qresource prefix="analytics">
+    <file>analytics.png</file>
+  </qresource>
+  <qresource prefix="reports">
+    <file>reports.png</file>
+  </qresource>
+  <qresource prefix="user">
+    <file>user.png</file>
+  </qresource>
+  <qresource prefix="Tools">
+    <file>products.png</file>
+  </qresource>
+  <qresource prefix="Cart">
+    <file>cart.png</file>
+  </qresource>
+  <qresource prefix="Shop">
+    <file>Shoppingcart.png</file>
+  </qresource>
+</RCC>
