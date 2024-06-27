@@ -1,0 +1,12 @@
+<RCC>
+  <qresource prefix="Icon"/>
+  <qresource prefix="Yohan">
+    <file>yohan-removebg-preview.png</file>
+  </qresource>
+  <qresource prefix="Tan">
+    <file>tan-removebg-preview.png</file>
+  </qresource>
+  <qresource prefix="Gab">
+    <file>gab-removebg-preview.png</file>
+  </qresource>
+</RCC>
