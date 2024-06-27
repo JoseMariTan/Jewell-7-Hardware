@@ -459,6 +459,7 @@ class DatabaseTab(QtWidgets.QWidget):
         
         self.update_schedule_label()
         self.backupCompleted.connect(self.updateBackupLabel)
+        self.scheduler_stop_event = threading.Event()
         
         # Create a vertical layout for widget 2 and Container 1
         widget2_container_layout = QtWidgets.QVBoxLayout()
