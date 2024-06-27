@@ -394,17 +394,25 @@ class ReportsTab(QtWidgets.QWidget):
                         (action LIKE ? COLLATE NOCASE OR action = ?) OR
                         (time LIKE ? COLLATE NOCASE OR time = ?) OR
                         (date LIKE ? COLLATE NOCASE OR date = ?)
-                    ORDER BY date DESC, time DESC
+                    ORDER BY date DESC,
+                    CASE
+                     WHEN strftime('%p', time) = 'AM' THEN
+                         strftime('%H:%M', time)
+                     ELSE
+                         strftime('%H:%M', time, '+12 hours')
+                    END DESC
                 """, (search_param, exact_search_param, search_param, exact_search_param,
                       search_param, exact_search_param, search_param, exact_search_param,
                       search_param, exact_search_param))
             else:
+                current_date = datetime.now().strftime("%Y-%m-%d")
+                print(current_date)
                 cur.execute("""
                     SELECT log_id, user_id, action, time, date
                     FROM user_logs
-                    ORDER BY date DESC, time DESC
-                    LIMIT 50
-                """)
+                    WHERE date = ?
+                    ORDER BY date
+                """, (current_date,))
 
             rows = cur.fetchall()
             conn.close()
