@@ -7,6 +7,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from datetime import datetime, timedelta
 import numpy as np
 from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error
 
 class AnalyticsTab(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -147,45 +148,106 @@ class AnalyticsTab(QtWidgets.QWidget):
                 #self.sales_prediction_yes.setChecked(False)
 
         self.update_chart(chart_type, time_period, transaction_type, data_type, sales_prediction)
+        self.update_chart_returns(chart_type, time_period, transaction_type, data_type, sales_prediction)
 
     def update_chart(self, chart_type, time_period, transaction_type, data_type, sales_prediction):
-        df = self.fetch_data(transaction_type, data_type, time_period)
+        transaction_df = self.fetch_data(transaction_type, data_type, time_period)
 
-        if df is not None and not df.empty:
+        # Check if transaction_df or returns_df are not empty before proceeding
+        if not transaction_df.empty:
             self.clear_chart_placeholder()  # Clear the placeholder before generating new chart
             if chart_type == "Pie Chart":
-                self.generate_pie_chart(df, f'Customer {transaction_type.capitalize()} Distribution from the {time_period} per {data_type.capitalize()}', data_type)
+                self.generate_pie_chart(transaction_df, f'Customer {transaction_type.capitalize()} Distribution from the {time_period} per {data_type.capitalize()}', data_type)
             elif chart_type == "Line Chart":
-                self.generate_line_chart(df, f'Customer {transaction_type.capitalize()} over {time_period}', data_type, sales_prediction)
+                self.generate_line_chart(transaction_df, f'Customer {transaction_type.capitalize()} over {time_period}', data_type, sales_prediction)
             elif chart_type == "Bar Chart":
-                self.generate_bar_chart(df, f'Customer {transaction_type.capitalize()} Distribution from the {time_period} per {data_type.capitalize()}')
+                self.generate_bar_chart(transaction_df, f'Customer {transaction_type.capitalize()} Distribution from the {time_period} per {data_type.capitalize()}')
+        else:
+            print("Transaction Data is empty.")
+    
+    def update_chart_returns(self, chart_type, time_period, transaction_type, data_type, sales_prediction):
+        returns_df = self.fetch_data_returns(transaction_type, data_type, time_period)
+
+        if not returns_df.empty:
+            self.clear_chart_placeholder()  # Clear the placeholder before generating new chart
+            if chart_type == "Pie Chart":
+                self.generate_pie_chart_returns(returns_df, f'Customer {transaction_type.capitalize()} Distribution from the {time_period} per {data_type.capitalize()}', data_type)
+            elif chart_type == "Line Chart":
+                self.generate_line_chart_returns(returns_df, f'Customer {transaction_type.capitalize()} over {time_period}', data_type, sales_prediction)
+            elif chart_type == "Bar Chart":
+                self.generate_bar_chart_returns(returns_df, f'Customer {transaction_type.capitalize()} Distribution from the {time_period} per {data_type.capitalize()}')
+        else:
+            print("Returns Data is empty.")
+
 
     def fetch_data(self, transaction_type, data_type, time_period):
         conn = sqlite3.connect("j7h.db")
-        query = f"""
-        SELECT {data_type}, date, time, type
+        query_transaction = f"""
+        SELECT {data_type}, date, time
         FROM transactions
-        WHERE type = ?
         """
-
-        df = pd.read_sql_query(query, conn, params=(transaction_type,))
+        transaction_df = pd.read_sql_query(query_transaction, conn)
         conn.close()
 
         # Combine 'date' and 'time' columns into a single datetime column
-        df['datetime'] = pd.to_datetime(df['date'] + ' ' + df['time'], format='%Y-%m-%d %I:%M %p')
+        transaction_df['datetime'] = pd.to_datetime(transaction_df['date'] + ' ' + transaction_df['time'], format='%Y-%m-%d %I:%M %p')
 
         # Filter data based on the selected time period
         now = datetime.now()
         start_date = now - timedelta(days=1) if time_period == 'Today' else \
-                     now - timedelta(weeks=1) if time_period == 'Last Week' else \
-                     now - timedelta(days=30) if time_period == 'Last Month' else \
-                     now - timedelta(days=365)
-        df = df[df['datetime'] >= start_date]
+                    now - timedelta(weeks=1) if time_period == 'Last Week' else \
+                    now - timedelta(days=30) if time_period == 'Last Month' else \
+                    now - timedelta(days=365)
+        transaction_df = transaction_df[transaction_df['datetime'] >= start_date]
 
-        return df
+        print("Transaction Data:")
+        print(transaction_df)
 
-    def generate_pie_chart(self, df, title, data_type):
-        counts = df[data_type].value_counts().head(8)
+        return transaction_df
+    
+    def fetch_data_returns(self, transaction_type, data_type, time_period):
+        conn = sqlite3.connect("j7h.db")
+        query_returns = f"""
+        SELECT {data_type}, date, time
+        FROM returns
+        """
+        returns_df = pd.read_sql_query(query_returns, conn)
+
+        conn.close()
+
+        # Combine 'date' and 'time' columns into a single datetime column
+        returns_df['datetime'] = pd.to_datetime(returns_df['date'] + ' ' + returns_df['time'], format='%Y-%m-%d %I:%M %p')
+
+        # Filter data based on the selected time period
+        now = datetime.now()
+        start_date = now - timedelta(days=1) if time_period == 'Today' else \
+                    now - timedelta(weeks=1) if time_period == 'Last Week' else \
+                    now - timedelta(days=30) if time_period == 'Last Month' else \
+                    now - timedelta(days=365)
+        returns_df = returns_df[returns_df['datetime'] >= start_date]
+
+        print("Returns Data:")
+        print(returns_df)
+
+        return returns_df
+    
+    def generate_pie_chart(self, transaction_df, title, data_type):
+        counts = transaction_df[data_type].value_counts().head(8)
+
+        fig, ax = plt.subplots(figsize=(8, 6))
+        wedges, texts, autotexts = ax.pie(counts, labels=counts.index, autopct=self.autopct_format(counts), startangle=90)
+        ax.set_title(title)
+        ax.axis('equal')
+
+        # Adding a legend
+        ax.legend(wedges, counts.index, title=data_type, loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
+
+        # Replace chart placeholder with the pie chart
+        canvas = FigureCanvas(fig)
+        self.chart_layout.addWidget(canvas)
+    
+    def generate_pie_chart_returns(self, returns_df, title, data_type):
+        counts = returns_df[data_type].value_counts().head(8)
 
         fig, ax = plt.subplots(figsize=(8, 6))
         wedges, texts, autotexts = ax.pie(counts, labels=counts.index, autopct=self.autopct_format(counts), startangle=90)
@@ -199,29 +261,25 @@ class AnalyticsTab(QtWidgets.QWidget):
         canvas = FigureCanvas(fig)
         self.chart_layout.addWidget(canvas)
 
-    def generate_line_chart(self, df, title, data_type, sales_prediction):
+
+    def generate_line_chart(self, transaction_df, title, data_type, sales_prediction):
         fig, ax = plt.subplots(figsize=(10, 5))
 
         if self.time_period_combo.currentText() == 'Today':
             times_24h = [(datetime.now().replace(hour=h, minute=0, second=0, microsecond=0),
                         datetime.now().replace(hour=h + 1, minute=0, second=0, microsecond=0))
                         for h in range(8, 18)]  # Business hours from 8 AM to 5 PM
-            counts = [len(df[(df['datetime'] >= start) & (df['datetime'] < end)]) for start, end in times_24h]
+            counts = [len(transaction_df[(transaction_df['datetime'] >= start) & (transaction_df['datetime'] < end)]) for start, end in times_24h]
             times_labels = [start.strftime('%I %p') for start, end in times_24h]
             ax.plot(times_labels, counts, marker='o', label='Actual Data')
 
-            if sales_prediction and 'returns' not in df['type'].unique():  # Check if sales prediction is enabled and transaction type is not 'returns'
-                # Perform prediction only when applicable
-                # You can implement your prediction logic here
-                pass
-
         elif self.time_period_combo.currentText() == 'Last Week':
             days = [(datetime.now() - timedelta(days=i)).date() for i in range(6, -1, -1)]
-            counts = [len(df[df['datetime'].dt.date == day]) for day in days]
+            counts = [len(transaction_df[transaction_df['datetime'].dt.date == day]) for day in days]
             days_labels = [day.strftime('%a') for day in days]
             ax.plot(days_labels, counts, marker='o', label='Actual Sales', color='blue')
 
-            if sales_prediction and 'returns' not in df['type'].unique():  # Check if sales prediction is enabled and transaction type is not 'returns'
+            if sales_prediction:
                 # Implementing Linear Regression for prediction
                 X = np.arange(len(days)).reshape(-1, 1)
                 y = np.array(counts)
@@ -238,27 +296,64 @@ class AnalyticsTab(QtWidgets.QWidget):
                 counts.append(next_day_pred)
                 ax.plot(days_labels, counts, marker='o', linestyle='--', color='blue', label='Estimated Sales')
 
+                # Calculate Mean Absolute Error (MAE)
+                mae = mean_absolute_error(y, model.predict(X))
+                print(f"Mean Absolute Error (MAE): {mae}")
+
         elif self.time_period_combo.currentText() == 'Last Month':
             weeks = [(datetime.now() - timedelta(days=i * 7), datetime.now() - timedelta(days=(i - 1) * 7)) for i in range(4, 0, -1)]
-            counts = [len(df[(df['datetime'] >= start) & (df['datetime'] < end)]) for start, end in weeks]
+            counts = [len(transaction_df[(transaction_df['datetime'] >= start) & (transaction_df['datetime'] < end)]) for start, end in weeks]
             weeks_labels = [start.strftime('%B %d') + ' - ' + (end - timedelta(days=1)).strftime('%d') for start, end in weeks]
             ax.plot(weeks_labels, counts, marker='o', label='Actual Sales')
 
-            if sales_prediction and 'returns' not in df['type'].unique():  # Check if sales prediction is enabled and transaction type is not 'returns'
-                # Perform prediction only when applicable
-                # You can implement your prediction logic here
-                pass
-
         elif self.time_period_combo.currentText() == 'This Year':
             months = [datetime(datetime.now().year, m, 1) for m in range(1, 13)]
-            counts = [len(df[df['datetime'].dt.month == month.month]) for month in months]
+            counts = [len(transaction_df[transaction_df['datetime'].dt.month == month.month]) for month in months]
             months_labels = [month.strftime('%b') for month in months]
             ax.plot(months_labels, counts, marker='o', label='Actual Sales')
 
-            if sales_prediction and 'returns' not in df['type'].unique():  # Check if sales prediction is enabled and transaction type is not 'returns'
-                # Perform prediction only when applicable
-                # You can implement your prediction logic here
-                pass
+        ax.set_title(title)
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Frequency')
+        ax.grid(True)
+        plt.xticks(rotation=45)
+
+        # Add legend
+        ax.legend()
+
+        # Adding the chart canvas to the layout
+        canvas = FigureCanvas(fig)
+        self.chart_layout.addWidget(canvas)
+
+    def generate_line_chart_returns(self, returns_df, title, data_type, sales_prediction):
+        fig, ax = plt.subplots(figsize=(10, 5))
+
+        if self.time_period_combo.currentText() == 'Today':
+            times_24h = [(datetime.now().replace(hour=h, minute=0, second=0, microsecond=0),
+                        datetime.now().replace(hour=h + 1, minute=0, second=0, microsecond=0))
+                        for h in range(8, 18)]  # Business hours from 8 AM to 5 PM
+            counts = [len(returns_df[(returns_df['datetime'] >= start) & (returns_df['datetime'] < end)]) for start, end in times_24h]
+            times_labels = [start.strftime('%I %p') for start, end in times_24h]
+            ax.plot(times_labels, counts, marker='o', label='Actual Data')
+
+             # Inside the generate_line_chart method
+        elif self.time_period_combo.currentText() == 'Last Week':
+            days = [(datetime.now() - timedelta(days=i)).date() for i in range(6, -1, -1)]
+            counts = [len(returns_df[returns_df['datetime'].dt.date == day]) for day in days]
+            days_labels = [day.strftime('%a') for day in days]
+            ax.plot(days_labels, counts, marker='o', label='Actual Sales', color='blue')
+
+        elif self.time_period_combo.currentText() == 'Last Month':
+            weeks = [(datetime.now() - timedelta(days=i * 7), datetime.now() - timedelta(days=(i - 1) * 7)) for i in range(4, 0, -1)]
+            counts = [len(returns_df[(returns_df['datetime'] >= start) & (returns_df['datetime'] < end)]) for start, end in weeks]
+            weeks_labels = [start.strftime('%B %d') + ' - ' + (end - timedelta(days=1)).strftime('%d') for start, end in weeks]
+            ax.plot(weeks_labels, counts, marker='o', label='Actual Sales')
+
+        elif self.time_period_combo.currentText() == 'This Year':
+            months = [datetime(datetime.now().year, m, 1) for m in range(1, 13)]
+            counts = [len(returns_df[returns_df['datetime'].dt.month == month.month]) for month in months]
+            months_labels = [month.strftime('%b') for month in months]
+            ax.plot(months_labels, counts, marker='o', label='Actual Sales')
 
         ax.set_title(title)
         ax.set_xlabel('Time')
@@ -272,8 +367,21 @@ class AnalyticsTab(QtWidgets.QWidget):
         canvas = FigureCanvas(fig)
         self.chart_layout.addWidget(canvas)
 
-    def generate_bar_chart(self, df, title, data_type):
-        counts = df[data_type].value_counts().head(8)
+    def generate_bar_chart(self, transaction_df, title, data_type):
+        counts = transaction_df[data_type].value_counts().head(8)
+
+        fig, ax = plt.subplots(figsize=(10, 5))
+        ax.bar(counts.index, counts, color='skyblue')
+        ax.set_title(title)
+        ax.set_xlabel(data_type.capitalize())
+        ax.set_ylabel('Frequency')
+        plt.xticks(rotation=45)
+
+        canvas = FigureCanvas(fig)
+        self.chart_layout.addWidget(canvas)
+
+    def generate_bar_chart_returns(self, returns_df, title, data_type):
+        counts = returns_df[data_type].value_counts().head(8)
 
         fig, ax = plt.subplots(figsize=(10, 5))
         ax.bar(counts.index, counts, color='skyblue')
