@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QMessageBox
 from datetime import datetime
 import sqlite3
 from main import Ui_MainWindow
+from staffdashboard import StaffDashoard
 from selection_screen import Selection
 from forgotPassword import ForgotPassword
 from assets import logo_rc
@@ -250,7 +251,7 @@ class Login(QtWidgets.QWidget):
         cursor = conn.cursor()
 
         try:
-            query = "SELECT user_id, password FROM users WHERE username = ?"
+            query = "SELECT user_id, password, loa FROM users WHERE username = ?"
             cursor.execute(query, (username,))
             result = cursor.fetchone()
         
@@ -258,7 +259,7 @@ class Login(QtWidgets.QWidget):
                 self.show_error_message("Invalid username or password.")
                 return
 
-            user_id, stored_password = result
+            user_id, stored_password, loa = result
             current_datetime = datetime.today()
             date_log = current_datetime.strftime('%Y-%m-%d')
             time_log = current_datetime.strftime("%I:%M %p")
@@ -269,7 +270,13 @@ class Login(QtWidgets.QWidget):
                 cursor.execute('''INSERT INTO user_logs (log_id, user_id, action, time, date) 
                             VALUES (?, ?, ?, ?, ?)''', (log_id, user_id, action, time_log, date_log))
                 conn.commit()
-                self.open_main_window(user_id)  # Pass user_id to the main window
+                            # Redirect based on user's access level (loa)
+                if loa == "admin":
+                    self.open_admin(user_id)
+                elif loa == "staff":
+                    self.open_staff(user_id)
+                else:
+                    self.show_error_message("Invalid level of access.")
 
             else:
                 action = "login attempt"
@@ -306,14 +313,22 @@ class Login(QtWidgets.QWidget):
             # Ensure the database connection is closed
             conn.close()     
             
-    def open_main_window(self, user_id):
+    def open_admin(self, user_id):
         QtWidgets.QApplication.instance().activeWindow().close()
         self.main_window = QtWidgets.QMainWindow()
         self.ui = Ui_MainWindow(user_id)
         self.ui.setupUi(self.main_window)
         self.main_window.showFullScreen()
         self.close()
-
+        
+    def open_staff(self, user_id):
+        QtWidgets.QApplication.instance().activeWindow().close()
+        self.main_window = QtWidgets.QMainWindow()
+        self.ui = StaffDashoard(user_id)
+        self.ui.setupUi(self.main_window)
+        self.main_window.showFullScreen()
+        self.close()
+        
     def forgot_password(self):
         self.forgotPasswordWindow = QtWidgets.QMainWindow()
         self.ui = ForgotPassword()
