@@ -460,8 +460,8 @@ class ReportsTab(QtWidgets.QWidget):
         grouped_rows = {}
         for row in rows:
             customer_name = row[3]
-            time = row[9] 
-            key = (customer_name, time)
+            payment_id = row[14] 
+            key = (customer_name, payment_id)
             if key not in grouped_rows:
                 grouped_rows[key] = []
             grouped_rows[key].append(row)
