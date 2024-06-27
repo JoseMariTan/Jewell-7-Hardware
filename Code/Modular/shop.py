@@ -1,7 +1,10 @@
 import sqlite3
 from datetime import datetime
-from PyQt5.QtWidgets import QDialog, QHBoxLayout, QVBoxLayout, QLabel, QSpinBox, QPushButton
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import (QDialog, QHBoxLayout, QLabel, QPushButton,
+                             QSpinBox, QVBoxLayout)
+
 
 class AddToCartDialog(QDialog):
     def __init__(self, parent=None, max_quantity=10):
@@ -212,7 +215,7 @@ class ShopTab(QtWidgets.QWidget):
 
                     # Update items in stock displayed in the shop
                     print(threshold)
-                    items_in_stock = qty - threshold
+                    items_in_stock = qty - quantity
                     self.tableWidget.setItem(row.row(), 5, QtWidgets.QTableWidgetItem(str(items_in_stock)))
 
                     total_price = quantity * float(price_text)
