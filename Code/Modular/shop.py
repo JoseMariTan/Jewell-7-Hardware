@@ -205,17 +205,23 @@ class ShopTab(QtWidgets.QWidget):
                 threshold_result = cursor.fetchone()
 
                 if threshold_result:
-                                threshold = threshold_result[0]
-                                new_qty += threshold
+                    threshold = threshold_result[0]
+                    new_qty += threshold
 
                 if new_qty >= 0:
                     # Update quantity in products table
                     cursor.execute("UPDATE products SET qty = ? WHERE product_name = ? AND brand = ? AND var = ? AND size = ?",
-                                   (new_qty, product_name, brand, var, size))
+                                (new_qty, product_name, brand, var, size))
 
-                    # Update items in stock displayed in the shop
                     items_in_stock = qty - quantity
-                    self.tableWidget.setItem(row.row(), 5, QtWidgets.QTableWidgetItem(str(items_in_stock)))
+                    if items_in_stock == 0:
+                        status = "Unavailable"
+                        cursor.execute("UPDATE products SET qty = ?, status = ? WHERE product_name = ?", (new_qty, status, product_name))
+                        conn.commit() 
+                        self.tableWidget.removeRow(row.row())
+                        self.item_added_to_cart.emit()
+                    else:
+                        self.tableWidget.item(row.row(), 5).setText(str(items_in_stock))  # Update items in stock displayed in the shop
 
                     total_price = quantity * float(price_text)
                     date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -237,45 +243,11 @@ class ShopTab(QtWidgets.QWidget):
 
                         conn.commit()
 
-                        if items_in_stock == 0:
-                            self.tableWidget.removeRow(row.row())
-
                         self.item_added_to_cart.emit()
                     else:
                         QtWidgets.QMessageBox.warning(self, "Error", f"Product ID not found for {product_name}, {brand}, {var}, {size}")
 
                     conn.close()
-                elif items_in_stock <= 0:
-                    status = "Unavailable"
-                    qty_item.setText(str(int(new_qty)))
-                    conn = sqlite3.connect('j7h.db')
-                    cursor = conn.cursor()
-                    cursor.execute("UPDATE products SET qty = ?, status = ? WHERE product_name = ?", (new_qty, status, product_name))
-
-                    total_price = quantity * price
-                    date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-                    cursor.execute("""SELECT product_id FROM products 
-                                    WHERE product_name = ? 
-                                    AND (brand = ? OR brand IS NULL) 
-                                    AND (var = ? OR var IS NULL) 
-                                    AND (size = ? OR size IS NULL)""",
-                                (product_name, brand, var, size))
-                    product_id_result = cursor.fetchone()
-
-                    if product_id_result:
-                        product_id = product_id_result[0]
-
-                        cursor.execute('''INSERT INTO cart (product_name, qty, total_price, date, product_id,  brand, var, size)
-                                        VALUES (?,?,?,?,?,?,?,?)''',
-                                    (product_name, quantity, total_price, date, product_id,  brand, var, size))
-
-                        conn.commit()
-
-                        if new_qty == 0:
-                            self.tableWidget.removeRow(row.row())
-
-                        self.item_added_to_cart.emit()
 
                 else:
                     QtWidgets.QMessageBox.warning(self, "Quantity Error", "Not enough items in stock.")
