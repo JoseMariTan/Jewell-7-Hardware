@@ -4,6 +4,7 @@ import string
 from datetime import datetime
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5 import QtCore, QtGui, QtWidgets
+from assets import shop_rc
 
 #Class for Products Tab
 class ProductsTab(QtWidgets.QWidget):
@@ -14,60 +15,173 @@ class ProductsTab(QtWidgets.QWidget):
         self.tableWidget.itemSelectionChanged.connect(self.on_selection_changed)
 
     def setup_ui(self):
-        self.verticalLayout = QtWidgets.QVBoxLayout(self)
-        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
-    
-        font = QtGui.QFont()
-        font.setPointSize(22)
-        font.setBold(True)
-    
-        self.search_input = QtWidgets.QLineEdit(self)
-        self.search_input.setFixedHeight(40) 
-        self.search_input.setPlaceholderText("Search products...")
-        self.horizontalLayout_2.addWidget(self.search_input)
-        
+        self.setObjectName("ProductsTab")
+        self.resize(1722, 741)
+        self.setStyleSheet("background-color:#fff;")
+        self.gridLayout = QtWidgets.QGridLayout(self)
+        self.gridLayout.setObjectName("gridLayout")
+        self.verticalLayout = QtWidgets.QVBoxLayout()
+        self.verticalLayout.setSpacing(15)
+        self.verticalLayout.setObjectName("verticalLayout")
 
-        self.search_button = QtWidgets.QPushButton("Search")
-        self.search_button.setFixedHeight(40)  # Match the shop tab's search button height
+        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_2.setSpacing(3)
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+
+        spacerItem = QtWidgets.QSpacerItem(10, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_2.addItem(spacerItem)
+
+        self.search_button = QtWidgets.QPushButton(self)
+        self.search_button.setMinimumSize(QtCore.QSize(50, 50))
+        self.search_button.setMaximumSize(QtCore.QSize(50, 50))
+        self.search_button.setStyleSheet("""
+            QPushButton {
+                background-color: #f6f4f4;
+                border-radius: 25px;
+                color: black;
+            }
+            QPushButton::pressed {
+                background-color: #fff;
+            }
+            QPushButton:hover {
+                background-color: #81cdc6;
+                transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+                color: #fff;
+            }
+            border: none;
+        """)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(":/search/search.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.search_button.setIcon(icon)
+        self.search_button.setIconSize(QtCore.QSize(20, 20))
         self.search_button.clicked.connect(self.search_products)
         self.horizontalLayout_2.addWidget(self.search_button)
+
+        self.search_input = QtWidgets.QLineEdit(self)
+        self.search_input.setMinimumSize(QtCore.QSize(300, 50))
+        self.search_input.setMaximumSize(QtCore.QSize(600, 75))
+        self.search_input.setStyleSheet("border-radius: 25px; padding: 0 10px; background-color: #f6f4f4;")
+        self.search_input.setPlaceholderText("Search products...")
+        self.horizontalLayout_2.addWidget(self.search_input)
+
+        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_2.addItem(spacerItem1)
+
         self.verticalLayout.addLayout(self.horizontalLayout_2)
-    
-        self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
-        self.scrollArea = QtWidgets.QScrollArea(self)
-        self.scrollArea.setWidgetResizable(True)
-        self.tableWidget = QtWidgets.QTableWidget()
-        
+
+        self.tableWidget = QtWidgets.QTableWidget(self)
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.tableWidget.setFont(font)
+        self.tableWidget.setStyleSheet("")
+        self.tableWidget.setColumnCount(11)
+        self.tableWidget.setRowCount(0)
+        self.tableWidget.setHorizontalHeaderLabels([
+            "Product ID", "Product", "Brand", "Variation", "Size",
+            "Price", "Stock", "Threshold", "Category", "Status", "Supplier"
+        ])
         self.tableWidget.horizontalHeader().setStretchLastSection(True)
         self.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         self.tableWidget.verticalHeader().setVisible(False)
+        self.tableWidget.horizontalHeader().setDefaultSectionSize(150)
+        self.tableWidget.horizontalHeader().setMinimumSectionSize(100)
+        self.tableWidget.horizontalHeader().setSortIndicatorShown(False)
+        self.tableWidget.horizontalHeader().setStretchLastSection(True)
+        self.verticalLayout.addWidget(self.tableWidget)
 
-        self.tableWidget.setStyleSheet(""" QHeaderView::section { background-color: #ff7d7d;} """)
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setContentsMargins(290, -1, 290, -1)
+        self.horizontalLayout.setSpacing(20)
+        self.horizontalLayout.setObjectName("horizontalLayout")
 
-        self.scrollArea.setWidget(self.tableWidget)
-        self.horizontalLayout_4.addWidget(self.scrollArea)
-        self.verticalLayout.addLayout(self.horizontalLayout_4)
-    
-        self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
-        self.addProduct_button = QtWidgets.QPushButton()
-        self.addProduct_button.setFont(font)
-        self.addProduct_button.setFixedHeight(40)  # Adjust height as needed
-        self.addProduct_button.clicked.connect(self.open_add_product_dialog)
-        self.horizontalLayout_5.addWidget(self.addProduct_button)
-    
-        self.modifyProduct_button = QtWidgets.QPushButton()
-        self.modifyProduct_button.setFont(font)
-        self.modifyProduct_button.setFixedHeight(40)  # Adjust height as needed
-        self.modifyProduct_button.clicked.connect(self.open_modify_product_dialog)
-        self.horizontalLayout_5.addWidget(self.modifyProduct_button)
-    
-        self.voidProduct_button = QtWidgets.QPushButton()
-        self.voidProduct_button.setFont(font)
-        self.voidProduct_button.setFixedHeight(40)  # Adjust height as needed
-        self.voidProduct_button.clicked.connect(self.product_status)
-        self.horizontalLayout_5.addWidget(self.voidProduct_button)
-    
-        self.verticalLayout.addLayout(self.horizontalLayout_5)
+        spacerItem2 = QtWidgets.QSpacerItem(110, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItem2)
+
+        font_button = QtGui.QFont()
+        font_button.setFamily("Segoe UI")
+        font_button.setPointSize(8)
+        font_button.setBold(True)
+        font_button.setWeight(75)
+
+        self.add_button = QtWidgets.QPushButton("Add", self)
+        self.add_button.setMinimumSize(QtCore.QSize(175, 50))
+        self.add_button.setMaximumSize(QtCore.QSize(350, 60))
+        self.add_button.setFont(font_button)
+        self.add_button.setStyleSheet("""
+            QPushButton {
+                background-color: #10cc94;
+                border-radius: 12px;
+                color: #fff;
+            }
+            QPushButton::pressed {
+                background-color: #fff;
+            }
+            QPushButton:hover {
+                background-color: #0a9c73;
+                transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            border: none;
+        """)
+        icon1 = QtGui.QIcon()
+        icon1.addPixmap(QtGui.QPixmap(":/new/Shop/Shoppingcart.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.add_button.setIcon(icon1)
+        self.add_button.setIconSize(QtCore.QSize(22, 22))
+        self.add_button.clicked.connect(self.open_add_product_dialog)
+        self.horizontalLayout.addWidget(self.add_button)
+
+        self.modify_button = QtWidgets.QPushButton("Modify", self)
+        self.modify_button.setMinimumSize(QtCore.QSize(175, 50))
+        self.modify_button.setMaximumSize(QtCore.QSize(350, 60))
+        self.modify_button.setFont(font_button)
+        self.modify_button.setStyleSheet("""
+            QPushButton {
+                background-color: #10cc94;
+                border-radius: 12px;
+                color: #fff;
+            }
+            QPushButton::pressed {
+                background-color: #fff;
+            }
+            QPushButton:hover {
+                background-color: #0a9c73;
+                transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            border: none;
+        """)
+        self.modify_button.setIcon(icon1)
+        self.modify_button.setIconSize(QtCore.QSize(22, 22))
+        self.modify_button.clicked.connect(self.open_modify_product_dialog)
+        self.horizontalLayout.addWidget(self.modify_button)
+
+        self.changeStatus_button = QtWidgets.QPushButton("Change Status", self)
+        self.changeStatus_button.setMinimumSize(QtCore.QSize(175, 50))
+        self.changeStatus_button.setMaximumSize(QtCore.QSize(350, 60))
+        self.changeStatus_button.setFont(font_button)
+        self.changeStatus_button.setStyleSheet("""
+            QPushButton {
+                background-color: #5698d2;
+                border-radius: 12px;
+                color: #fff;
+            }
+            QPushButton::pressed {
+                background-color: #fff;
+            }
+            QPushButton:hover {
+                background-color: #4379a5;
+                transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            border: none;
+        """)
+        self.changeStatus_button.setIcon(icon1)
+        self.changeStatus_button.setIconSize(QtCore.QSize(22, 22))
+        self.changeStatus_button.clicked.connect(self.product_status)
+        self.horizontalLayout.addWidget(self.changeStatus_button)
+
+        spacerItem3 = QtWidgets.QSpacerItem(110, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItem3)
+
+        self.verticalLayout.addLayout(self.horizontalLayout)
+        self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
 
     def product_status(self):
         selected_items = self.tableWidget.selectedItems()
