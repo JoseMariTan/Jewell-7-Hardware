@@ -377,28 +377,53 @@ class ReportsTab(QtWidgets.QWidget):
                 if item:
                     item.setSelected(True)
 
-
     def load_user_logs(self, search_query=None):
         conn = sqlite3.connect('j7h.db')
-        cursor = conn.cursor()
+        cur = conn.cursor()
 
-        if search_query:
-            query = "SELECT log_id, user_id, action, time, date FROM user_logs WHERE user_id LIKE ? OR action LIKE ? OR date LIKE ?"
-            cursor.execute(query, (f"%{search_query}%", f"%{search_query}%", f"%{search_query}%"))
-        else:
-            cursor.execute("SELECT log_id, user_id, action, time, date FROM user_logs")
+        try:
+            if search_query:
+                search_param = '%{}%'.format(search_query)
+                exact_search_param = '{}'.format(search_query)
+                cur.execute("""
+                    SELECT log_id, user_id, action, time, date 
+                    FROM user_logs 
+                    WHERE 
+                        (log_id LIKE ? COLLATE NOCASE OR log_id = ?) OR
+                        (user_id LIKE ? COLLATE NOCASE OR user_id = ?) OR
+                        (action LIKE ? COLLATE NOCASE OR action = ?) OR
+                        (time LIKE ? COLLATE NOCASE OR time = ?) OR
+                        (date LIKE ? COLLATE NOCASE OR date = ?)
+                    ORDER BY date DESC, time DESC
+                """, (search_param, exact_search_param, search_param, exact_search_param,
+                      search_param, exact_search_param, search_param, exact_search_param,
+                      search_param, exact_search_param))
+            else:
+                cur.execute("""
+                    SELECT log_id, user_id, action, time, date
+                    FROM user_logs
+                    ORDER BY date DESC, time DESC
+                    LIMIT 50
+                """)
 
-        rows = cursor.fetchall()
-        conn.close()
+            rows = cur.fetchall()
+            conn.close()
 
-        # Set the number of rows in the table
-        self.user_logs_table.setRowCount(len(rows))
+            # Set the number of rows in the table
+            self.user_logs_table.setRowCount(len(rows))
 
-        # Populate the table with user logs data
-        for row_number, row_data in enumerate(rows):
-            for column_number, data in enumerate(row_data):
-                item = QTableWidgetItem(str(data))
-                self.user_logs_table.setItem(row_number, column_number, item)
+            # Populate the table with user logs data
+            for row_number, row_data in enumerate(rows):
+                for column_number, data in enumerate(row_data):
+                    item = QTableWidgetItem(str(data))
+                    self.user_logs_table.setItem(row_number, column_number, item)
+
+        except sqlite3.Error as e:
+            print("SQLite error:", e)
+            QtWidgets.QMessageBox.critical(self, "Database Error", "Failed to load data. Please try again.")
+
+        finally:
+            conn.close()
 
 
     def load_transactions(self, search_query=None):

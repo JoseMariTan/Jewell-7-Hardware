@@ -12,7 +12,7 @@ class Ui_Form(object):
         Form.setObjectName("Form")
         Form.resize(1040, 880)
         self.frame = QtWidgets.QFrame(Form)
-        self.frame.setGeometry(QtCore.QRect(10, 10, 1001, 841))
+        self.frame.setGeometry(QtCore.QRect(10, 10, 1001, 600))
         self.frame.setStyleSheet("background-color: #fff;\n"
 "border: 3px solid black;\n"
 "border-color: black;")

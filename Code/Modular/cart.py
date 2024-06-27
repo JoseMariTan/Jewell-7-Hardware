@@ -303,7 +303,6 @@ class CartTab(QtWidgets.QWidget):
         
         # Reload cart items
         self.load_cart_items()
-
         self.update_total_label()
 
         # Return the quantities of all products removed
