@@ -1,5 +1,7 @@
 import sys
 import sqlite3
+import random
+import string
 from datetime import datetime
 from PyQt5 import QtCore, QtGui, QtWidgets
 from shop import ShopTab
@@ -757,13 +759,14 @@ class Ui_MainWindow(object):
 
         # Use the stored user_id
         user_id = self.user_id
+        log_id = self.generate_log_id()
         current_datetime = datetime.today()
         date_log = current_datetime.strftime('%Y-%m-%d')
         time_log = current_datetime.strftime("%I:%M %p")
         action = "logout"
 
-        cursor.execute('''INSERT INTO user_logs (user_id, action, time, date) 
-                            VALUES (?, ?, ?, ?)''', (user_id, action, time_log, date_log))
+        cursor.execute('''INSERT INTO user_logs (log_id, user_id, action, time, date) 
+                            VALUES (?, ?, ?, ?, ?)''', (log_id, user_id, action, time_log, date_log))
         conn.commit()
         QtWidgets.QApplication.instance().activeWindow().close()
         # Go back to selection_screen
@@ -772,3 +775,27 @@ class Ui_MainWindow(object):
         self.selection_ui = Selection()
         self.selection_ui.setupUi(self.new_window)
         self.new_window.showFullScreen()
+
+    def generate_log_id(self):
+        # Establishing connection with SQLite database
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+
+        try:
+            while True:
+                # Get the current date in the format YYYYMMDD
+                current_date = datetime.now().strftime("%Y%m%d")
+            
+                # Generate three random letters from A to Z
+                random_letters = ''.join(random.choices(string.ascii_uppercase, k=3))
+            
+                # Combine the parts to form the transaction ID
+                log_id = f"LOG{current_date}{random_letters}"
+            
+                # Check if the transaction ID already exists in the database
+                cursor.execute("SELECT 1 FROM user_logs WHERE log_id = ?", (log_id,))
+                if not cursor.fetchone():
+                    return log_id
+        finally:
+            # Ensure the database connection is closed
+            conn.close()   
