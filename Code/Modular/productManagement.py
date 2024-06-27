@@ -87,7 +87,7 @@ class ProductsTab(QtWidgets.QWidget):
         self.tableWidget.horizontalHeader().setMinimumSectionSize(100)
         self.tableWidget.horizontalHeader().setSortIndicatorShown(False)
         self.tableWidget.horizontalHeader().setStretchLastSection(True)
-        self.tableWidget.setStyleSheet("QHeaderView::section { background-color: #f6f4f4; }")
+        self.tableWidget.setStyleSheet("QHeaderView::section { background-color: #88ccc4; }")
         self.verticalLayout.addWidget(self.tableWidget)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setContentsMargins(290, -1, 290, -1)

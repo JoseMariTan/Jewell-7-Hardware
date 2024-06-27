@@ -159,7 +159,7 @@ class Ui_ShopTab(object):
         self.tableWidget.setObjectName("tableWidget")
         self.tableWidget.setColumnCount(7)
         self.tableWidget.setRowCount(0)
-        self.tableWidget.setStyleSheet("QHeaderView::section { background-color: #f6f4f4; }")
+        self.tableWidget.setStyleSheet("QHeaderView::section { background-color: #88ccc4; }")
         self.tableWidget.horizontalHeader().setStretchLastSection(True)
         self.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         self.tableWidget.verticalHeader().setVisible(False)
