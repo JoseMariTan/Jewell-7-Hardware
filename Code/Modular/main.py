@@ -217,7 +217,7 @@ class Ui_MainWindow(object):
 "")
         self.database_button.setText("")
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(":/Database/database.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap(":/Settings/settings.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.database_button.setIcon(icon1)
         self.database_button.setIconSize(QtCore.QSize(20, 20))
         self.database_button.setObjectName("help_button")
