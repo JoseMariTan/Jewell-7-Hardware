@@ -1,0 +1,5 @@
+dapat eto lang lalabas sa transaction logs sa reports:
+total amount, price, customer, time, date, type, cashier, payment_id, contact
+
+sa users, dun sa load_data, dapat i-join yung users table sa admin and staff table (?) tas saka isosort by date
+
