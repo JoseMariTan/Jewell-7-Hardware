@@ -4,11 +4,9 @@ import string
 import uuid
 from datetime import datetime
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMessageBox
 
-import sqlite3
-from PyQt5 import QtWidgets, QtGui
 
 class AdminLoginDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
@@ -248,10 +246,14 @@ class CartTab(QtWidgets.QWidget):
                 cursor.execute("SELECT qty FROM cart WHERE product_name = ?", (product_name,))
                 current_qty_in_cart = cursor.fetchone()[0]
                 # Update product quantity in the database
-                cursor.execute("SELECT qty FROM products WHERE product_name = ?", (product_name,))
-                current_qty_in_db = cursor.fetchone()[0]
+                cursor.execute("SELECT qty, threshold FROM products WHERE product_name = ?", (product_name,))
+                result = cursor.fetchone()
+                current_qty_in_db = result[0]
+                threshold = result[1]
                 new_qty_in_db = current_qty_in_db + current_qty_in_cart
                 cursor.execute("UPDATE products SET qty = ? WHERE product_name = ?", (new_qty_in_db, product_name))
+                if new_qty_in_db > threshold:
+                    cursor.execute("UPDATE products SET status = 'Available' WHERE product_name = ?", (product_name,))
                 # Delete item from the cart
                 cursor.execute("DELETE FROM cart WHERE product_name = ?", (product_name,))
         conn.commit()
@@ -286,7 +288,7 @@ class CartTab(QtWidgets.QWidget):
     def clear_cart(self):
         conn = sqlite3.connect('j7h.db')
         cursor = conn.cursor()
-        
+
         # Retrieve quantities of all products in the cart before clearing
         cursor.execute("SELECT product_name, qty FROM cart")
         quantities_removed = {row[0]: row[1] for row in cursor.fetchall()}
@@ -295,12 +297,18 @@ class CartTab(QtWidgets.QWidget):
         for product_name, qty in quantities_removed.items():
             cursor.execute("UPDATE products SET qty = qty + ? WHERE product_name = ?", (qty, product_name))
 
+            # Check if the product should be marked as "Available"
+            cursor.execute("SELECT threshold FROM products WHERE product_name = ?", (product_name,))
+            threshold = cursor.fetchone()[0]
+            if qty > threshold:
+                cursor.execute("UPDATE products SET status = 'Available' WHERE product_name = ?", (product_name,))
+
         # Clear the cart
         cursor.execute("DELETE FROM cart")
-        
+
         conn.commit()
         conn.close()
-        
+
         # Reload cart items
         self.load_cart_items()
         self.update_total_label()
