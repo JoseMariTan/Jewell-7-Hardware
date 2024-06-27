@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
-import sqlite3
-import shutil
+import logging
 import os
+import shutil
+import sqlite3
 import threading
-from datetime import datetime, timedelta
+import time
+from datetime import datetime
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_Form(object):
     def setupUi(self, Form):
@@ -141,6 +145,7 @@ class Ui_Form(object):
         self.pushButton.setText(_translate("Form", "Restore Database"))
         self.pushButton_2.setText(_translate("Form", "Manual Backup"))
 
+logging.basicConfig(level=logging.DEBUG)
 
 class DatabaseTab(QtWidgets.QWidget):
     backupCompleted = QtCore.pyqtSignal(str)
@@ -367,36 +372,38 @@ class DatabaseTab(QtWidgets.QWidget):
 
     def backup_scheduler(self, scheduled_time):
         try:
-            while not self.scheduler_stop_event.wait(60):  # Check every minute
+            while not self.scheduler_stop_event.is_set():
                 current_time = datetime.now().time()
                 if current_time.hour == scheduled_time.hour and current_time.minute == scheduled_time.minute:
-                    self.perform_auto_backup()
+                    QtCore.QMetaObject.invokeMethod(self, "perform_auto_backup", QtCore.Qt.QueuedConnection)
                     self.scheduler_stop_event.set()  # Stop the scheduler after one backup
+                time.sleep(60)  # Check every minute
         except Exception as e:
-            QtWidgets.QMessageBox.critical(self, "Error", f"Error in backup scheduler: {str(e)}")
+            logging.error(f"Error in backup scheduler: {str(e)}")
 
+    @QtCore.pyqtSlot()
     def perform_auto_backup(self):
         try:
-            # Ensure "backups" folder exists in the script directory
             script_dir = os.path.dirname(os.path.realpath(__file__))
             backups_dir = os.path.join(script_dir, "backups")
             if not os.path.exists(backups_dir):
                 os.makedirs(backups_dir)
 
-            # Generate backup file name with current date and time
             current_datetime = QtCore.QDateTime.currentDateTime().toString("yyyyMMdd_hhmmss")
             backup_filename = f"j7h_backup_{current_datetime}.db"
             backup_path = os.path.join(backups_dir, backup_filename)
 
-            # Copy database file to backup location
             shutil.copyfile("j7h.db", backup_path)
 
-            # Update labels with new backup date and time
-            self.ui_form.label_5.setText(QtCore.QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
+            backup_time_str = QtCore.QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss")
+            logging.info(f"Backup completed at {backup_time_str}")
 
-            # Emit signal for UI update
-            self.backupCompleted.emit(QtCore.QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
-
+            self.backupCompleted.emit(backup_time_str)
             QtWidgets.QMessageBox.information(self, "Backup Successful", "Backup saved successfully.")
         except Exception as e:
+            logging.error(f"Error during backup: {str(e)}")
             QtWidgets.QMessageBox.critical(self, "Error", f"Error during backup: {str(e)}")
+
+    @QtCore.pyqtSlot(str)
+    def updateBackupLabel(self, backup_time):
+        self.ui_form.label_5.setText(backup_time)
