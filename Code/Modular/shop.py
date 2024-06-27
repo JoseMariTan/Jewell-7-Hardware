@@ -214,7 +214,6 @@ class ShopTab(QtWidgets.QWidget):
                                    (new_qty, product_name, brand, var, size))
 
                     # Update items in stock displayed in the shop
-                    print(threshold)
                     items_in_stock = qty - quantity
                     self.tableWidget.setItem(row.row(), 5, QtWidgets.QTableWidgetItem(str(items_in_stock)))
 
@@ -238,7 +237,7 @@ class ShopTab(QtWidgets.QWidget):
 
                         conn.commit()
 
-                        if new_qty == 0:
+                        if items_in_stock == 0:
                             self.tableWidget.removeRow(row.row())
 
                         self.item_added_to_cart.emit()
@@ -246,7 +245,7 @@ class ShopTab(QtWidgets.QWidget):
                         QtWidgets.QMessageBox.warning(self, "Error", f"Product ID not found for {product_name}, {brand}, {var}, {size}")
 
                     conn.close()
-                elif new_qty <= 0:
+                elif items_in_stock <= 0:
                     status = "Unavailable"
                     qty_item.setText(str(int(new_qty)))
                     conn = sqlite3.connect('j7h.db')
