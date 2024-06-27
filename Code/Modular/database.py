@@ -7,10 +7,14 @@ import sqlite3
 import threading
 import time
 from datetime import datetime
-
+import datetime
+from PyQt5.QtPrintSupport import QPrinter
+from PyQt5.QtWidgets import QMessageBox, QFileDialog, QDialog, QVBoxLayout, QLabel, QDateEdit, QDialogButtonBox, QComboBox, QGroupBox
+from PyQt5.QtGui import QTextDocument
+from PyQt5.QtCore import QDate
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-
+        
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
@@ -584,9 +588,7 @@ class DatabaseTab(QtWidgets.QWidget):
             # Perform any additional setup or UI updates here if needed
         except Exception as e:
             QtWidgets.QMessageBox.critical(self, "Error", f"Failed to connect to database: {str(e)}")
-
-
-            
+ 
     def schedule_backup(self):
         try:
             # Create a time edit widget
@@ -697,9 +699,173 @@ class DatabaseTab(QtWidgets.QWidget):
     @QtCore.pyqtSlot(str)
     def updateBackupLabel(self, backup_time):
         self.ui_form.LastBackup_Data.setText(backup_time)
+       
         
-    def generate_report():
-        pass
+        
+    # Reports Functions
     
-    def customize_report():
-        pass
+    def generate_report(self, table_name, time_period, start_date=None, end_date=None):
+        try:
+            # Connect to the database
+            conn = sqlite3.connect("j7h.db")
+            cursor = conn.cursor()
+            
+            # Query data from your database
+            today = datetime.date.today()  
+            if time_period == "Today":
+                cursor.execute(f"SELECT transaction_id, date, time, customer, total_price FROM {table_name} WHERE date=?", (today,))
+            elif time_period == "This Week":
+                start_of_week = today - datetime.timedelta(days=today.weekday())
+                cursor.execute(f"SELECT * FROM {table_name} WHERE date BETWEEN ? AND ?", (start_of_week, today))
+            elif time_period == "This Month":
+                start_of_month = today.replace(day=1)
+                cursor.execute(f"SELECT * FROM {table_name} WHERE date BETWEEN ? AND ?", (start_of_month, today))
+            elif time_period == "Custom":
+                cursor.execute(f"SELECT * FROM {table_name} WHERE date BETWEEN ? AND ?", (start_date, end_date))
+            rows = cursor.fetchall()
+
+            # Close database connection
+            conn.close()
+
+            # Prepare report content as an HTML table
+            report_content = "<html><body style='text-align:center;'>"
+            report_content += "<h1><b>Jewell 7 Hardware</b></h1>"
+            report_content += f"<h3>{table_name.capitalize()} Report</h3>"
+            report_content += "<table border='1' cellspacing='0' cellpadding='5'>"
+            
+            if table_name == "transactions":
+                report_content += "<tr><th>Transaction ID</th><th>Date</th><th>Time</th><th>Customer</th><th>Total Price</th></tr>"
+                for row in rows:
+                    transaction_str = (
+                        f"<tr>"
+                        f"<td>{row[0]}</td>"
+                        f"<td>{row[1]}</td>"
+                        f"<td>{row[2]}</td>"
+                        f"<td>{row[3]}</td>"
+                        f"<td>${float(row[4]):.2f}</td>"  # Convert to float before formatting
+                        f"</tr>"
+                    )
+                    report_content += transaction_str
+            elif table_name == "sales":
+                report_content += "<tr><th>Sales ID</th><th>Date</th><th>Product</th><th>Quantity</th><th>Total Price</th></tr>"
+                for row in rows:
+                    sales_str = (
+                        f"<tr>"
+                        f"<td>{row[0]}</td>"
+                        f"<td>{row[1]}</td>"
+                        f"<td>{row[2]}</td>"
+                        f"<td>{row[3]}</td>"
+                        f"<td>${float(row[4]):.2f}</td>"  # Convert to float before formatting
+                        f"</tr>"
+                    )
+                    report_content += sales_str
+            elif table_name == "returns":
+                report_content += "<tr><th>Return ID</th><th>Date</th><th>Product</th><th>Quantity</th><th>Total Price</th></tr>"
+                for row in rows:
+                    returns_str = (
+                        f"<tr>"
+                        f"<td>{row[0]}</td>"
+                        f"<td>{row[1]}</td>"
+                        f"<td>{row[2]}</td>"
+                        f"<td>{row[3]}</td>"
+                        f"<td>${float(row[4]):.2f}</td>"  # Convert to float before formatting
+                        f"</tr>"
+                    )
+                    report_content += returns_str
+            
+            report_content += "</table></body></html>"
+
+            # Display report in a preview window
+            preview_dialog = QMessageBox()
+            preview_dialog.setWindowTitle("Generated Report")
+            preview_dialog.setText(report_content)
+            preview_dialog.exec_()
+
+            # Save report as PDF
+            file_dialog = QFileDialog(self)
+            file_dialog.setAcceptMode(QFileDialog.AcceptSave)
+            file_dialog.setNameFilter("PDF files (*.pdf)")
+            file_dialog.setDefaultSuffix("pdf")
+            if file_dialog.exec_() == QFileDialog.Accepted:
+                file_path = file_dialog.selectedFiles()[0]
+                if not file_path.lower().endswith('.pdf'):
+                    file_path += '.pdf'
+
+                # Create PDF document
+                printer = QPrinter(QPrinter.HighResolution)
+                printer.setOutputFormat(QPrinter.PdfFormat)
+                printer.setOutputFileName(file_path)
+
+                document = QTextDocument()
+                document.setHtml(report_content)
+                document.print_(printer)
+
+                QMessageBox.information(self, "Report Saved", f"Report saved as {file_path}")
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error generating report: {str(e)}")
+
+    def customize_report(self):
+        dialog = QDialog()
+        dialog.setWindowTitle("Customize Report")
+        layout = QVBoxLayout()
+        
+        # Create a combo box for selecting the time period
+        time_period_label = QLabel("Select Time Period:")
+        time_period_combo = QComboBox()
+        time_period_combo.addItem("Today")
+        time_period_combo.addItem("This Week")
+        time_period_combo.addItem("This Month")
+        time_period_combo.addItem("Custom")
+        
+        # Create a combo box for selecting the data type
+        data_type_label = QLabel("Select Data Type:")
+        data_type_combo = QComboBox()
+        data_type_combo.addItem("Transactions")
+        data_type_combo.addItem("Sales")
+        data_type_combo.addItem("Returns")
+        
+        # Create a date edit widget for custom date range
+        custom_date_label = QLabel("Select Custom Date Range:")
+        custom_date_start = QDateEdit()
+        custom_date_end = QDateEdit()
+        
+        # Create a button box with OK and Cancel buttons
+        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        
+        # Add widgets to the layout
+        layout.addWidget(time_period_label)
+        layout.addWidget(time_period_combo)
+        layout.addWidget(data_type_label)
+        layout.addWidget(data_type_combo)
+        
+        # Add custom date range widgets
+        custom_date_group = QGroupBox("Custom Date Range")
+        custom_date_group.setCheckable(True)
+        custom_date_group.setChecked(False)
+        custom_date_layout = QVBoxLayout()
+        custom_date_group.setLayout(custom_date_layout)
+        custom_date_layout.addWidget(custom_date_label)
+        custom_date_layout.addWidget(custom_date_start)
+        custom_date_layout.addWidget(custom_date_end)
+        layout.addWidget(custom_date_group)
+        
+        layout.addWidget(button_box)
+        
+        dialog.setLayout(layout)
+        
+        # Connect signals and slots
+        button_box.accepted.connect(lambda: self.generate_report(
+            data_type_combo.currentText().lower(),  # Convert to lowercase for table name
+            time_period_combo.currentText(),
+            custom_date_start.date().toPyDate() if custom_date_group.isChecked() else None,
+            custom_date_end.date().toPyDate() if custom_date_group.isChecked() else None
+        ))
+        button_box.rejected.connect(dialog.reject)
+        time_period_combo.currentIndexChanged.connect(lambda index: custom_date_group.setChecked(index == 3))
+        custom_date_group.toggled.connect(lambda checked: custom_date_label.setEnabled(checked))
+        custom_date_group.toggled.connect(lambda checked: custom_date_start.setEnabled(checked))
+        custom_date_group.toggled.connect(lambda checked: custom_date_end.setEnabled(checked))
+        
+        # Show the dialog
+        dialog.exec_()
