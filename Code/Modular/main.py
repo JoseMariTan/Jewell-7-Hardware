@@ -10,6 +10,7 @@ from productManagement import ProductsTab
 from reports import ReportsTab
 from users import UsersTab
 from analytics import AnalyticsTab
+from aboutUs import AboutUsTab
 from database import DatabaseTab
 
 class Ui_MainWindow(object):
@@ -694,6 +695,7 @@ class Ui_MainWindow(object):
         self.reports_button.clicked.connect(self.open_reports)
         self.analytics_button.clicked.connect(self.open_analytics)
         self.logout_button.clicked.connect(self.logout)
+        self.aboutUs_button.clicked.connect(self.open_about)
         self.database_button.clicked.connect(self.database_options)
 
     def retranslateUi(self, AdminDashboard):
@@ -747,6 +749,11 @@ class Ui_MainWindow(object):
     def update_cart_tab(self):
         if hasattr(self, 'cart_tab'):
             self.cart_tab.load_cart_items()
+
+    def open_about(self):
+        self.aboutUs_tab = AboutUsTab()
+        self.stackedWidget.addWidget(self.aboutUs_tab)
+        self.stackedWidget.setCurrentWidget (self.aboutUs_tab)
             
     def database_options(self):
         self.database_tab = DatabaseTab(self.user_id)

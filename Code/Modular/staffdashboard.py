@@ -3,6 +3,7 @@ import random
 import string
 from datetime import datetime
 from PyQt5 import QtCore, QtGui, QtWidgets
+from aboutUs import AboutUsTab
 from shop import ShopTab
 from cart import CartTab
 
@@ -418,6 +419,7 @@ class StaffDashoard(object):
         # Connect buttons to methods
         self.shop_button.clicked.connect(self.open_shop)
         self.cart_button.clicked.connect(self.open_cart)
+        self.aboutUs_button.clicked.connect(self.open_about)
         self.logout_button.clicked.connect(self.logout)
 
 
@@ -450,6 +452,11 @@ class StaffDashoard(object):
     def update_cart_tab(self):
         if hasattr(self, 'cart_tab'):
             self.cart_tab.load_cart_items()
+
+    def open_about(self):
+        self.aboutUs_tab = AboutUsTab()
+        self.stackedWidget.addWidget(self.aboutUs_tab)
+        self.stackedWidget.setCurrentWidget (self.aboutUs_tab)
 
     def logout(self):
         conn = sqlite3.connect('j7h.db')
