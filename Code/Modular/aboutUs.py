@@ -16,7 +16,10 @@ class AboutUsTab(QtWidgets.QWidget):
         font.setWeight(75)
         Form.setFont(font)
         Form.setStyleSheet("background-color:#fff;")
-        self.gridLayout_7 = QtWidgets.QGridLayout(Form)
+        self.gridLayout_8 = QtWidgets.QGridLayout(Form)
+        self.gridLayout_8.setObjectName("gridLayout_8")
+        self.gridLayout_7 = QtWidgets.QGridLayout()
+        self.gridLayout_7.setVerticalSpacing(0)
         self.gridLayout_7.setObjectName("gridLayout_7")
         self.widget_2 = QtWidgets.QWidget(Form)
         self.widget_2.setMinimumSize(QtCore.QSize(0, 100))
@@ -52,7 +55,7 @@ class AboutUsTab(QtWidgets.QWidget):
 "")
         self.widget.setObjectName("widget")
         self.gridLayout_6 = QtWidgets.QGridLayout(self.widget)
-        self.gridLayout_6.setContentsMargins(0, 9, 0, -1)
+        self.gridLayout_6.setContentsMargins(15, 50, 15, 15)
         self.gridLayout_6.setHorizontalSpacing(30)
         self.gridLayout_6.setVerticalSpacing(0)
         self.gridLayout_6.setObjectName("gridLayout_6")
@@ -125,36 +128,17 @@ class AboutUsTab(QtWidgets.QWidget):
         self.gridLayout_4 = QtWidgets.QGridLayout()
         self.gridLayout_4.setObjectName("gridLayout_4")
         self.verticalLayout = QtWidgets.QVBoxLayout()
-        self.verticalLayout.setContentsMargins(5, -1, 5, -1)
+        self.verticalLayout.setContentsMargins(10, 25, 5, -1)
         self.verticalLayout.setObjectName("verticalLayout")
         self.label_5 = QtWidgets.QLabel(self.widget_3)
         font = QtGui.QFont()
         font.setFamily("Segoe UI")
-        font.setPointSize(11)
+        font.setPointSize(14)
         self.label_5.setFont(font)
         self.label_5.setStyleSheet("border:none;")
+        self.label_5.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
         self.label_5.setObjectName("label_5")
         self.verticalLayout.addWidget(self.label_5)
-        self.label_6 = QtWidgets.QLabel(self.widget_3)
-        font = QtGui.QFont()
-        font.setFamily("Segoe UI")
-        font.setPointSize(11)
-        self.label_6.setFont(font)
-        self.label_6.setStyleSheet("border:none;\n"
-"background-color:#fff;")
-        self.label_6.setObjectName("label_6")
-        self.verticalLayout.addWidget(self.label_6)
-        self.label_7 = QtWidgets.QLabel(self.widget_3)
-        font = QtGui.QFont()
-        font.setFamily("Segoe UI")
-        font.setPointSize(11)
-        self.label_7.setFont(font)
-        self.label_7.setStyleSheet("border:none;\n"
-"background-color:#fff;")
-        self.label_7.setObjectName("label_7")
-        self.verticalLayout.addWidget(self.label_7)
-        spacerItem = QtWidgets.QSpacerItem(20, 90, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
-        self.verticalLayout.addItem(spacerItem)
         self.gridLayout_4.addLayout(self.verticalLayout, 0, 0, 1, 1)
         self.verticalLayout_3 = QtWidgets.QVBoxLayout()
         self.verticalLayout_3.setContentsMargins(0, -1, 0, -1)
@@ -224,20 +208,9 @@ class AboutUsTab(QtWidgets.QWidget):
         self.label_11.setStyleSheet("border:none;\n"
 "background-color:#fff;\n"
 "")
+        self.label_11.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
         self.label_11.setObjectName("label_11")
         self.verticalLayout_4.addWidget(self.label_11)
-        self.label_12 = QtWidgets.QLabel(self.widget_5)
-        font = QtGui.QFont()
-        font.setFamily("Segoe UI")
-        font.setPointSize(14)
-        self.label_12.setFont(font)
-        self.label_12.setStyleSheet("border:none;\n"
-"background-color:#fff;\n"
-"")
-        self.label_12.setObjectName("label_12")
-        self.verticalLayout_4.addWidget(self.label_12)
-        spacerItem1 = QtWidgets.QSpacerItem(20, 200, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
-        self.verticalLayout_4.addItem(spacerItem1)
         self.gridLayout_11.addLayout(self.verticalLayout_4, 0, 0, 1, 1)
         self.label_42 = QtWidgets.QLabel(self.widget_5)
         self.label_42.setStyleSheet("border:none;")
@@ -257,12 +230,13 @@ class AboutUsTab(QtWidgets.QWidget):
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.label_17 = QtWidgets.QLabel(self.widget_12)
-        self.label_17.setMinimumSize(QtCore.QSize(100, 100))
-        self.label_17.setMaximumSize(QtCore.QSize(100, 100))
+        self.label_17.setMinimumSize(QtCore.QSize(200, 150))
+        self.label_17.setMaximumSize(QtCore.QSize(200, 150))
         self.label_17.setStyleSheet("border:none;\n"
 "image: url(:/Gab/gab-removebg-preview.png);\n"
+"image: url(:/Gab/gab-removebg-preview.png);\n"
 "background-color:#fff;\n"
-"border-radius:50px;\n"
+"border-radius:65px;\n"
 "")
         self.label_17.setText("")
         self.label_17.setObjectName("label_17")
@@ -300,12 +274,12 @@ class AboutUsTab(QtWidgets.QWidget):
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.label_21 = QtWidgets.QLabel(self.widget_12)
-        self.label_21.setMinimumSize(QtCore.QSize(100, 100))
-        self.label_21.setMaximumSize(QtCore.QSize(100, 100))
+        self.label_21.setMinimumSize(QtCore.QSize(185, 150))
+        self.label_21.setMaximumSize(QtCore.QSize(185, 150))
         self.label_21.setStyleSheet("border:none;\n"
-"image: url(:/Yohan/yohan-removebg-preview.png);\n"
 "background-color:#fff;\n"
-"border-radius:50px;\n"
+"image: url(:/Yohan/yohan-removebg-preview.png);\n"
+"border-radius:65px;\n"
 "")
         self.label_21.setText("")
         self.label_21.setObjectName("label_21")
@@ -345,14 +319,15 @@ class AboutUsTab(QtWidgets.QWidget):
         self.horizontalLayout.setSpacing(10)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.label_20 = QtWidgets.QLabel(self.widget_12)
-        self.label_20.setMinimumSize(QtCore.QSize(100, 100))
-        self.label_20.setMaximumSize(QtCore.QSize(100, 100))
+        self.label_20.setMinimumSize(QtCore.QSize(200, 150))
+        self.label_20.setMaximumSize(QtCore.QSize(200, 150))
         self.label_20.setStyleSheet("border:none;\n"
 "image: url(:/Tan/tan-removebg-preview.png);\n"
 "background-color:#fff;\n"
-"border-radius:50px;\n"
+"border-radius:65px;\n"
 "")
         self.label_20.setText("")
+        self.label_20.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.label_20.setObjectName("label_20")
         self.horizontalLayout.addWidget(self.label_20)
         self.verticalLayout_5 = QtWidgets.QVBoxLayout()
@@ -384,6 +359,7 @@ class AboutUsTab(QtWidgets.QWidget):
         self.gridLayout_10.addLayout(self.verticalLayout_8, 0, 0, 1, 1)
         self.gridLayout_6.addWidget(self.widget_12, 1, 2, 1, 1)
         self.gridLayout_7.addWidget(self.widget, 1, 0, 1, 1)
+        self.gridLayout_8.addLayout(self.gridLayout_7, 0, 0, 1, 1)
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
@@ -395,20 +371,22 @@ class AboutUsTab(QtWidgets.QWidget):
         self.label.setText(_translate("Form", "Store Information"))
         self.label_3.setText(_translate("Form", "System Information"))
         self.label_4.setText(_translate("Form", "Team"))
-        self.label_5.setText(_translate("Form", " Located in Cainta, Rizal, Jewell 7 Hardware is "))
-        self.label_6.setText(_translate("Form", " your go-to destination for all your hardware "))
-        self.label_7.setText(_translate("Form", " needs."))
+        self.label_5.setText(_translate("Form", "Located in Cainta Rizal, Jewell 7\n"
+"Hardware is your go-to destination for\n"
+"all your hardware needs "))
         self.label_8.setText(_translate("Form", "        Contacts:"))
         self.label_10.setText(_translate("Form", "0985-2434838"))
         self.label_9.setText(_translate("Form", "0953-0330697\n"
 ""))
-        self.label_11.setText(_translate("Form", "Product Management System with\n"
-""))
-        self.label_12.setText(_translate("Form", "Point-of-Sale for Jewell 7 Hardware"))
+        self.label_11.setText(_translate("Form", "A product management system with\n"
+"point-of sale designed for Jewell 7 \n"
+"Hardware,  developed using the Python\n"
+"programming language and SQLite\n"
+"database."))
         self.label_13.setText(_translate("Form", "Buenaventura, John Gabriel N."))
         self.label_14.setText(_translate("Form", "Frontend Developer"))
-        self.label_15.setText(_translate("Form", "Santos, Johan D."))
-        self.label_18.setText(_translate("Form", "Full-stack Developer"))
+        self.label_15.setText(_translate("Form", "    Santos, Johan D."))
+        self.label_18.setText(_translate("Form", " Full-stack Developer"))
         self.label_16.setText(_translate("Form", "Tan, Jose Mari V."))
         self.label_19.setText(_translate("Form", "Full-stack Developer"))
 from assets import about_rc
