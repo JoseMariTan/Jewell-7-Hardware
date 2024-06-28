@@ -290,42 +290,51 @@ class ShopTab(QtWidgets.QWidget):
         conn = sqlite3.connect('j7h.db')
         cursor = conn.cursor()
 
-        if search_query:
-            query = """
-                SELECT * FROM products 
-                WHERE status = 'Available'
-                AND (product_name LIKE ? 
-                OR brand LIKE ? 
-                OR var LIKE ? 
-                OR size LIKE ?
-                OR category LIKE ?) 
-                ORDER BY date_added DESC, time_added DESC
-                """
-            cursor.execute(query, (f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%"))
-        else:
-            cursor.execute("SELECT * FROM products WHERE status = 'Available' ORDER BY date_added DESC, time_added DESC")
+        try:
+            if search_query:
+                search_param = '%{}%'.format(search_query)
+                exact_search_param = '{}'.format(search_query)
+                cursor.execute("""
+                    SELECT * FROM products
+                    WHERE 
+                        (product_name LIKE ? COLLATE NOCASE OR product_name = ?) OR
+                        (brand LIKE ? COLLATE NOCASE OR brand = ?) OR
+                        (var LIKE ? COLLATE NOCASE OR var = ?) OR
+                        (size LIKE ? COLLATE NOCASE OR size = ?) OR
+                        (category LIKE ? COLLATE NOCASE OR category = ?) AND
+                        status = 'Available'
+                    ORDER BY date_added DESC, time_added DESC
+                """, (search_param, exact_search_param, search_param, exact_search_param,
+                      search_param, exact_search_param, search_param, exact_search_param,
+                      search_param, exact_search_param))
+            else:
+                cursor.execute("SELECT * FROM products WHERE status = 'Available' ORDER BY date_added DESC, time_added DESC")
 
-        rows = cursor.fetchall()
+            rows = cursor.fetchall()
 
-        if not rows:
-            QtWidgets.QMessageBox.information(self, "No Data Found", "No data found.")
-            return
+            if not rows:
+                QtWidgets.QMessageBox.information(self, "No Data Found", "No data found.")
+                return
         
-        self.tableWidget.setRowCount(len(rows))
-        for row_number, row_data in enumerate(rows):
-            self.tableWidget.setItem(row_number, 0, QtWidgets.QTableWidgetItem(str(row_data[1])))  # product
-            self.tableWidget.setItem(row_number, 1, QtWidgets.QTableWidgetItem(str(row_data[2])))  # brand
-            self.tableWidget.setItem(row_number, 2, QtWidgets.QTableWidgetItem(str(row_data[3])))  # var
-            self.tableWidget.setItem(row_number, 3, QtWidgets.QTableWidgetItem(str(row_data[4])))  # size
-            self.tableWidget.setItem(row_number, 4, QtWidgets.QTableWidgetItem(str(row_data[5])))  # price
-            qty = row_data[6]  # qty
-            threshold = row_data[7]  # threshold
-            self.items_in_stock = qty - threshold  # subtract threshold
-            self.tableWidget.setItem(row_number, 5, QtWidgets.QTableWidgetItem(str(self.items_in_stock)))  # Items in Stock
-            self.tableWidget.setItem(row_number, 6, QtWidgets.QTableWidgetItem(str(row_data[8])))  # category
-        conn.close()
+            self.tableWidget.setRowCount(len(rows))
+            for row_number, row_data in enumerate(rows):
+                self.tableWidget.setItem(row_number, 0, QtWidgets.QTableWidgetItem(str(row_data[1])))  # product
+                self.tableWidget.setItem(row_number, 1, QtWidgets.QTableWidgetItem(str(row_data[2])))  # brand
+                self.tableWidget.setItem(row_number, 2, QtWidgets.QTableWidgetItem(str(row_data[3])))  # var
+                self.tableWidget.setItem(row_number, 3, QtWidgets.QTableWidgetItem(str(row_data[4])))  # size
+                self.tableWidget.setItem(row_number, 4, QtWidgets.QTableWidgetItem(str(row_data[5])))  # price
+                qty = row_data[6]  # qty
+                threshold = row_data[7]  # threshold
+                self.items_in_stock = qty - threshold  # subtract threshold
+                self.tableWidget.setItem(row_number, 5, QtWidgets.QTableWidgetItem(str(self.items_in_stock)))  # Items in Stock
+                self.tableWidget.setItem(row_number, 6, QtWidgets.QTableWidgetItem(str(row_data[8])))  # category
+        except sqlite3.Error as e:
+            print("SQLite error:", e)
+            QtWidgets.QMessageBox.critical(self, "Database Error", "Failed to load data. Please try again.")
 
-
+        finally:
+            conn.close()
+            
     def search_products(self):
         search_query = self.search_input.text()
         self.load_products(search_query)
@@ -494,4 +503,3 @@ class ShopTab(QtWidgets.QWidget):
                     QtWidgets.QMessageBox.warning(self, "Quantity Error", "Quantity must be greater than zero.")
         else:
             QtWidgets.QMessageBox.warning(self, "Selection Error", "Please select a product to add to the cart.")
-
