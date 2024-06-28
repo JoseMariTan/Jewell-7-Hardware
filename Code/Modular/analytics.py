@@ -66,20 +66,6 @@ class AnalyticsTab(QtWidgets.QWidget):
         self.data_type_layout.addWidget(self.data_type_category)
         self.controls_layout.addLayout(self.data_type_layout)
 
-        # Sales prediction layout (for Line Chart and Last Week)
-        self.sales_prediction_layout = QtWidgets.QHBoxLayout()
-        self.sales_prediction_label = QtWidgets.QLabel("Sales Prediction:", self)
-        self.sales_prediction_yes = QtWidgets.QRadioButton("Yes", self)
-        self.sales_prediction_no = QtWidgets.QRadioButton("No", self)
-        self.sales_prediction_group = QtWidgets.QButtonGroup(self)
-        self.sales_prediction_group.addButton(self.sales_prediction_yes)
-        self.sales_prediction_group.addButton(self.sales_prediction_no)
-        self.sales_prediction_no.setChecked(True)
-        self.sales_prediction_layout.addWidget(self.sales_prediction_label)
-        self.sales_prediction_layout.addWidget(self.sales_prediction_yes)
-        self.sales_prediction_layout.addWidget(self.sales_prediction_no)
-        self.controls_layout.addLayout(self.sales_prediction_layout)
-
         # generate button
         self.generate_button = QtWidgets.QPushButton("Generate", self)
         self.controls_layout.addWidget(self.generate_button, alignment=QtCore.Qt.AlignRight)
@@ -106,11 +92,11 @@ class AnalyticsTab(QtWidgets.QWidget):
 
         # Connect chart type combo box to visibility handler
         self.chart_type_combo.currentIndexChanged.connect(self.toggle_data_type_visibility)
-        self.time_period_combo.currentIndexChanged.connect(self.toggle_sales_prediction_visibility)
+
 
         # Initially hide data type options for Line Chart
         self.toggle_data_type_visibility()
-        self.toggle_sales_prediction_visibility()
+
 
     def toggle_data_type_visibility(self):
         chart_type = self.chart_type_combo.currentText()
@@ -123,34 +109,15 @@ class AnalyticsTab(QtWidgets.QWidget):
             self.data_type_product_name.show()
             self.data_type_category.show()
 
-    def toggle_sales_prediction_visibility(self):
-        time_period = self.time_period_combo.currentText()
-        chart_type = self.chart_type_combo.currentText()
-        if chart_type == "Line Chart" and time_period == "Last Week":
-            self.sales_prediction_label.show()
-            self.sales_prediction_yes.show()
-            self.sales_prediction_no.show()
-        else:
-            self.sales_prediction_label.hide()
-            self.sales_prediction_yes.hide()
-            self.sales_prediction_no.hide()
-
     def generate_analytics_data(self):
         chart_type = self.chart_type_combo.currentText()
         time_period = self.time_period_combo.currentText()
         transaction_type = "purchases" if self.transaction_type_sales.isChecked() else "returns"
         data_type = "product_name" if self.data_type_product_name.isChecked() else "category"
-        sales_prediction = self.sales_prediction_yes.isChecked()
 
-        #if self.sales_prediction_yes.isChecked() and self.transaction_type_returns.isChecked():
-            #if self.sales_prediction_yes.isChecked() and self.transaction_type_returns.isChecked():
-                #QMessageBox.critical(self, "Error", "Prediction cannot be applied to customer returns.")
-                #self.sales_prediction_yes.setChecked(False)
+        self.update_chart(chart_type, time_period, transaction_type, data_type)
 
-        self.update_chart(chart_type, time_period, transaction_type, data_type, sales_prediction)
-        self.update_chart_returns(chart_type, time_period, transaction_type, data_type, sales_prediction)
-
-    def update_chart(self, chart_type, time_period, transaction_type, data_type, sales_prediction):
+    def update_chart(self, chart_type, time_period, transaction_type, data_type):
         transaction_df = self.fetch_data(transaction_type, data_type, time_period)
 
         # Check if transaction_df or returns_df are not empty before proceeding
@@ -159,13 +126,13 @@ class AnalyticsTab(QtWidgets.QWidget):
             if chart_type == "Pie Chart":
                 self.generate_pie_chart(transaction_df, f'Customer {transaction_type.capitalize()} Distribution from the {time_period} per {data_type.capitalize()}', data_type)
             elif chart_type == "Line Chart":
-                self.generate_line_chart(transaction_df, f'Customer {transaction_type.capitalize()} over {time_period}', data_type, sales_prediction)
+                self.generate_line_chart(transaction_df, f'Customer {transaction_type.capitalize()} over {time_period}', data_type)
             elif chart_type == "Bar Chart":
                 self.generate_bar_chart(transaction_df, f'Customer {transaction_type.capitalize()} Distribution from the {time_period} per {data_type.capitalize()}')
         else:
             print("Transaction Data is empty.")
     
-    def update_chart_returns(self, chart_type, time_period, transaction_type, data_type, sales_prediction):
+    def update_chart_returns(self, chart_type, time_period, transaction_type, data_type):
         returns_df = self.fetch_data_returns(transaction_type, data_type, time_period)
 
         if not returns_df.empty:
@@ -173,7 +140,7 @@ class AnalyticsTab(QtWidgets.QWidget):
             if chart_type == "Pie Chart":
                 self.generate_pie_chart_returns(returns_df, f'Customer {transaction_type.capitalize()} Distribution from the {time_period} per {data_type.capitalize()}', data_type)
             elif chart_type == "Line Chart":
-                self.generate_line_chart_returns(returns_df, f'Customer {transaction_type.capitalize()} over {time_period}', data_type, sales_prediction)
+                self.generate_line_chart_returns(returns_df, f'Customer {transaction_type.capitalize()} over {time_period}', data_type)
             elif chart_type == "Bar Chart":
                 self.generate_bar_chart_returns(returns_df, f'Customer {transaction_type.capitalize()} Distribution from the {time_period} per {data_type.capitalize()}')
         else:
@@ -261,8 +228,7 @@ class AnalyticsTab(QtWidgets.QWidget):
         canvas = FigureCanvas(fig)
         self.chart_layout.addWidget(canvas)
 
-
-    def generate_line_chart(self, transaction_df, title, data_type, sales_prediction):
+    def generate_line_chart(self, transaction_df, title, data_type):
         fig, ax = plt.subplots(figsize=(10, 5))
 
         if self.time_period_combo.currentText() == 'Today':
@@ -277,28 +243,23 @@ class AnalyticsTab(QtWidgets.QWidget):
             days = [(datetime.now() - timedelta(days=i)).date() for i in range(6, -1, -1)]
             counts = [len(transaction_df[transaction_df['datetime'].dt.date == day]) for day in days]
             days_labels = [day.strftime('%a') for day in days]
-            ax.plot(days_labels, counts, marker='o', label='Actual Sales', color='blue')
+            ax.plot(days_labels, counts, marker='o')
 
-            if sales_prediction:
-                # Implementing Linear Regression for prediction
-                X = np.arange(len(days)).reshape(-1, 1)
-                y = np.array(counts)
+            # Implementing Linear Regression
+            X = np.arange(len(days)).reshape(-1, 1)
+            y = np.array(counts)
 
-                model = LinearRegression()
-                model.fit(X, y)
+            model = LinearRegression()
+            model.fit(X, y)
 
-                # Predict for an additional day
-                next_day_index = len(days)
-                next_day_pred = model.predict([[next_day_index]])[0]
+            # Predict for an additional day
+            next_day_index = len(days)
+            next_day_pred = model.predict([[next_day_index]])[0]
 
-                # Extend labels for prediction day
-                days_labels.append("Next Day")
-                counts.append(next_day_pred)
-                ax.plot(days_labels, counts, marker='o', linestyle='--', color='blue', label='Estimated Sales')
-
-                # Calculate Mean Absolute Error (MAE)
-                mae = mean_absolute_error(y, model.predict(X))
-                print(f"Mean Absolute Error (MAE): {mae}")
+            # Extend labels for prediction day
+            days_labels.append("Next Day")
+            counts.append(next_day_pred)
+            ax.plot(days_labels, counts, marker='o', linestyle='--', color='r')
 
         elif self.time_period_combo.currentText() == 'Last Month':
             weeks = [(datetime.now() - timedelta(days=i * 7), datetime.now() - timedelta(days=(i - 1) * 7)) for i in range(4, 0, -1)]
@@ -325,7 +286,9 @@ class AnalyticsTab(QtWidgets.QWidget):
         canvas = FigureCanvas(fig)
         self.chart_layout.addWidget(canvas)
 
-    def generate_line_chart_returns(self, returns_df, title, data_type, sales_prediction):
+
+
+    def generate_line_chart_returns(self, returns_df, title, data_type):
         fig, ax = plt.subplots(figsize=(10, 5))
 
         if self.time_period_combo.currentText() == 'Today':
