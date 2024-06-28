@@ -306,6 +306,11 @@ class ShopTab(QtWidgets.QWidget):
             cursor.execute("SELECT * FROM products WHERE status = 'Available' ORDER BY date_added DESC, time_added DESC")
 
         rows = cursor.fetchall()
+
+        if not rows:
+            QtWidgets.QMessageBox.information(self, "No Data Found", "No data found.")
+            return
+        
         self.tableWidget.setRowCount(len(rows))
         for row_number, row_data in enumerate(rows):
             self.tableWidget.setItem(row_number, 0, QtWidgets.QTableWidgetItem(str(row_data[1])))  # product

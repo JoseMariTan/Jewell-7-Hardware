@@ -338,10 +338,15 @@ class ReportsTab(QtWidgets.QWidget):
         search_query = self.search_input.text()
         self.load_transactions(search_query)
 
+    def search_returns(self):
+        search_query = self.search_input.text()
+        self.load_returns(search_query)
+
     def clear_search_query(self):
         self.search_input.clear()
         self.search_logs()
         self.search_transactions()
+        self.search_returns()
         
     def on_selection_row(self):
         selected_rows = set()

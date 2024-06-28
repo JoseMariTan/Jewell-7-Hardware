@@ -266,6 +266,11 @@ class ProductsTab(QtWidgets.QWidget):
                 """)
 
             products = cur.fetchall()
+
+            if not products:
+                QtWidgets.QMessageBox.information(self, "No Data Found", "No data found.")
+                return
+        
             self.tableWidget.setRowCount(len(products))
             self.tableWidget.setColumnCount(14)
             self.tableWidget.setHorizontalHeaderLabels(['RowID', 'Product ID', 'Product', 'Brand', 'Variation', 'Size', 'Price', 'Stock', 'Threshold', 'Category', 'Status', 'Date Added', 'Time Added', 'Supplier'])

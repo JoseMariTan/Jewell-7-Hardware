@@ -426,6 +426,7 @@ class CartTab(QtWidgets.QWidget):
         self.user_id = user_id  # Store the user_id
         self.ui = Ui_Cart_Tab()
         self.ui.setupUi(self)
+        self.search_input = self.ui.search_input
         self.load_cart_items()  # Load cart items when CartTab is initialized
 
         # Connect buttons to methods
@@ -458,6 +459,10 @@ class CartTab(QtWidgets.QWidget):
             cursor.execute(query, (f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%"))
         products = cursor.fetchall()
 
+        if not products:
+            QtWidgets.QMessageBox.information(self, "No Data Found", "No data found.")
+            return
+        
         self.ui.tableWidget.setRowCount(len(products))
         self.ui.tableWidget.setColumnCount(7)
         self.ui.tableWidget.setHorizontalHeaderLabels(["RowID", "Product", "Brand", "Variation", "Size", "Quantity", "Total Price"])

@@ -75,7 +75,10 @@ class UsersTab(QtWidgets.QWidget):
             cur.execute("SELECT rowid, first_name, last_name, username, password, loa FROM users")
 
         users = cur.fetchall()
-
+        if not users:
+            QtWidgets.QMessageBox.information(self, "No Data Found", "No data found.")
+            return
+    
         self.tableWidget.setRowCount(len(users))
         self.tableWidget.setColumnCount(6)
         self.tableWidget.setHorizontalHeaderLabels(["Row Id", "First Name", "Last Name", "Username", "Password", "Level of Access"])
