@@ -243,7 +243,7 @@ class AnalyticsTab(QtWidgets.QWidget):
             days = [(datetime.now() - timedelta(days=i)).date() for i in range(6, -1, -1)]
             counts = [len(transaction_df[transaction_df['datetime'].dt.date == day]) for day in days]
             days_labels = [day.strftime('%a') for day in days]
-            ax.plot(days_labels, counts, marker='o')
+            ax.plot(days_labels, counts, marker='o', color ='r', label='Actual Sales')
 
             # Implementing Linear Regression
             X = np.arange(len(days)).reshape(-1, 1)
@@ -259,7 +259,7 @@ class AnalyticsTab(QtWidgets.QWidget):
             # Extend labels for prediction day
             days_labels.append("Next Day")
             counts.append(next_day_pred)
-            ax.plot(days_labels, counts, marker='o', linestyle='--', color='r')
+            ax.plot(days_labels, counts, linestyle='--', color='r', label='Prediction')
 
         elif self.time_period_combo.currentText() == 'Last Month':
             weeks = [(datetime.now() - timedelta(days=i * 7), datetime.now() - timedelta(days=(i - 1) * 7)) for i in range(4, 0, -1)]
@@ -285,8 +285,6 @@ class AnalyticsTab(QtWidgets.QWidget):
         # Adding the chart canvas to the layout
         canvas = FigureCanvas(fig)
         self.chart_layout.addWidget(canvas)
-
-
 
     def generate_line_chart_returns(self, returns_df, title, data_type):
         fig, ax = plt.subplots(figsize=(10, 5))
