@@ -2,7 +2,8 @@ import sys
 import sqlite3
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QDialog, QMessageBox
-import uuid
+import string, random
+from datetime import datetime
 
 class PaymentForm(QDialog):
     def __init__(self, total_price, parent=None):
@@ -195,7 +196,7 @@ class PaymentForm(QDialog):
                 "amount_paid": float(self.amount_edit.text())
                 }
                 self.customer_details = customer_details
-                payment_id = str(uuid.uuid4())
+                payment_id = self.generate_payment_id()
                 self.payment_id = payment_id
                 self.done(QtWidgets.QDialog.Accepted)
                 self.show_receipt(customer_details, payment_id)
@@ -290,6 +291,29 @@ class PaymentForm(QDialog):
         message_box.setStandardButtons(QMessageBox.Ok)
         message_box.exec_()
 
+    def generate_payment_id(self):
+            # Establishing connection with SQLite database
+            conn = sqlite3.connect('j7h.db')
+            cursor = conn.cursor()
+        
+            try:
+                while True:
+                    # Get the current date in the format YYYYMMDD
+                    current_date = datetime.now().strftime("%Y%m%d")
+                
+                    # Generate three random letters from A to Z
+                    random_letters = ''.join(random.choices(string.ascii_uppercase, k=3))
+                
+                    # Combine the parts to form the transaction ID
+                    payment_id = f"PAY{current_date}{random_letters}"
+                
+                    # Check if the transaction ID already exists in the database
+                    cursor.execute("SELECT 1 FROM transactions WHERE payment_id = ?", (payment_id,))
+                    if not cursor.fetchone():
+                        return payment_id
+            finally:
+                # Ensure the database connection is closed
+                conn.close()
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
