@@ -740,24 +740,44 @@ class DatabaseTab(QtWidgets.QWidget):
             today = datetime.date.today()
             if time_period == "Today":
                 if table_name == "transactions":
-                    cursor.execute(f"SELECT transaction_id, date, time, customer, total_price FROM {table_name} WHERE date=?", (today,))
+                    cursor.execute(f"""
+                        SELECT t.transaction_id, t.date, t.time, t.customer, t.total_price, u.first_name 
+                        FROM {table_name} t
+                        JOIN users u ON t.user_id = u.user_id
+                        WHERE t.date = ?
+                    """, (today,))
                 elif table_name == "returns":
                     cursor.execute(f"SELECT return_id, return_date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date=?", (today,))
             elif time_period == "This Week":
                 start_of_week = today - datetime.timedelta(days=today.weekday())
                 if table_name == "transactions":
-                    cursor.execute(f"SELECT transaction_id, date, time, customer, total_price FROM {table_name} WHERE date BETWEEN ? AND ?", (start_of_week, today))
+                    cursor.execute(f"""
+                        SELECT t.transaction_id, t.date, t.time, t.customer, t.total_price, u.first_name 
+                        FROM {table_name} t
+                        JOIN users u ON t.user_id = u.user_id
+                        WHERE t.date BETWEEN ? AND ?
+                    """, (start_of_week, today))
                 elif table_name == "returns":
                     cursor.execute(f"SELECT return_id, return_date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date BETWEEN ? AND ?", (start_of_week, today))
             elif time_period == "This Month":
                 start_of_month = today.replace(day=1)
                 if table_name == "transactions":
-                    cursor.execute(f"SELECT transaction_id, date, time, customer, total_price FROM {table_name} WHERE date BETWEEN ? AND ?", (start_of_month, today))
+                    cursor.execute(f"""
+                        SELECT t.transaction_id, t.date, t.time, t.customer, t.total_price, u.first_name 
+                        FROM {table_name} t
+                        JOIN users u ON t.user_id = u.user_id
+                        WHERE t.date BETWEEN ? AND ?
+                    """, (start_of_month, today))
                 elif table_name == "returns":
                     cursor.execute(f"SELECT return_id, return_date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date BETWEEN ? AND ?", (start_of_month, today))
             elif time_period == "Custom":
                 if table_name == "transactions":
-                    cursor.execute(f"SELECT transaction_id, date, time, customer, total_price FROM {table_name} WHERE date BETWEEN ? AND ?", (start_date, end_date))
+                    cursor.execute(f"""
+                        SELECT t.transaction_id, t.date, t.time, t.customer, t.total_price, u.first_name 
+                        FROM {table_name} t
+                        JOIN users u ON t.user_id = u.user_id
+                        WHERE t.date BETWEEN ? AND ?
+                    """, (start_date, end_date))
                 elif table_name == "returns":
                     cursor.execute(f"SELECT return_id, return_date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date BETWEEN ? AND ?", (start_date, end_date))
             
@@ -777,7 +797,9 @@ class DatabaseTab(QtWidgets.QWidget):
             report_content += "<table border='1' cellspacing='0' cellpadding='5' style='margin: auto;'>"
 
             if table_name == "transactions":
-                report_content += "<tr><th>Transaction ID</th><th>Date</th><th>Time</th><th>Customer</th><th>Total Price</th></tr>"
+                report_content += "<tr><th>Transaction ID</th><th>Date</th><th>Time</th><th>Customer</th><th>Total Price</th><th>Cashier</th></tr>"
+                total_sales = 0
+                total_revenue = 0
                 for row in rows:
                     transaction_str = (
                         f"<tr>"
@@ -786,11 +808,16 @@ class DatabaseTab(QtWidgets.QWidget):
                         f"<td>{row[2]}</td>"
                         f"<td>{row[3]}</td>"
                         f"<td>₱{float(row[4]):.2f}</td>"  # Convert to float before formatting
+                        f"<td>{row[5]}</td>"
                         f"</tr>"
                     )
                     report_content += transaction_str
+                    total_sales += 1
+                    total_revenue += float(row[4])
             elif table_name == "sales":
                 report_content += "<tr><th>Sales ID</th><th>Date</th><th>Product</th><th>Quantity</th><th>Total Price</th></tr>"
+                total_sales = 0
+                total_revenue = 0
                 for row in rows:
                     sales_str = (
                         f"<tr>"
@@ -802,6 +829,8 @@ class DatabaseTab(QtWidgets.QWidget):
                         f"</tr>"
                     )
                     report_content += sales_str
+                    total_sales += 1
+                    total_revenue += float(row[4])
             elif table_name == "returns":
                 report_content += "<tr><th>Return ID</th><th>Return Date</th><th>Product Name</th><th>Brand</th><th>Variety</th><th>Size</th><th>Quantity</th></tr>"
                 for row in rows:
@@ -818,7 +847,16 @@ class DatabaseTab(QtWidgets.QWidget):
                     )
                     report_content += returns_str
 
-            report_content += "</table></body></html>"
+            report_content += "</table>"
+
+            # Add summary details
+            if table_name in ["transactions", "sales"]:
+                report_content += "<p>Summary:</p>"
+                report_content += f"<p>Total Sales: {total_sales}</p>"
+                report_content += f"<p>Total Revenue: ₱{total_revenue:.2f}</p>"
+
+            report_content += "</body></html>"
+
 
             # Display report in a preview window
             preview_dialog = QMessageBox()
