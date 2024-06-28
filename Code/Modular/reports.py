@@ -9,7 +9,7 @@ class QuantityInputDialog(QtWidgets.QDialog):
     def __init__(self, parent=None, max_quantity=1):
         super().__init__(parent)
         self.setWindowTitle('Enter Return Quantity')
-        self.setFixedSize(200, 100)
+        self.setFixedSize(250, 150)
 
         layout = QtWidgets.QVBoxLayout()
 
@@ -17,18 +17,24 @@ class QuantityInputDialog(QtWidgets.QDialog):
         self.quantity_spinbox.setRange(1, max_quantity)
         self.quantity_spinbox.setValue(max_quantity)
 
+        self.reason_combobox = QtWidgets.QComboBox()
+        self.reason_combobox.addItems(['Wrong Item', 'Defective', 'Damaged'])
+
         button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
         button_box.accepted.connect(self.accept)
         button_box.rejected.connect(self.reject)
 
         layout.addWidget(QtWidgets.QLabel('Return Quantity:'))
         layout.addWidget(self.quantity_spinbox)
+        layout.addWidget(QtWidgets.QLabel('Select Reason for Returning:'))
+        layout.addWidget(self.reason_combobox)
         layout.addWidget(button_box)
 
         self.setLayout(layout)
 
-    def get_quantity(self):
-        return self.quantity_spinbox.value()
+    def get_quantity_and_reason(self):
+        return self.quantity_spinbox.value(), self.reason_combobox.currentText()
+
 
 class ReturnSelectionDialog(QtWidgets.QDialog):
     def __init__(self, parent=None, selected_rows=None, transactions_table=None, reports_tab=None):
@@ -66,26 +72,19 @@ class ReturnSelectionDialog(QtWidgets.QDialog):
 
         layout.addWidget(self.selected_items_table)
 
-        # Add buttons
-        button_layout = QtWidgets.QHBoxLayout()
+        # Add Return Selected button
         return_button = QtWidgets.QPushButton('Return Selected')
         return_button.clicked.connect(self.return_selected_items)
-        cancel_button = QtWidgets.QPushButton('Cancel')
-        cancel_button.clicked.connect(self.close)
-
-        button_layout.addWidget(return_button)
-        button_layout.addWidget(cancel_button)
-        layout.addLayout(button_layout)
+        layout.addWidget(return_button)
 
         self.setLayout(layout)
 
     def open_quantity_dialog(self, max_quantity):
-        if max_quantity > 1:
-            dialog = QuantityInputDialog(self, max_quantity=max_quantity)
-            if dialog.exec_() == QtWidgets.QDialog.Accepted:
-                return dialog.get_quantity()
+        dialog = QuantityInputDialog(self, max_quantity=max_quantity)
+        if dialog.exec_() == QtWidgets.QDialog.Accepted:
+            return dialog.get_quantity_and_reason()
         else:
-            return 1
+            return None, None
 
     def return_selected_items(self):
         selected_rows = self.selected_items_table.selectionModel().selectedRows()
@@ -98,10 +97,14 @@ class ReturnSelectionDialog(QtWidgets.QDialog):
             for col in range(15):
                 item_data.append(self.selected_items_table.item(row.row(), col).text())
 
-            return_quantity = self.open_quantity_dialog(int(item_data[1]))  # assuming quantity is in index 1
+            result = self.open_quantity_dialog(int(item_data[1]))
+            if result:
+                return_quantity, return_reason = result
+
             if return_quantity is not None:
-                item_data.append(return_quantity)
-                transaction_details = tuple(item_data[:-1])  # Exclude the return quantity from transaction details
+                item_data.append(return_quantity)  # Add the return quantity to the item data
+                item_data.append(return_reason)  # Add the return reason to the item data
+                transaction_details = tuple(item_data[:-2])  # Exclude the return quantity and reason from transaction details
                 
                 product_name = item_data[3]
                 brand = item_data[4]
@@ -113,14 +116,12 @@ class ReturnSelectionDialog(QtWidgets.QDialog):
                 if transaction_id is None:
                     QMessageBox.warning(self, 'Transaction Not Found', 'Failed to find transaction.')
                     return
-                return_quantity = item_data[-1]  # Get the return quantity
-                
                 return_id = self.generate_return_id()
-                if not self.insert_into_returns(return_id, transaction_details, return_quantity, transaction_id):
+                if not self.insert_into_returns(return_id, transaction_details, return_quantity, return_reason, transaction_id):
                     QMessageBox.warning(self, 'Return Failed', 'Failed to return item.')
                 else:
                     QMessageBox.information(self, 'Return Complete', 'Item returned successfully.')
-                    self.reports_tab.load_returns() 
+                    self.reports_tab.load_returns()
                     self.close()
 
     def generate_return_id(self):
@@ -139,16 +140,18 @@ class ReturnSelectionDialog(QtWidgets.QDialog):
         finally:
             conn.close()
 
-    def insert_into_returns(self, return_id, transaction_details, return_quantity, transaction_id):
+    def insert_into_returns(self, return_id, transaction_details, return_quantity, return_reason, transaction_id):
         conn = sqlite3.connect('j7h.db')
         cursor = conn.cursor()
 
         try:
             price, quantity, customer, product_name, brand, var, size, category, time, date, type, user_id, cashier, payment_id, contact = transaction_details
             return_date = datetime.now().strftime("%Y-%m-%d")
-            cursor.execute("""INSERT INTO returns (return_id, product_name, brand, var, size, qty, date, return_date, transaction_id)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                        (return_id, product_name, brand, var, size, return_quantity, date, return_date, transaction_id))
+            print(transaction_details)
+            print(return_quantity, return_reason)
+            cursor.execute("""INSERT INTO returns (return_id, product_name, brand, var, size, qty, date, return_date, reason, transaction_id)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (return_id, product_name, brand, var, size, return_quantity, date, return_date, return_reason, transaction_id))
 
             log_id = self.generate_log_id()
             current_datetime = datetime.today()
@@ -167,7 +170,7 @@ class ReturnSelectionDialog(QtWidgets.QDialog):
             return False
         finally:
             conn.close()
-
+            
     def generate_log_id(self):
         conn = sqlite3.connect('j7h.db')
         cursor = conn.cursor()
@@ -183,7 +186,7 @@ class ReturnSelectionDialog(QtWidgets.QDialog):
                     return log_id
         finally:
             conn.close()
-            
+
     def get_transaction_id(self, product_name, brand, var, size, payment_id):
         conn = sqlite3.connect('j7h.db')
         cursor = conn.cursor()
