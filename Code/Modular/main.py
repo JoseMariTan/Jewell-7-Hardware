@@ -10,6 +10,7 @@ from productManagement import ProductsTab
 from reports import ReportsTab
 from users import UsersTab
 from analytics import AnalyticsTab
+from help import HelpTab
 from aboutUs import AboutUsTab
 from database import DatabaseTab
 
@@ -697,6 +698,7 @@ class Ui_MainWindow(object):
         self.logout_button.clicked.connect(self.logout)
         self.aboutUs_button.clicked.connect(self.open_about)
         self.database_button.clicked.connect(self.database_options)
+        self.help_button.clicked.connect(self.open_help)
 
     def retranslateUi(self, AdminDashboard):
         _translate = QtCore.QCoreApplication.translate
@@ -754,6 +756,11 @@ class Ui_MainWindow(object):
         self.aboutUs_tab = AboutUsTab()
         self.stackedWidget.addWidget(self.aboutUs_tab)
         self.stackedWidget.setCurrentWidget (self.aboutUs_tab)
+
+    def open_help(self):
+        self.help_tab = HelpTab()
+        self.stackedWidget.addWidget(self.help_tab)
+        self.stackedWidget.setCurrentWidget (self.help_tab)
             
     def database_options(self):
         self.database_tab = DatabaseTab(self.user_id)

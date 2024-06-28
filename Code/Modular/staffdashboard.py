@@ -4,6 +4,7 @@ import string
 from datetime import datetime
 from PyQt5 import QtCore, QtGui, QtWidgets
 from aboutUs import AboutUsTab
+from help import HelpTab
 from shop import ShopTab
 from cart import CartTab
 
@@ -421,6 +422,7 @@ class StaffDashoard(object):
         self.cart_button.clicked.connect(self.open_cart)
         self.aboutUs_button.clicked.connect(self.open_about)
         self.logout_button.clicked.connect(self.logout)
+        self.help_button.clicked.connect(self.open_help)
 
 
     def retranslateUi(self, StaffDashboard):
@@ -457,6 +459,11 @@ class StaffDashoard(object):
         self.aboutUs_tab = AboutUsTab()
         self.stackedWidget.addWidget(self.aboutUs_tab)
         self.stackedWidget.setCurrentWidget (self.aboutUs_tab)
+
+    def open_help(self):
+        self.help_tab = HelpTab()
+        self.stackedWidget.addWidget(self.help_tab)
+        self.stackedWidget.setCurrentWidget (self.help_tab)
 
     def logout(self):
         conn = sqlite3.connect('j7h.db')
