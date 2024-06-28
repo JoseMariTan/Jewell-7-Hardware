@@ -249,28 +249,48 @@ class UsersTab(QtWidgets.QWidget):
         conn = sqlite3.connect('j7h.db')
         cur = conn.cursor()
 
-        if search_query:
-            cur.execute("SELECT rowid, first_name, last_name, username, password, loa, status FROM users WHERE "
-                        "first_name LIKE ? OR last_name LIKE ? OR username LIKE ? OR password LIKE ? OR loa LIKE ? OR status LIKE ?",
-                        ('%{}%'.format(search_query), '%{}%'.format(search_query), '%{}%'.format(search_query), '%{}%'.format(search_query), '%{}%'.format(search_query), '%{}%'.format(search_query)))
-        else:
-            cur.execute("SELECT rowid, first_name, last_name, username, password, loa, status FROM users")
+        try:
+            if search_query:
+                search_param = f'%{search_query}%'
+                exact_search_param = f'{search_query}'
+                cur.execute("""
+                    SELECT rowid, first_name, last_name, username, password, loa, status 
+                    FROM users
+                    WHERE 
+                        (first_name LIKE ? COLLATE NOCASE OR first_name = ?) OR
+                        (last_name LIKE ? COLLATE NOCASE OR last_name = ?) OR
+                        (username LIKE ? COLLATE NOCASE OR username = ?) OR
+                        (password LIKE ? COLLATE NOCASE OR password = ?) OR
+                        (loa LIKE ? COLLATE NOCASE OR loa = ?) OR
+                        (status LIKE ? COLLATE NOCASE OR status = ?)""",
+                    (search_param, exact_search_param, search_param, exact_search_param,
+                    search_param, exact_search_param, search_param, exact_search_param,
+                    search_param, exact_search_param, search_param, exact_search_param))
+            else:
+                cur.execute("""
+                    SELECT rowid, first_name, last_name, username, password, loa, status 
+                    FROM users """)
 
-        users = cur.fetchall()
-        if not users:
-            QtWidgets.QMessageBox.information(self, "No Data Found", "No data found.")
-            return
-    
-        self.tableWidget.setRowCount(len(users))
-        self.tableWidget.setColumnCount(7)
-        self.tableWidget.setHorizontalHeaderLabels(["Row Id", "First Name", "Last Name", "Username", "Password", "Level of Access", "Status"])
-        self.tableWidget.setColumnHidden(0, True)
+            users = cur.fetchall()
+            if not users:
+                QtWidgets.QMessageBox.information(self, "No Data Found", "No data found.")
+                return
 
-        for i, user in enumerate(users):
-            for j, value in enumerate(user):
-                self.tableWidget.setItem(i, j, QtWidgets.QTableWidgetItem(str(value)))
+            self.tableWidget.setRowCount(len(users))
+            self.tableWidget.setColumnCount(7)
+            self.tableWidget.setHorizontalHeaderLabels(["Row Id", "First Name", "Last Name", "Username", "Password", "Level of Access", "Status"])
+            self.tableWidget.setColumnHidden(0, True)
 
-        conn.close()
+            for i, user in enumerate(users):
+                for j, value in enumerate(user):
+                    self.tableWidget.setItem(i, j, QtWidgets.QTableWidgetItem(str(value)))
+
+        except sqlite3.Error as e:
+            print("SQLite error:", e)
+            QtWidgets.QMessageBox.critical(self, "Database Error", "Failed to load data. Please try again.")
+
+        finally:
+            conn.close()
 
     def search_users(self):
         search_query = self.search_input.text()
