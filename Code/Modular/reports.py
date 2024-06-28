@@ -321,8 +321,8 @@ class ReportsTab(QtWidgets.QWidget):
 
         # Create the table widget for returns
         self.returns_table = QtWidgets.QTableWidget()
-        self.returns_table.setColumnCount(9)  # Set column count to match the number of columns in returns
-        self.returns_table.setHorizontalHeaderLabels(['Return ID', 'Product Name', 'Brand', 'Variation', 'Size', 'Quantity', 'Date', 'Date of Return', 'Transaction ID'])
+        self.returns_table.setColumnCount(10)  # Set column count to match the number of columns in returns
+        self.returns_table.setHorizontalHeaderLabels(['Return ID', 'Product Name', 'Brand', 'Variation', 'Size', 'Quantity', 'Date', 'Date of Return', 'Transaction ID', 'Reason'])
         self.returns_table.horizontalHeader().setStretchLastSection(True)
         self.returns_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         self.returns_table.verticalHeader().setVisible(False)
@@ -530,12 +530,12 @@ class ReportsTab(QtWidgets.QWidget):
         cursor = conn.cursor()
 
         if search_query:
-            query = """SELECT return_id, product_name, brand, var, size, qty, date, return_date, transaction_id 
+            query = """SELECT return_id, product_name, brand, var, size, qty, date, return_date, transaction_i, reason 
                     FROM returns 
                     WHERE return_id LIKE? OR product_name LIKE? OR brand LIKE? OR date LIKE?"""
             cursor.execute(query, (f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%"))
         else:
-            cursor.execute("SELECT return_id, product_name, brand, var, size, qty, date, return_date, transaction_id FROM returns")
+            cursor.execute("SELECT return_id, product_name, brand, var, size, qty, date, return_date, transaction_id, reason FROM returns")
 
         rows = cursor.fetchall()
         conn.close()

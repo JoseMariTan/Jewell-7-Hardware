@@ -458,11 +458,6 @@ class CartTab(QtWidgets.QWidget):
                 """
             cursor.execute(query, (f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%"))
         products = cursor.fetchall()
-
-        if not products:
-            QtWidgets.QMessageBox.information(self, "No Data Found", "No data found.")
-            return
-        
         self.ui.tableWidget.setRowCount(len(products))
         self.ui.tableWidget.setColumnCount(7)
         self.ui.tableWidget.setHorizontalHeaderLabels(["RowID", "Product", "Brand", "Variation", "Size", "Quantity", "Total Price"])
