@@ -724,7 +724,9 @@ class DatabaseTab(QtWidgets.QWidget):
 
             if table_name == "sales":
                 table_name = "transactions"
-
+            elif table_name == "returns":
+                table_name = "returns"  # Ensure the correct table name is used for returns
+            
             # Connect to the database
             conn = sqlite3.connect("j7h.db")
             cursor = conn.cursor()
@@ -737,15 +739,28 @@ class DatabaseTab(QtWidgets.QWidget):
             # Query data from your database
             today = datetime.date.today()
             if time_period == "Today":
-                cursor.execute(f"SELECT transaction_id, date, time, customer, total_price FROM {table_name} WHERE date=?", (today,))
+                if table_name == "transactions":
+                    cursor.execute(f"SELECT transaction_id, date, time, customer, total_price FROM {table_name} WHERE date=?", (today,))
+                elif table_name == "returns":
+                    cursor.execute(f"SELECT return_id, return_date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date=?", (today,))
             elif time_period == "This Week":
                 start_of_week = today - datetime.timedelta(days=today.weekday())
-                cursor.execute(f"SELECT transaction_id, date, time, customer, total_price FROM {table_name} WHERE date BETWEEN ? AND ?", (start_of_week, today))
+                if table_name == "transactions":
+                    cursor.execute(f"SELECT transaction_id, date, time, customer, total_price FROM {table_name} WHERE date BETWEEN ? AND ?", (start_of_week, today))
+                elif table_name == "returns":
+                    cursor.execute(f"SELECT return_id, return_date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date BETWEEN ? AND ?", (start_of_week, today))
             elif time_period == "This Month":
                 start_of_month = today.replace(day=1)
-                cursor.execute(f"SELECT transaction_id, date, time, customer, total_price FROM {table_name} WHERE date BETWEEN ? AND ?", (start_of_month, today))
+                if table_name == "transactions":
+                    cursor.execute(f"SELECT transaction_id, date, time, customer, total_price FROM {table_name} WHERE date BETWEEN ? AND ?", (start_of_month, today))
+                elif table_name == "returns":
+                    cursor.execute(f"SELECT return_id, return_date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date BETWEEN ? AND ?", (start_of_month, today))
             elif time_period == "Custom":
-                cursor.execute(f"SELECT transaction_id, date, time, customer, total_price FROM {table_name} WHERE date BETWEEN ? AND ?", (start_date, end_date))
+                if table_name == "transactions":
+                    cursor.execute(f"SELECT transaction_id, date, time, customer, total_price FROM {table_name} WHERE date BETWEEN ? AND ?", (start_date, end_date))
+                elif table_name == "returns":
+                    cursor.execute(f"SELECT return_id, return_date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date BETWEEN ? AND ?", (start_date, end_date))
+            
             rows = cursor.fetchall()
 
             # Close database connection
@@ -788,7 +803,7 @@ class DatabaseTab(QtWidgets.QWidget):
                     )
                     report_content += sales_str
             elif table_name == "returns":
-                report_content += "<tr><th>Return ID</th><th>Date</th><th>Product</th><th>Quantity</th><th>Total Price</th></tr>"
+                report_content += "<tr><th>Return ID</th><th>Return Date</th><th>Product Name</th><th>Brand</th><th>Variety</th><th>Size</th><th>Quantity</th></tr>"
                 for row in rows:
                     returns_str = (
                         f"<tr>"
@@ -796,7 +811,9 @@ class DatabaseTab(QtWidgets.QWidget):
                         f"<td>{row[1]}</td>"
                         f"<td>{row[2]}</td>"
                         f"<td>{row[3]}</td>"
-                        f"<td>₱{float(row[4]):.2f}</td>"  # Convert to float before formatting
+                        f"<td>{row[4]}</td>"
+                        f"<td>{row[5]}</td>"
+                        f"<td>{row[6]}</td>"
                         f"</tr>"
                     )
                     report_content += returns_str
