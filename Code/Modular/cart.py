@@ -304,7 +304,7 @@ class Ui_Cart_Tab(object):
         self.mark_button.setTabletTracking(True)
         self.mark_button.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.mark_button.setStyleSheet("QPushButton {\n"
-" background-color: #7796cb;\n"
+" background-color: #10cc94;\n"
 "border-radius:12px;\n"
 "color:#fff;\n"
 "}\n"
@@ -322,7 +322,7 @@ class Ui_Cart_Tab(object):
 "    \n"
 "}\n"
 "QPushButton:hover {\n"
-"   background-color: #47608f;\n"
+"   background-color: #0a9c73;\n"
 "   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
 "}\n"
 "\n"
@@ -348,7 +348,7 @@ class Ui_Cart_Tab(object):
         self.pay_button.setTabletTracking(True)
         self.pay_button.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.pay_button.setStyleSheet("QPushButton {\n"
-" background-color: #78c7e3;\n"
+" background-color: #10cc94;\n"
 "border-radius:12px;\n"
 "color:#fff;\n"
 "}\n"
@@ -366,7 +366,7 @@ class Ui_Cart_Tab(object):
 "    \n"
 "}\n"
 "QPushButton:hover {\n"
-"   background-color: #4a8ca4;\n"
+"   background-color: #0a9c73;\n"
 "   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
 "}\n"
 "\n"
