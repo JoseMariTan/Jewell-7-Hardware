@@ -1,0 +1,666 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Cart_Tab</class>
+ <widget class="QWidget" name="Cart_Tab">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1468</width>
+    <height>856</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Cart</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color:#fff;</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_4">
+   <item row="0" column="0">
+    <layout class="QGridLayout" name="gridLayout_2">
+     <property name="rightMargin">
+      <number>0</number>
+     </property>
+     <property name="horizontalSpacing">
+      <number>6</number>
+     </property>
+     <property name="verticalSpacing">
+      <number>10</number>
+     </property>
+     <item row="0" column="0">
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <property name="spacing">
+        <number>3</number>
+       </property>
+       <item>
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>10</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="search_button">
+         <property name="minimumSize">
+          <size>
+           <width>50</width>
+           <height>50</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>50</width>
+           <height>50</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <family>Segoe UI</family>
+           <pointsize>14</pointsize>
+           <weight>50</weight>
+           <italic>false</italic>
+           <bold>false</bold>
+           <strikeout>false</strikeout>
+          </font>
+         </property>
+         <property name="mouseTracking">
+          <bool>true</bool>
+         </property>
+         <property name="tabletTracking">
+          <bool>true</bool>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+ background-color: #f6f4f4;
+border-radius:25px;
+color:black;
+;
+}
+QPushButton#quit_button {
+   background-color: green;
+}
+QPushButton::pressed {
+background-color: #fff;
+}
+QpushButton{
+border: 2px solid #555;
+    border-radius: 20px;
+    border-style: outset;
+border-width:200px;
+
+}
+QPushButton:hover {
+   background-color: #81cdc6;
+   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+color:#fff;
+}
+
+shoppingbag:hover{
+color:#fff;
+background-repeat:no-repeat;
+}
+
+border:none;
+</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="logo.qrc">
+           <normaloff>:/search/search.png</normaloff>:/search/search.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="search_input">
+         <property name="minimumSize">
+          <size>
+           <width>300</width>
+           <height>50</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>600</width>
+           <height>75</height>
+          </size>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">border-radius:25px;
+padding-right:10px;
+padding-left:10px;
+background-color:#f6f4f4;
+</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="cursorPosition">
+          <number>0</number>
+         </property>
+         <property name="dragEnabled">
+          <bool>false</bool>
+         </property>
+         <property name="placeholderText">
+          <string>  Search...</string>
+         </property>
+         <property name="cursorMoveStyle">
+          <enum>Qt::LogicalMoveStyle</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item row="1" column="0">
+      <widget class="QTabWidget" name="tabWidget">
+       <property name="font">
+        <font>
+         <family>Segoe UI</family>
+         <pointsize>10</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QTabWidget::tab-bar {
+   border: 1px solid gray;
+background-color:81cdc6;
+}
+QTabBar::tab {
+  background: #81cdc6;
+  color: #fff;
+  padding: 10px;
+border-radius: 20px;
+
+ }
+
+ QTabBar::tab:selected {
+  background: #66b3a8 ;
+ }
+QTabWidget::pane { 
+   border: none;
+}</string>
+       </property>
+       <property name="tabShape">
+        <enum>QTabWidget::Rounded</enum>
+       </property>
+       <property name="currentIndex">
+        <number>1</number>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>20</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="elideMode">
+        <enum>Qt::ElideRight</enum>
+       </property>
+       <property name="tabBarAutoHide">
+        <bool>false</bool>
+       </property>
+       <widget class="QWidget" name="tab">
+        <attribute name="title">
+         <string>User Logs</string>
+        </attribute>
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="0" column="0">
+          <widget class="QTableWidget" name="tableWidget">
+           <column>
+            <property name="text">
+             <string>Log ID</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>User ID</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Action</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Time</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Date</string>
+            </property>
+           </column>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="Transactions">
+        <attribute name="title">
+         <string>Transactions</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <item>
+          <widget class="QTableWidget" name="tableWidget_2">
+           <column>
+            <property name="text">
+             <string>Total Amount</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Price</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Quantity</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Customer</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Product</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Brand</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Variation</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Size</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Category</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Time</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Date</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Type</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>User ID</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Cashier</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Payment ID</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Contact</string>
+            </property>
+           </column>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <property name="leftMargin">
+            <number>200</number>
+           </property>
+           <property name="rightMargin">
+            <number>200</number>
+           </property>
+           <item>
+            <widget class="QPushButton" name="return_button">
+             <property name="minimumSize">
+              <size>
+               <width>175</width>
+               <height>50</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>400</width>
+               <height>60</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>Segoe UI</family>
+               <pointsize>8</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+               <strikeout>false</strikeout>
+              </font>
+             </property>
+             <property name="mouseTracking">
+              <bool>true</bool>
+             </property>
+             <property name="tabletTracking">
+              <bool>true</bool>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton {
+ background-color: #F88379;
+border-radius:12px;
+color:#fff;
+}
+QPushButton#quit_button {
+   background-color: green;
+}
+QPushButton::pressed {
+background-color: #fff;
+}
+QpushButton{
+border: 2px solid #555;
+    border-radius: 20px;
+    border-style: outset;
+border-width:200px;
+    
+}
+QPushButton:hover {
+   background-color: #E5676B;
+   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+border:none;
+</string>
+             </property>
+             <property name="text">
+              <string>Return Item</string>
+             </property>
+             <property name="icon">
+              <iconset>
+               <normaloff>:/new/Shop/Shoppingcart.png</normaloff>:/new/Shop/Shoppingcart.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>22</width>
+               <height>22</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="flag_transaction_button">
+             <property name="minimumSize">
+              <size>
+               <width>175</width>
+               <height>50</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>400</width>
+               <height>60</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>Segoe UI</family>
+               <pointsize>8</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+               <strikeout>false</strikeout>
+              </font>
+             </property>
+             <property name="mouseTracking">
+              <bool>true</bool>
+             </property>
+             <property name="tabletTracking">
+              <bool>true</bool>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton {
+ background-color: #10cc94;
+border-radius:12px;
+color:#fff;
+}
+QPushButton#quit_button {
+   background-color: green;
+}
+QPushButton::pressed {
+background-color: #fff;
+}
+QpushButton{
+border: 2px solid #555;
+    border-radius: 20px;
+    border-style: outset;
+border-width:200px;
+    
+}
+QPushButton:hover {
+   background-color: #0a9c73;
+   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+border:none;
+</string>
+             </property>
+             <property name="text">
+              <string>Flag Transaction</string>
+             </property>
+             <property name="icon">
+              <iconset>
+               <normaloff>:/new/Shop/Shoppingcart.png</normaloff>:/new/Shop/Shoppingcart.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>22</width>
+               <height>22</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="receipt_button">
+             <property name="minimumSize">
+              <size>
+               <width>175</width>
+               <height>50</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>400</width>
+               <height>60</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>Segoe UI</family>
+               <pointsize>8</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+               <strikeout>false</strikeout>
+              </font>
+             </property>
+             <property name="mouseTracking">
+              <bool>true</bool>
+             </property>
+             <property name="tabletTracking">
+              <bool>true</bool>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton {
+ background-color: #10cc94;
+border-radius:12px;
+color:#fff;
+}
+QPushButton#quit_button {
+   background-color: green;
+}
+QPushButton::pressed {
+background-color: #fff;
+}
+QpushButton{
+border: 2px solid #555;
+    border-radius: 20px;
+    border-style: outset;
+border-width:200px;
+    
+}
+QPushButton:hover {
+   background-color: #0a9c73;
+   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+border:none;
+</string>
+             </property>
+             <property name="text">
+              <string>Generate Receipt</string>
+             </property>
+             <property name="icon">
+              <iconset>
+               <normaloff>:/new/Shop/Shoppingcart.png</normaloff>:/new/Shop/Shoppingcart.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>22</width>
+               <height>22</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="Returns">
+        <attribute name="title">
+         <string>Returns</string>
+        </attribute>
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="0" column="0">
+          <widget class="QTableWidget" name="tableWidget_3">
+           <column>
+            <property name="text">
+             <string>Return ID</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Product Name</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Brand</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Variation</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Size</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Quantity</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Date</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Date of Return</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Transaction ID</string>
+            </property>
+           </column>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="logo.qrc"/>
+ </resources>
+ <connections/>
+</ui>
