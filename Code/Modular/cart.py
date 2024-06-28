@@ -446,31 +446,46 @@ class CartTab(QtWidgets.QWidget):
         conn = sqlite3.connect('j7h.db')
         cursor = conn.cursor()
 
-        cursor.execute("""SELECT rowid, product_name, brand, var, size, qty, total_price FROM cart ORDER BY cart_id DESC""")
+        try:
+            if search_query:
+                search_param = '%{}%'.format(search_query)
+                exact_search_param = '{}'.format(search_query)
+                cursor.execute("""
+                    SELECT c.product_name, c.brand, c.var, c.size, c.qty, p.price, (c.qty * p.price) AS total_price
+                    FROM cart c
+                    INNER JOIN products p ON c.product_name = p.product_name
+                    WHERE c.qty > 0 AND 
+                        (c.product_name LIKE ? COLLATE NOCASE OR c.product_name = ?) OR
+                        (c.brand LIKE ? COLLATE NOCASE OR c.brand = ?) OR
+                        (c.var LIKE ? COLLATE NOCASE OR c.var = ?) OR
+                        (c.size LIKE ? COLLATE NOCASE OR c.size = ?)
+                    ORDER BY c.cart_id DESC
+                """, (search_param, exact_search_param, search_param, exact_search_param,
+                      search_param, exact_search_param, search_param, exact_search_param))
+            else:
+                cursor.execute("""SELECT rowid, product_name, brand, var, size, qty, total_price FROM cart ORDER BY cart_id DESC""")
+            
+            products = cursor.fetchall()
+            self.ui.tableWidget.setRowCount(len(products))
+            self.ui.tableWidget.setColumnCount(7)
+            self.ui.tableWidget.setHorizontalHeaderLabels(["RowID", "Product", "Brand", "Variation", "Size", "Quantity", "Total Price"])
 
-        if search_query:
-            query = """
-                SELECT c.product_name, c.qty, c.brand, c.var, c.size, p.price, (c.qty * p.price) AS total_price
-                FROM cart c
-                INNER JOIN products p ON c.product_name = p.product_name
-                WHERE c.qty > 0 AND (c.product_name LIKE ? OR c.brand LIKE ? OR c.var LIKE ? OR c.size LIKE ?)
-                ORDER BY c.cart_id DESC
-                """
-            cursor.execute(query, (f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%"))
-        products = cursor.fetchall()
-        self.ui.tableWidget.setRowCount(len(products))
-        self.ui.tableWidget.setColumnCount(7)
-        self.ui.tableWidget.setHorizontalHeaderLabels(["RowID", "Product", "Brand", "Variation", "Size", "Quantity", "Total Price"])
+            for i, product in enumerate(products):
+                for j, value in enumerate(product):
+                    self.ui.tableWidget.setItem(i, j, QtWidgets.QTableWidgetItem(str(value)))
 
-        for i, product in enumerate(products):
-            for j, value in enumerate(product):
-                self.ui.tableWidget.setItem(i, j, QtWidgets.QTableWidgetItem(str(value)))
+            self.resize_table()
+            conn.close()
+            self.ui.tableWidget.setColumnHidden(0, True)
+            self.update_total_label()
 
-        self.resize_table()
-        conn.close()
-        self.ui.tableWidget.setColumnHidden(0, True)
-        self.update_total_label()
-
+        except sqlite3.Error as e:
+            print("SQLite error:", e)
+            QtWidgets.QMessageBox.critical(self, "Database Error", "Failed to load data. Please try again.")
+        
+        finally:
+            conn.close()
+        
     def on_selection_changed(self):
         selected_rows = set()
         for item in self.ui.tableWidget.selectedItems():
