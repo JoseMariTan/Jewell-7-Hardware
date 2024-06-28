@@ -9,7 +9,7 @@ class UsersTab(QtWidgets.QWidget):
         self.setupUi(self)
         self.search_button.clicked.connect(self.search_users)
         self.modify_button.clicked.connect(self.open_modify_user_dialog)
-        self.changeStatus_button.clicked.connect(self.void_user)
+        self.changeStatus_button.clicked.connect(self.deactivate_user)
         self.tableWidget.itemSelectionChanged.connect(self.on_selection_changed)
         self.load_data()
 
@@ -243,18 +243,18 @@ class UsersTab(QtWidgets.QWidget):
         item = self.tableWidget.horizontalHeaderItem(4)
         item.setText(_translate("UsersTab", "Level of Access"))
         self.modify_button.setText(_translate("UsersTab", "Modify"))
-        self.changeStatus_button.setText(_translate("UsersTab", "Deactivate"))
+        self.changeStatus_button.setText(_translate("UsersTab", "Activate / Deactivate"))
 
     def load_data(self, search_query=None):
         conn = sqlite3.connect('j7h.db')
         cur = conn.cursor()
 
         if search_query:
-            cur.execute("SELECT rowid, first_name, last_name, username, password, loa FROM users WHERE "
-                        "first_name LIKE ? OR last_name LIKE ? OR username LIKE ? OR password LIKE ? OR loa LIKE ?",
-                        ('%{}%'.format(search_query), '%{}%'.format(search_query), '%{}%'.format(search_query), '%{}%'.format(search_query), '%{}%'.format(search_query)))
+            cur.execute("SELECT rowid, first_name, last_name, username, password, loa, status FROM users WHERE "
+                        "first_name LIKE ? OR last_name LIKE ? OR username LIKE ? OR password LIKE ? OR loa LIKE ? OR status LIKE ?",
+                        ('%{}%'.format(search_query), '%{}%'.format(search_query), '%{}%'.format(search_query), '%{}%'.format(search_query), '%{}%'.format(search_query), '%{}%'.format(search_query)))
         else:
-            cur.execute("SELECT rowid, first_name, last_name, username, password, loa FROM users")
+            cur.execute("SELECT rowid, first_name, last_name, username, password, loa, status FROM users")
 
         users = cur.fetchall()
         if not users:
@@ -262,8 +262,8 @@ class UsersTab(QtWidgets.QWidget):
             return
     
         self.tableWidget.setRowCount(len(users))
-        self.tableWidget.setColumnCount(6)
-        self.tableWidget.setHorizontalHeaderLabels(["Row Id", "First Name", "Last Name", "Username", "Password", "Level of Access"])
+        self.tableWidget.setColumnCount(7)
+        self.tableWidget.setHorizontalHeaderLabels(["Row Id", "First Name", "Last Name", "Username", "Password", "Level of Access", "Status"])
         self.tableWidget.setColumnHidden(0, True)
 
         for i, user in enumerate(users):
@@ -296,30 +296,36 @@ class UsersTab(QtWidgets.QWidget):
         else:
             QtWidgets.QMessageBox.warning(None, "Selection Error", "Please select a user to modify.")
 
-    def void_user(self):
+    def deactivate_user(self):
         selected_row = self.tableWidget.currentRow()
         if selected_row >= 0:
             rowid_item = self.tableWidget.item(selected_row, 0)
             if rowid_item:
                 rowid = int(rowid_item.text())
 
+                conn = sqlite3.connect('j7h.db')
+                cur = conn.cursor()
+                cur.execute("SELECT status FROM users WHERE rowid = ?", (rowid,))
+                status = cur.fetchone()[0]
+
+                new_status = 'Deactivated' if status == 'Active' else 'Active'
+                action = 'deactivate' if new_status == 'Deactivated' else 'activate'
+
                 reply = QtWidgets.QMessageBox.question(
                     None,
                     'Confirmation',
-                    'Are you sure you want to deactivate this user?',
+                    f'Are you sure you want to {action} this user?',
                     QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
                     QtWidgets.QMessageBox.No
                 )
 
                 if reply == QtWidgets.QMessageBox.Yes:
-                    conn = sqlite3.connect('j7h.db')
-                    cur = conn.cursor()
-                    cur.execute("DELETE FROM users WHERE rowid = ?", (rowid,))
+                    cur.execute("UPDATE users SET status = ? WHERE rowid = ?", (new_status, rowid))
                     conn.commit()
                     conn.close()
                     self.load_data()
         else:
-            QtWidgets.QMessageBox.warning(None, "Selection Error", "Please select a user to void.")
+            QtWidgets.QMessageBox.warning(None, "Selection Error", "Please select a user to deactivate.")
 
     def on_selection_changed(self):
         selected_rows = set()
