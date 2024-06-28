@@ -749,7 +749,7 @@ class Ui_MainWindow(object):
             self.cart_tab.load_cart_items()
             
     def database_options(self):
-        self.database_tab = DatabaseTab()
+        self.database_tab = DatabaseTab(self.user_id)
         self.stackedWidget.addWidget(self.database_tab)
         self.stackedWidget.setCurrentWidget(self.database_tab)
 
