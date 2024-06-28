@@ -329,9 +329,55 @@ class ReportsTab(QtWidgets.QWidget):
 
         # Add the table widget to the layout
         layout.addWidget(self.returns_table)
-
+        
+        # Add Return to Inventory button
+        return_to_inventory_button = QtWidgets.QPushButton('Return to Inventory')
+        return_to_inventory_button.clicked.connect(self.return_to_inventory)
+        layout.addWidget(return_to_inventory_button)
         # Load returns into the table
         self.load_returns()
+        
+    def return_to_inventory(self):
+        selected_items = self.returns_table.selectedItems()
+        if not selected_items:
+            QMessageBox.warning(self, 'No Selection', 'Please select a return to process.')
+            return
+
+        selected_row = selected_items[0].row()
+        return_reason = self.returns_table.item(selected_row, 9).text()  # Reason column index is 9
+
+        if return_reason != "Wrong Item":
+            QMessageBox.warning(self, 'Invalid Reason', 'Reason is invalid. Item cannot be returned.')
+            return
+
+        product_name = self.returns_table.item(selected_row, 1).text()
+        brand = self.returns_table.item(selected_row, 2).text()
+        variation = self.returns_table.item(selected_row, 3).text()
+        size = self.returns_table.item(selected_row, 4).text()
+        quantity = int(self.returns_table.item(selected_row, 5).text())
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+
+        try:
+            # Update the quantity of the product in the products table
+            cursor.execute("""
+                UPDATE products
+                SET qty = qty + ?
+                WHERE product_name = ? AND brand = ? AND var = ? AND size = ?
+            """, (quantity, product_name, brand, variation, size))
+
+            conn.commit()  # Commit the changes to the database
+            QMessageBox.information(self, 'Return Complete', 'Item returned to inventory successfully.')
+            
+            # Remove the row from the table widget
+            self.returns_table.removeRow(selected_row)
+        except sqlite3.Error as e:
+            print("Error updating products table:", e)
+            conn.rollback()  # Rollback the changes if an error occurs
+            QMessageBox.critical(self, 'Database Error', 'Failed to return item to inventory.')
+        finally:
+            conn.close()  # Close the database connection
+
 
     def search_logs(self):
         search_query = self.search_input.text()
