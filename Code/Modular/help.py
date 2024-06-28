@@ -17,7 +17,7 @@ class HelpTab(QtWidgets.QWidget):
         self.gridLayout_10.setVerticalSpacing(10)
         self.gridLayout_10.setObjectName("gridLayout_10")
         self.verticalLayout = QtWidgets.QVBoxLayout()
-        self.verticalLayout.setContentsMargins(-1, 150, -1, 100)
+        self.verticalLayout.setContentsMargins(-1, 0, -1, 30)
         self.verticalLayout.setSpacing(5)
         self.verticalLayout.setObjectName("verticalLayout")
         self.label = QtWidgets.QLabel(Form)
