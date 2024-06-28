@@ -251,7 +251,7 @@ class Login(QtWidgets.QWidget):
         cursor = conn.cursor()
 
         try:
-            query = "SELECT user_id, password, loa FROM users WHERE username = ?"
+            query = "SELECT user_id, password, loa, status FROM users WHERE username = ?"
             cursor.execute(query, (username,))
             result = cursor.fetchone()
         
@@ -259,35 +259,39 @@ class Login(QtWidgets.QWidget):
                 self.show_error_message("Invalid username or password.")
                 return
 
-            user_id, stored_password, loa = result
+            user_id, stored_password, loa, status = result
             current_datetime = datetime.today()
             date_log = current_datetime.strftime('%Y-%m-%d')
             time_log = current_datetime.strftime("%I:%M %p")
             log_id = self.generate_log_id()
-            
+
+            if status == 'Deactivated':
+                self.show_error_message("Your account is Deactivated, please contact an admin.")
+                return
+
             if stored_password == password:
                 action = "login"
                 cursor.execute('''INSERT INTO user_logs (log_id, user_id, action, time, date) 
-                            VALUES (?, ?, ?, ?, ?)''', (log_id, user_id, action, time_log, date_log))
+                                VALUES (?, ?, ?, ?, ?)''', (log_id, user_id, action, time_log, date_log))
                 conn.commit()
-                            # Redirect based on user's access level (loa)
+                # Redirect based on user's access level (loa)
                 if loa == "admin":
                     self.open_admin(user_id)
                 elif loa == "staff":
                     self.open_staff(user_id)
                 else:
                     self.show_error_message("Invalid level of access.")
-
             else:
                 action = "login attempt"
-                cursor.execute('''INSERT INTO user_logs (log_id,user_id, action, time, date) 
-                            VALUES (?, ?, ?, ?, ?)''', (log_id, user_id, action, time_log, date_log))
+                cursor.execute('''INSERT INTO user_logs (log_id, user_id, action, time, date) 
+                                VALUES (?, ?, ?, ?, ?)''', (log_id, user_id, action, time_log, date_log))
                 conn.commit()
                 self.show_error_message("Invalid username or password.")
         except sqlite3.Error as e:
             self.show_error_message(f"Database error: {e}")
         finally:
             conn.close()
+
             
     def generate_log_id(self):
         # Establishing connection with SQLite database
