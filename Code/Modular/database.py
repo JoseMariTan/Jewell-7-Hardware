@@ -179,7 +179,7 @@ class Ui_Form(object):
         self.Image.setText("")
         self.Image.setObjectName("Image")
         self.gridLayout_2.addWidget(self.Image, 0, 0, 1, 1)
-        spacerItem1 = QtWidgets.QSpacerItem(20, 286, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        spacerItem1 = QtWidgets.QSpacerItem(20, 261, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         self.gridLayout_2.addItem(spacerItem1, 2, 0, 1, 1)
         self.verticalLayout_4.addWidget(self.widget_5)
         self.gridLayout_3.addLayout(self.verticalLayout_4, 0, 1, 2, 1)
