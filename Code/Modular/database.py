@@ -6,7 +6,6 @@ import shutil
 import sqlite3
 import threading
 import time
-from datetime import datetime
 import datetime
 from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtWidgets import QMessageBox, QFileDialog, QDialog, QVBoxLayout, QLabel, QDateEdit, QDialogButtonBox, QComboBox, QGroupBox
@@ -642,6 +641,7 @@ class DatabaseTab(QtWidgets.QWidget):
             cursor = conn.cursor()
 
             # Insert scheduled time into backup_schedule table
+            from datetime import datetime
             cursor.execute("INSERT INTO backup_schedule (scheduled_time, created_at) VALUES (?, ?)", (scheduled_time.strftime("%H:%M %p"), datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
             conn.commit()
 
@@ -671,6 +671,7 @@ class DatabaseTab(QtWidgets.QWidget):
     def backup_scheduler(self, scheduled_time):
         try:
             while not self.scheduler_stop_event.is_set():
+                from datetime import datetime
                 current_time = datetime.now().time()
                 if current_time.hour == scheduled_time.hour and current_time.minute == scheduled_time.minute:
                     QtCore.QMetaObject.invokeMethod(self, "perform_auto_backup", QtCore.Qt.QueuedConnection)
