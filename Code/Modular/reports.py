@@ -1,7 +1,7 @@
 import sqlite3
 from PyQt5.QtWidgets import QTableWidgetItem, QMessageBox, QVBoxLayout, QSizePolicy, QDialog, QSpacerItem, QLabel
 from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTime
 from datetime import datetime
 import random, string
 from assets import mainlogo_rc
@@ -507,11 +507,51 @@ class ReportsTab(QtWidgets.QWidget):
                                         "\n"
                                         "border:none;\n"
                                         "")
+        self.cash_register_button = QtWidgets.QPushButton(self.transactions_tab)
+        self.cash_register_button.setMinimumSize(QtCore.QSize(175, 50))
+        self.cash_register_button.setMaximumSize(QtCore.QSize(400, 60))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(8)
+        font.setBold(True)
+        font.setWeight(75)
+        font.setStrikeOut(False)
+        self.cash_register_button.setFont(font)
+        self.cash_register_button.setMouseTracking(True)
+        self.cash_register_button.setTabletTracking(True)
+        self.cash_register_button.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.cash_register_button.setText("Cash Register")
+        self.cash_register_button.setStyleSheet("QPushButton {\n"
+                                                " background-color: #10cc94;\n"
+                                                "border-radius:12px;\n"
+                                                "color:#fff;\n"
+                                                "}\n"
+                                                "QPushButton#quit_button {\n"
+                                                "   background-color: green;\n"
+                                                "}\n"
+                                                "QPushButton::pressed {\n"
+                                                "background-color: #fff;\n"
+                                                "}\n"
+                                                "QpushButton{\n"
+                                                "border: 2px solid #555;\n"
+                                                "    border-radius: 20px;\n"
+                                                "    border-style: outset;\n"
+                                                "border-width:200px;\n"
+                                                "    \n"
+                                                "}\n"
+                                                "QPushButton:hover {\n"
+                                                "   background-color: #0a9c73;\n"
+                                                "   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+                                                "}\n"
+                                                "\n"
+                                                "border:none;\n"
+                                                "")
 
         # Connect button signals to slots
         self.return_button.clicked.connect(self.return_selected_item)
         self.flag_transaction_button.clicked.connect(self.flag_transaction)
         self.receipt_button.clicked.connect(self.generate_receipt)
+        self.cash_register_button.clicked.connect(self.set_cash_register)
 
         # Create horizontal layout for buttons
         buttons_layout = QtWidgets.QHBoxLayout()
@@ -522,6 +562,7 @@ class ReportsTab(QtWidgets.QWidget):
         buttons_layout.addWidget(self.return_button)
         buttons_layout.addWidget(self.flag_transaction_button)
         buttons_layout.addWidget(self.receipt_button)
+        buttons_layout.addWidget(self.cash_register_button)
 
         # Add buttons layout to the main layout
         layout.addLayout(buttons_layout)
@@ -980,7 +1021,7 @@ class ReportsTab(QtWidgets.QWidget):
                         customer_details = {
                             'name': transaction[3],   # customer
                             'contact': transaction[13],  # contact
-                            'amount_paid': transaction[1]  # total_price
+                            'amount_paid': transaction[18]  # paid shii
                         }
                     
                     # Fetch product details from transaction row
@@ -1042,6 +1083,8 @@ Products Purchased:
         payment_details = f"""
 {'-' * receipt_width}
 Total Price : ₱{total_price:.2f}
+Amount Paid : ₱{customer_details['amount_paid']:.2f}
+Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
 {'=' * receipt_width}
         THIS IS NOT AN OFFICIAL RECEIPT
 {'=' * receipt_width}
@@ -1067,3 +1110,163 @@ Total Price : ₱{total_price:.2f}
         layout.addItem(spacer)
         
         dialog.exec_()
+        
+    def set_cash_register(self):
+        conn = sqlite3.connect("j7h.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT current_value FROM cash_register")
+        result = cursor.fetchone()
+        if result is None:
+            cash_register_value = 0
+        else:
+            cash_register_value = result[0]
+        conn.close()
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Cash Register")
+        dialog.setFixedSize(300, 200)
+
+        layout = QVBoxLayout()
+
+        # Display the current value of the cash register
+        self.cash_register_label = QLabel(f"Cash Register: ₱ {cash_register_value:.2f}")
+        self.cash_register_label.setAlignment(QtCore.Qt.AlignCenter)
+        layout.addWidget(self.cash_register_label)
+
+        button_layout = QtWidgets.QHBoxLayout()
+        
+        set_initial_button = QtWidgets.QPushButton("Set initial value")
+        set_initial_button.clicked.connect(self.set_initial_value)
+        button_layout.addWidget(set_initial_button)
+            
+        schedule_reset_button = QtWidgets.QPushButton("Schedule Reset")
+        schedule_reset_button.clicked.connect(self.schedule_reset)
+        button_layout.addWidget(schedule_reset_button)
+            
+        modify_button = QtWidgets.QPushButton("Modify")
+        modify_button.clicked.connect(lambda: self.modify_value(dialog))
+        button_layout.addWidget(modify_button)
+
+        layout.addLayout(button_layout)
+
+        dialog.setLayout(layout)
+        dialog.exec_()
+
+    def set_initial_value(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Set Initial Value")
+        dialog.setFixedSize(300, 150)
+
+        layout = QVBoxLayout()
+
+        label = QLabel("Enter new initial value for cash register:")
+        layout.addWidget(label)
+
+        self.initial_value_input = QtWidgets.QLineEdit()
+        layout.addWidget(self.initial_value_input)
+
+        button_layout = QtWidgets.QHBoxLayout()
+        ok_button = QtWidgets.QPushButton("OK")
+        ok_button.clicked.connect(lambda: self.save_initial_value(dialog))
+        button_layout.addWidget(ok_button)
+        
+        cancel_button = QtWidgets.QPushButton("Cancel")
+        cancel_button.clicked.connect(dialog.reject)
+        button_layout.addWidget(cancel_button)
+        
+        layout.addLayout(button_layout)
+        
+        dialog.setLayout(layout)
+        dialog.exec_()
+
+    def save_initial_value(self, dialog):
+        new_value = self.initial_value_input.text()
+        if new_value.isdigit():
+            conn = sqlite3.connect("j7h.db")
+            cursor = conn.cursor()
+            cursor.execute("UPDATE cash_register SET initial_value = ?", (new_value,))
+            conn.commit()
+            conn.close()
+            dialog.accept()  # Close the dialog
+            QMessageBox.information(self, "Success", f"Initial value set to ₱ {new_value}")
+        else:
+            QMessageBox.warning(self, "Input Error", "Please enter a valid number.")
+
+    def schedule_reset(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Schedule Reset")
+        dialog.setFixedSize(300, 200)
+
+        layout = QVBoxLayout()
+
+        label = QLabel("Select reset time:")
+        layout.addWidget(label)
+
+        self.time_input = QtWidgets.QTimeEdit()
+        self.time_input.setTime(QTime.currentTime())
+        layout.addWidget(self.time_input)
+
+        button_layout = QtWidgets.QHBoxLayout()
+        ok_button = QtWidgets.QPushButton("OK")
+        ok_button.clicked.connect(lambda: self.save_reset_time(dialog))
+        button_layout.addWidget(ok_button)
+        
+        cancel_button = QtWidgets.QPushButton("Cancel")
+        cancel_button.clicked.connect(dialog.reject)
+        button_layout.addWidget(cancel_button)
+        
+        layout.addLayout(button_layout)
+        
+        dialog.setLayout(layout)
+        dialog.exec_()
+
+    def save_reset_time(self, dialog):
+        reset_time = self.time_input.time().toString()
+        conn = sqlite3.connect("j7h.db")
+        cursor = conn.cursor()
+        cursor.execute("UPDATE cash_register SET reset_time = ?", (reset_time,))
+        conn.commit()
+        conn.close()
+        dialog.accept()  # Close the dialog
+        QMessageBox.information(self, "Success", f"Cash Register will now reset at {reset_time}")
+        
+    def modify_value(self, parent_dialog):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Modify Cash Register Value")
+        dialog.setFixedSize(300, 150)
+
+        layout = QVBoxLayout()
+
+        label = QLabel("Enter new value for cash register:")
+        layout.addWidget(label)
+
+        self.modify_value_input = QtWidgets.QLineEdit()
+        layout.addWidget(self.modify_value_input)
+
+        button_layout = QtWidgets.QHBoxLayout()
+        ok_button = QtWidgets.QPushButton("OK")
+        ok_button.clicked.connect(lambda: self.save_modified_value(dialog, parent_dialog))
+        button_layout.addWidget(ok_button)
+        
+        cancel_button = QtWidgets.QPushButton("Cancel")
+        cancel_button.clicked.connect(dialog.reject)
+        button_layout.addWidget(cancel_button)
+        
+        layout.addLayout(button_layout)
+        
+        dialog.setLayout(layout)
+        dialog.exec_()
+
+    def save_modified_value(self, dialog, parent_dialog):
+        new_value = self.modify_value_input.text()
+        if new_value.isdigit():
+            conn = sqlite3.connect("j7h.db")
+            cursor = conn.cursor()
+            cursor.execute("UPDATE cash_register SET current_value = ?", (new_value,))
+            conn.commit()
+            conn.close()
+            self.cash_register_label.setText(f"Cash Register: ₱ {float(new_value):.2f}")
+            dialog.accept()  # Close the modify dialog
+            QMessageBox.information(self, "Success", f"Cash register value modified to ₱ {new_value}")
+        else:
+            QMessageBox.warning(self, "Input Error", "Please enter a valid number.")
