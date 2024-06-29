@@ -4,9 +4,10 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class UsersTab(QtWidgets.QWidget):
     user_modified = QtCore.pyqtSignal()
 
-    def __init__(self, parent=None):
-        super(UsersTab, self).__init__(parent)
+    def __init__(self, user_id, parent=None):
+        super(UsersTab, self,).__init__(parent)
         self.setupUi(self)
+        self.user_id = user_id
         self.search_button.clicked.connect(self.search_users)
         self.modify_button.clicked.connect(self.open_modify_user_dialog)
         self.changeStatus_button.clicked.connect(self.deactivate_user)
@@ -319,33 +320,54 @@ class UsersTab(QtWidgets.QWidget):
     def deactivate_user(self):
         selected_row = self.tableWidget.currentRow()
         if selected_row >= 0:
-            rowid_item = self.tableWidget.item(selected_row, 0)
-            if rowid_item:
-                rowid = int(rowid_item.text())
+            first_name_item = self.tableWidget.item(selected_row, 1)
+            last_name_item = self.tableWidget.item(selected_row, 2)
+            username_item = self.tableWidget.item(selected_row, 3)
+
+            if first_name_item and last_name_item and username_item:
+                first_name = first_name_item.text()
+                last_name = last_name_item.text()
+                username = username_item.text()
 
                 conn = sqlite3.connect('j7h.db')
                 cur = conn.cursor()
-                cur.execute("SELECT status FROM users WHERE rowid = ?", (rowid,))
-                status = cur.fetchone()[0]
+                cur.execute("SELECT user_id, status FROM users WHERE first_name = ? AND last_name = ? AND username = ?", 
+                            (first_name, last_name, username))
+                user_data = cur.fetchone()
 
-                new_status = 'Deactivated' if status == 'Active' else 'Active'
-                action = 'deactivate' if new_status == 'Deactivated' else 'activate'
+                if user_data:
+                    user_id, status = user_data
 
-                reply = QtWidgets.QMessageBox.question(
-                    None,
-                    'Confirmation',
-                    f'Are you sure you want to {action} this user?',
-                    QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                    QtWidgets.QMessageBox.No
-                )
+                    if user_id == self.user_id:
+                        QtWidgets.QMessageBox.warning(
+                            None,
+                            "Error",
+                            "Cannot deactivate the logged-in user."
+                        )
+                        conn.close()
+                        return
 
-                if reply == QtWidgets.QMessageBox.Yes:
-                    cur.execute("UPDATE users SET status = ? WHERE rowid = ?", (new_status, rowid))
-                    conn.commit()
-                    conn.close()
-                    self.load_data()
+                    new_status = 'Deactivated' if status == 'Active' else 'Active'
+                    action = 'deactivate' if new_status == 'Deactivated' else 'activate'
+
+                    reply = QtWidgets.QMessageBox.question(
+                        None,
+                        'Confirmation',
+                        f'Are you sure you want to {action} this user?',
+                        QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                        QtWidgets.QMessageBox.No
+                    )
+
+                    if reply == QtWidgets.QMessageBox.Yes:
+                        cur.execute("UPDATE users SET status = ? WHERE user_id = ?", (new_status, user_id))
+                        conn.commit()
+                        self.load_data()
+                conn.close()
+            else:
+                QtWidgets.QMessageBox.warning(None, "Selection Error", "Please select a user to deactivate.")
         else:
             QtWidgets.QMessageBox.warning(None, "Selection Error", "Please select a user to deactivate.")
+
 
     def on_selection_changed(self):
         selected_rows = set()

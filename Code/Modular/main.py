@@ -734,7 +734,7 @@ class Ui_MainWindow(object):
         self.stackedWidget.setCurrentWidget(self.products_tab)
 
     def open_users(self):
-        self.users_tab = UsersTab()
+        self.users_tab = UsersTab(self.user_id)
         self.stackedWidget.addWidget(self.users_tab)
         self.stackedWidget.setCurrentWidget(self.users_tab)
 
