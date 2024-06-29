@@ -7,6 +7,9 @@ import sqlite3
 import threading
 import time
 import datetime
+import matplotlib.pyplot as plt
+import base64
+from io import BytesIO
 from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtWidgets import QMessageBox, QFileDialog, QDialog, QVBoxLayout, QLabel, QDateEdit, QDialogButtonBox, QComboBox, QGroupBox
 from PyQt5.QtGui import QTextDocument
@@ -440,7 +443,6 @@ class Ui_Form(object):
         self.label_8.setText(_translate("Form", "Data"))
         
 from assets import settings_rc
-logging.basicConfig(level=logging.DEBUG)
 
 class DatabaseTab(QtWidgets.QWidget):
     backupCompleted = QtCore.pyqtSignal(str)
@@ -709,7 +711,7 @@ class DatabaseTab(QtWidgets.QWidget):
        
            
         # Reports Functions
-        
+            
     def generate_report(self):
         try:
             # Check if the report has been customized
@@ -717,7 +719,6 @@ class DatabaseTab(QtWidgets.QWidget):
                 QtWidgets.QMessageBox.warning(self, "Format Missing", "Please customize your report first.")
                 return
 
-            # Assuming you have variables to hold the selected table name and time period
             table_name = self.selected_table_name
             time_period = self.selected_time_period
             start_date = self.selected_start_date
@@ -726,8 +727,8 @@ class DatabaseTab(QtWidgets.QWidget):
             if table_name == "sales":
                 table_name = "transactions"
             elif table_name == "returns":
-                table_name = "returns"  # Ensure the correct table name is used for returns
-            
+                table_name = "returns"  
+
             # Connect to the database
             conn = sqlite3.connect("j7h.db")
             cursor = conn.cursor()
@@ -735,54 +736,84 @@ class DatabaseTab(QtWidgets.QWidget):
             # Get the current user's first and last name
             cursor.execute("SELECT first_name, last_name FROM users WHERE user_id = ?", (self.user_id,))
             user_name = cursor.fetchone()
+            if not user_name:
+                QtWidgets.QMessageBox.critical(self, "Error", "User not found.")
+                return
             user_full_name = f"{user_name[0]} {user_name[1]}"
 
             # Query data from your database
             today = datetime.date.today()
+            query_params = []
             if time_period == "Today":
                 if table_name == "transactions":
-                    cursor.execute(f"""
+                    query = f"""
                         SELECT t.transaction_id, t.date, t.time, t.customer, t.total_price, u.first_name 
                         FROM {table_name} t
                         JOIN users u ON t.user_id = u.user_id
                         WHERE t.date = ?
-                    """, (today,))
+                    """
+                    query_params = [today]
                 elif table_name == "returns":
-                    cursor.execute(f"SELECT return_id, return_date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date=?", (today,))
+                    query = f"SELECT return_id, return_date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date=?"
+                    query_params = [today]
             elif time_period == "This Week":
                 start_of_week = today - datetime.timedelta(days=today.weekday())
                 if table_name == "transactions":
-                    cursor.execute(f"""
+                    query = f"""
                         SELECT t.transaction_id, t.date, t.time, t.customer, t.total_price, u.first_name 
                         FROM {table_name} t
                         JOIN users u ON t.user_id = u.user_id
                         WHERE t.date BETWEEN ? AND ?
-                    """, (start_of_week, today))
+                    """
+                    query_params = [start_of_week, today]
                 elif table_name == "returns":
-                    cursor.execute(f"SELECT return_id, return_date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date BETWEEN ? AND ?", (start_of_week, today))
+                    query = f"SELECT return_id, return_date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date BETWEEN ? AND ?"
+                    query_params = [start_of_week, today]
             elif time_period == "This Month":
                 start_of_month = today.replace(day=1)
                 if table_name == "transactions":
-                    cursor.execute(f"""
+                    query = f"""
                         SELECT t.transaction_id, t.date, t.time, t.customer, t.total_price, u.first_name 
                         FROM {table_name} t
                         JOIN users u ON t.user_id = u.user_id
                         WHERE t.date BETWEEN ? AND ?
-                    """, (start_of_month, today))
+                    """
+                    query_params = [start_of_month, today]
                 elif table_name == "returns":
-                    cursor.execute(f"SELECT return_id, return_date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date BETWEEN ? AND ?", (start_of_month, today))
+                    query = f"SELECT return_id, return_date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date BETWEEN ? AND ?"
+                    query_params = [start_of_month, today]
             elif time_period == "Custom":
                 if table_name == "transactions":
-                    cursor.execute(f"""
+                    query = f"""
                         SELECT t.transaction_id, t.date, t.time, t.customer, t.total_price, u.first_name 
                         FROM {table_name} t
                         JOIN users u ON t.user_id = u.user_id
                         WHERE t.date BETWEEN ? AND ?
-                    """, (start_date, end_date))
+                    """
+                    query_params = [start_date, end_date]
                 elif table_name == "returns":
-                    cursor.execute(f"SELECT return_id, return_date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date BETWEEN ? AND ?", (start_date, end_date))
+                    query = f"SELECT return_id, return_date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date BETWEEN ? AND ?"
+                    query_params = [start_date, end_date]
             
+            cursor.execute(query, query_params)
             rows = cursor.fetchall()
+
+            # Get the top seller product_id
+            cursor.execute(f"""
+                SELECT product_id, COUNT(product_id) AS product_count 
+                FROM transactions
+                WHERE date BETWEEN ? AND ?
+                GROUP BY product_id 
+                ORDER BY product_count DESC 
+                LIMIT 1
+            """, (start_date, end_date))
+            top_seller = cursor.fetchone()
+            if top_seller:
+                top_seller_product_id = top_seller[0]
+                cursor.execute("SELECT product_name FROM products WHERE product_id = ?", (top_seller_product_id,))
+                top_seller_product_name = cursor.fetchone()[0]
+            else:
+                top_seller_product_name = "N/A"
 
             # Close database connection
             conn.close()
@@ -791,16 +822,17 @@ class DatabaseTab(QtWidgets.QWidget):
             report_content = "<html><body>"
             report_content += "<div style='text-align:center;'>"
             report_content += "<h1><b>Jewell 7 Hardware</b></h1>"
-            report_content += f"<h3>{table_name.capitalize()} Report</h3>"
+            report_content += f"<h3>{table_name.capitalize()} Report - {time_period}</h3>"
             report_content += f"<p>Generated by: {user_full_name}</p>"
-            report_content += f"<p>Date and Time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>"
+            report_content += f"<p>Report Generated at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>"
             report_content += "</div>"
-            report_content += "<table border='1' cellspacing='0' cellpadding='5' style='margin: auto;'>"
 
             if table_name == "transactions":
+                report_content += "<table border='1' cellspacing='0' cellpadding='5' style='margin: auto;'>"
                 report_content += "<tr><th>Transaction ID</th><th>Date</th><th>Time</th><th>Customer</th><th>Total Price</th><th>Cashier</th></tr>"
                 total_sales = 0
                 total_revenue = 0
+                time_data = {}
                 for row in rows:
                     transaction_str = (
                         f"<tr>"
@@ -815,24 +847,45 @@ class DatabaseTab(QtWidgets.QWidget):
                     report_content += transaction_str
                     total_sales += 1
                     total_revenue += float(row[4])
-            elif table_name == "sales":
-                report_content += "<tr><th>Sales ID</th><th>Date</th><th>Product</th><th>Quantity</th><th>Total Price</th></tr>"
-                total_sales = 0
-                total_revenue = 0
-                for row in rows:
-                    sales_str = (
-                        f"<tr>"
-                        f"<td>{row[0]}</td>"
-                        f"<td>{row[1]}</td>"
-                        f"<td>{row[2]}</td>"
-                        f"<td>{row[3]}</td>"
-                        f"<td>₱{float(row[4]):.2f}</td>"  # Convert to float before formatting
-                        f"</tr>"
-                    )
-                    report_content += sales_str
-                    total_sales += 1
-                    total_revenue += float(row[4])
+
+                    # Collect time data for chart
+                    date = row[1]
+                    if time_period == "Today":
+                        time = row[2].split(":")[0]  # Hour
+                    elif time_period == "This Week":
+                        time = date  # Date
+                    elif time_period == "This Month":
+                        time = f"Week {datetime.datetime.strptime(date, '%Y-%m-%d').isocalendar()[1]}"  # Week
+                    else:
+                        time = date
+
+                    if time not in time_data:
+                        time_data[time] = 0
+                    time_data[time] += float(row[4])
+
+                report_content += "</table>"
+
+                # Generate line chart
+                times = sorted(time_data.keys())
+                values = [time_data[time] for time in times]
+                plt.figure(figsize=(6, 3))  
+                plt.plot(times, values, marker='o')
+                plt.title(f'Sales Report - {time_period}')
+                plt.xlabel('Date / Time')
+                plt.ylabel('Sales (₱)')
+                plt.grid(True)
+                plt.tight_layout()
+
+                # Save the plot as a base64-encoded string
+                img_buffer = BytesIO()
+                plt.savefig(img_buffer, format='png')
+                img_buffer.seek(0)
+                img_str = base64.b64encode(img_buffer.read()).decode()
+
+                # Embed the chart into the report
+                report_content += f'<div style="text-align:center; margin-top:20px; margin-bottom:20px;"><img src="data:image/png;base64,{img_str}" alt="Sales Chart" /></div>'
             elif table_name == "returns":
+                report_content += "<table border='1' cellspacing='0' cellpadding='5' style='margin: auto;'>"
                 report_content += "<tr><th>Return ID</th><th>Return Date</th><th>Product Name</th><th>Brand</th><th>Variety</th><th>Size</th><th>Quantity</th></tr>"
                 for row in rows:
                     returns_str = (
@@ -847,17 +900,16 @@ class DatabaseTab(QtWidgets.QWidget):
                         f"</tr>"
                     )
                     report_content += returns_str
-
-            report_content += "</table>"
+                report_content += "</table>"
 
             # Add summary details
-            if table_name in ["transactions", "sales"]:
+            if table_name in ["transactions"]:
                 report_content += "<p>Summary:</p>"
                 report_content += f"<p>Total Sales: {total_sales}</p>"
                 report_content += f"<p>Total Revenue: ₱{total_revenue:.2f}</p>"
+                report_content += f"<p>Top Seller: {top_seller_product_name}</p>"
 
             report_content += "</body></html>"
-
 
             # Display report in a preview window
             preview_dialog = QMessageBox()
@@ -888,8 +940,7 @@ class DatabaseTab(QtWidgets.QWidget):
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error generating report: {str(e)}")
-
-
+                
     def customize_report(self):
         dialog = QDialog()
         dialog.setWindowTitle("Customize Report")
@@ -949,10 +1000,10 @@ class DatabaseTab(QtWidgets.QWidget):
         # Show the dialog
         dialog.exec_()
 
-
     def set_report_customization(self, time_period, table_name, start_date, end_date):
         self.report_customized = True
         self.selected_table_name = table_name.lower()
         self.selected_time_period = time_period
         self.selected_start_date = start_date
         self.selected_end_date = end_date
+
