@@ -198,6 +198,7 @@ class PaymentForm(QDialog):
                 self.customer_details = customer_details
                 payment_id = self.generate_payment_id()
                 self.payment_id = payment_id
+                self.amount_paid = float(self.amount_edit.text())
                 self.done(QtWidgets.QDialog.Accepted)
                 self.show_receipt(customer_details, payment_id)
                 

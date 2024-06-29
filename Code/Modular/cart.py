@@ -515,7 +515,8 @@ class CartTab(QtWidgets.QWidget):
             customer_name = payment_form.customer_details['name']  
             contact = payment_form.customer_details['contact']
             payment_id = payment_form.payment_id
-            self.checkout(customer_name, payment_id, contact) 
+            amount_paid = payment_form.amount_paid
+            self.checkout(customer_name, payment_id, contact, amount_paid) 
             self.load_cart_items()
         else:
             QMessageBox.warning(self, "Payment Cancelled", "Payment was not completed.")
@@ -723,7 +724,7 @@ class CartTab(QtWidgets.QWidget):
             # Ensure the database connection is closed
             conn.close()            
         
-    def checkout(self, customer_name, payment_id, contact):
+    def checkout(self, customer_name, payment_id, contact, amount_paid):
         if not payment_id:
             QMessageBox.warning(self, "Error", "Payment ID is missing.")
             return
@@ -739,6 +740,7 @@ class CartTab(QtWidgets.QWidget):
 
         # Use the stored user_id
         user_id = self.user_id
+        amount_paid = amount_paid
         
         for row in range(self.ui.tableWidget.rowCount()):
             product_name_item = self.ui.tableWidget.item(row, 1)
@@ -788,9 +790,9 @@ class CartTab(QtWidgets.QWidget):
                     transaction_type = "purchase"
 
                 cursor.execute('''
-                    INSERT INTO transactions ( transaction_id, customer, product_name, qty, total_price, date, time, type, product_id, brand, var, size, user_id, payment_id, contact, is_flagged)
-                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-                ''', (transaction_id, customer_name, product_name, qty, total_price, current_date, current_time, transaction_type, product_id, brand, var, size, user_id, payment_id, contact, is_flagged))
+                    INSERT INTO transactions ( transaction_id, customer, product_name, qty, total_price, date, time, type, product_id, brand, var, size, user_id, payment_id, contact, is_flagged, amount_paid)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                ''', (transaction_id, customer_name, product_name, qty, total_price, current_date, current_time, transaction_type, product_id, brand, var, size, user_id, payment_id, contact, is_flagged, amount_paid))
 
                 # Update the quantity in the products table
                 cursor.execute("UPDATE products SET qty = qty - ? WHERE product_id = ?", (qty, product_id))

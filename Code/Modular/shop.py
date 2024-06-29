@@ -441,7 +441,7 @@ class ShopTab(QtWidgets.QWidget):
                         AND (size = ? OR size IS NULL)
                     """, (product_name, brand, var, size))
                     product_data = cursor.fetchone()
-
+                    
                     if product_data:
                         product_id, time_added, date_added = product_data
 
@@ -450,18 +450,17 @@ class ShopTab(QtWidgets.QWidget):
                                     (product_name, quantity, total_price, date, product_id, brand, var, size, time_added, date_added))
 
                         conn.commit()
-                        QtWidgets.QMessageBox.information(self, "Cart Updated", "Items added to cart!")
                         self.item_added_to_cart.emit()
                     else:
                         QtWidgets.QMessageBox.warning(self, "Error", f"Product data not found for {product_name}, {brand}, {var}, {size}")
 
                     conn.close()
-
                 else:
                     QtWidgets.QMessageBox.warning(self, "Quantity Error", "Not enough items in stock.")
             except ValueError:
                 QtWidgets.QMessageBox.warning(self, "Value Error", "Invalid quantity or price.")
                 continue
+        QtWidgets.QMessageBox.information(self, "Cart Updated", "Items added to cart!")
 
     def show_add_to_cart_dialog(self):
         selected_rows = set()
