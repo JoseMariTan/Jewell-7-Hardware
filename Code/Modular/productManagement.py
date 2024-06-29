@@ -89,13 +89,12 @@ class ProductsTab(QtWidgets.QWidget):
         self.tableWidget.horizontalHeader().setStretchLastSection(True)
         self.tableWidget.setStyleSheet("QHeaderView::section { background-color: #88ccc4; }")
         self.verticalLayout.addWidget(self.tableWidget)
+        
         self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout.setContentsMargins(290, -1, 290, -1)
         self.horizontalLayout.setSpacing(20)
         self.horizontalLayout.setObjectName("horizontalLayout")
 
-        spacerItem2 = QtWidgets.QSpacerItem(110, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout.addItem(spacerItem2)
+        self.horizontalLayout.addStretch(1)
 
         font_button = QtGui.QFont()
         font_button.setFamily("Segoe UI")
@@ -104,8 +103,8 @@ class ProductsTab(QtWidgets.QWidget):
         font_button.setWeight(75)
 
         self.add_button = QtWidgets.QPushButton("Add a Product", self)
-        self.add_button.setMinimumSize(QtCore.QSize(175, 50))
-        self.add_button.setMaximumSize(QtCore.QSize(350, 60))
+        self.add_button.setMinimumSize(QtCore.QSize(300, 60))  # Adjusted size
+        self.add_button.setMaximumSize(QtCore.QSize(400, 80))  # Adjusted size
         self.add_button.setFont(font_button)
         self.add_button.setStyleSheet("""
             QPushButton {
@@ -128,9 +127,10 @@ class ProductsTab(QtWidgets.QWidget):
         self.add_button.setIconSize(QtCore.QSize(22, 22))
         self.add_button.clicked.connect(self.open_add_product_dialog)
         self.horizontalLayout.addWidget(self.add_button)
+
         self.restock_button = QtWidgets.QPushButton("Restock")
-        self.restock_button.setMinimumSize(QtCore.QSize(175, 50))
-        self.restock_button.setMaximumSize(QtCore.QSize(350, 60))
+        self.restock_button.setMinimumSize(QtCore.QSize(300, 60))  # Adjusted size
+        self.restock_button.setMaximumSize(QtCore.QSize(400, 80))  # Adjusted size
         self.restock_button.setFont(font_button)
         self.restock_button.setStyleSheet("""
             QPushButton {
@@ -153,8 +153,8 @@ class ProductsTab(QtWidgets.QWidget):
         self.horizontalLayout.addWidget(self.restock_button)
         
         self.modify_button = QtWidgets.QPushButton("Modify", self)
-        self.modify_button.setMinimumSize(QtCore.QSize(175, 50))
-        self.modify_button.setMaximumSize(QtCore.QSize(350, 60))
+        self.modify_button.setMinimumSize(QtCore.QSize(300, 60))  # Adjusted size
+        self.modify_button.setMaximumSize(QtCore.QSize(400, 80))  # Adjusted size
         self.modify_button.setFont(font_button)
         self.modify_button.setStyleSheet("""
             QPushButton {
@@ -177,8 +177,8 @@ class ProductsTab(QtWidgets.QWidget):
         self.horizontalLayout.addWidget(self.modify_button)
 
         self.changeStatus_button = QtWidgets.QPushButton("Change Status", self)
-        self.changeStatus_button.setMinimumSize(QtCore.QSize(175, 50))
-        self.changeStatus_button.setMaximumSize(QtCore.QSize(350, 60))
+        self.changeStatus_button.setMinimumSize(QtCore.QSize(300, 60))  # Adjusted size
+        self.changeStatus_button.setMaximumSize(QtCore.QSize(400, 80))  # Adjusted size
         self.changeStatus_button.setFont(font_button)
         self.changeStatus_button.setStyleSheet("""
             QPushButton {
@@ -200,11 +200,11 @@ class ProductsTab(QtWidgets.QWidget):
         self.changeStatus_button.clicked.connect(self.product_status)
         self.horizontalLayout.addWidget(self.changeStatus_button)
 
-        spacerItem3 = QtWidgets.QSpacerItem(110, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout.addItem(spacerItem3)
+        self.horizontalLayout.addStretch(1)
 
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
+
 
     def product_status(self):
         selected_items = self.tableWidget.selectedItems()
