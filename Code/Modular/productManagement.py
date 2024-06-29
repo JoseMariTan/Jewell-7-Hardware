@@ -103,7 +103,7 @@ class ProductsTab(QtWidgets.QWidget):
         font_button.setBold(True)
         font_button.setWeight(75)
 
-        self.add_button = QtWidgets.QPushButton("Add", self)
+        self.add_button = QtWidgets.QPushButton("Add a Product", self)
         self.add_button.setMinimumSize(QtCore.QSize(175, 50))
         self.add_button.setMaximumSize(QtCore.QSize(350, 60))
         self.add_button.setFont(font_button)
@@ -128,7 +128,30 @@ class ProductsTab(QtWidgets.QWidget):
         self.add_button.setIconSize(QtCore.QSize(22, 22))
         self.add_button.clicked.connect(self.open_add_product_dialog)
         self.horizontalLayout.addWidget(self.add_button)
-
+        self.restock_button = QtWidgets.QPushButton("Restock")
+        self.restock_button.setMinimumSize(QtCore.QSize(175, 50))
+        self.restock_button.setMaximumSize(QtCore.QSize(350, 60))
+        self.restock_button.setFont(font_button)
+        self.restock_button.setStyleSheet("""
+            QPushButton {
+                background-color: #10cc94;
+                border-radius: 12px;
+                color: #fff;
+            }
+            QPushButton::pressed {
+                background-color: #fff;
+            }
+            QPushButton:hover {
+                background-color: #0a9c73;
+                transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            border: none;
+        """)
+        self.restock_button.setIcon(icon1)
+        self.restock_button.setIconSize(QtCore.QSize(22, 22))
+        self.restock_button.clicked.connect(self.restock_product)
+        self.horizontalLayout.addWidget(self.restock_button)
+        
         self.modify_button = QtWidgets.QPushButton("Modify", self)
         self.modify_button.setMinimumSize(QtCore.QSize(175, 50))
         self.modify_button.setMaximumSize(QtCore.QSize(350, 60))
@@ -329,6 +352,10 @@ class ProductsTab(QtWidgets.QWidget):
         dialog = ModifyProductDialog(parent=self, rowid=rowid, product_name=product_name, brand=brand, var=var, size=size, price=price, qty=qty, category=category)
         dialog.exec_()
         self.load_data()
+        
+    def restock_product(self):
+        pass
+    
 class AddProductDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -805,6 +832,7 @@ class ModifyProductDialog(QtWidgets.QDialog):
                 conn.close()
 
         self.accept()
+        
 
 class CustomDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
