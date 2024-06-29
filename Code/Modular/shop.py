@@ -379,6 +379,7 @@ class ShopTab(QtWidgets.QWidget):
             size = size_item.text() if size_item else None
             price_text = price_item.text()
             qty_text = qty_item.text()
+            
             if not all([product_name, price_text, qty_text]):
                 QtWidgets.QMessageBox.warning(self, "Error", "One or more fields have empty values!")
                 continue
@@ -388,16 +389,17 @@ class ShopTab(QtWidgets.QWidget):
                 price = float(price_text)
                 new_qty = qty - quantity
 
-                # Fetch threshold from the database
                 conn = sqlite3.connect('j7h.db')
                 cursor = conn.cursor()
+
+                # Fetch threshold from the database
                 cursor.execute("""
                     SELECT threshold 
                     FROM products 
                     WHERE product_name = ? 
-                    AND brand = ? 
-                    AND var = ? 
-                    AND size = ?
+                    AND (brand = ? OR brand IS NULL) 
+                    AND (var = ? OR var IS NULL) 
+                    AND (size = ? OR size IS NULL)
                 """, (product_name, brand, var, size))
                 threshold_result = cursor.fetchone()
 
@@ -407,7 +409,7 @@ class ShopTab(QtWidgets.QWidget):
 
                 if new_qty >= 0:
                     # Update quantity in products table
-                    cursor.execute("UPDATE products SET qty = ? WHERE product_name = ? AND brand = ? AND var = ? AND size = ?",
+                    cursor.execute("UPDATE products SET qty = ? WHERE product_name = ? AND (brand = ? OR brand IS NULL) AND (var = ? OR var IS NULL) AND (size = ? OR size IS NULL)",
                                 (new_qty, product_name, brand, var, size))
 
                     items_in_stock = qty - quantity
@@ -423,26 +425,29 @@ class ShopTab(QtWidgets.QWidget):
                     total_price = quantity * float(price_text)
                     date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-                    cursor.execute("""SELECT product_id FROM products 
-                                    WHERE product_name = ? 
-                                    AND (brand = ? OR brand IS NULL) 
-                                    AND (var = ? OR var IS NULL) 
-                                    AND (size = ? OR size IS NULL)""",
-                                (product_name, brand, var, size))
-                    product_id_result = cursor.fetchone()
+                    # Fetch product_id, time_added, and date_added from the database
+                    cursor.execute("""
+                        SELECT product_id, time_added, date_added 
+                        FROM products 
+                        WHERE product_name = ? 
+                        AND (brand = ? OR brand IS NULL) 
+                        AND (var = ? OR var IS NULL) 
+                        AND (size = ? OR size IS NULL)
+                    """, (product_name, brand, var, size))
+                    product_data = cursor.fetchone()
 
-                    if product_id_result:
-                        product_id = product_id_result[0]
+                    if product_data:
+                        product_id, time_added, date_added = product_data
 
-                        cursor.execute('''INSERT INTO cart (product_name, qty, total_price, date, product_id, brand, var, size)
-                                        VALUES (?,?,?,?,?,?,?,?)''',
-                                    (product_name, quantity, total_price, date, product_id, brand, var, size))
+                        cursor.execute('''INSERT INTO cart (product_name, qty, total_price, date, product_id, brand, var, size, time_added, date_added)
+                                        VALUES (?,?,?,?,?,?,?,?,?,?)''',
+                                    (product_name, quantity, total_price, date, product_id, brand, var, size, time_added, date_added))
 
                         conn.commit()
 
                         self.item_added_to_cart.emit()
                     else:
-                        QtWidgets.QMessageBox.warning(self, "Error", f"Product ID not found for {product_name}, {brand}, {var}, {size}")
+                        QtWidgets.QMessageBox.warning(self, "Error", f"Product data not found for {product_name}, {brand}, {var}, {size}")
 
                     conn.close()
 
@@ -451,7 +456,6 @@ class ShopTab(QtWidgets.QWidget):
             except ValueError:
                 QtWidgets.QMessageBox.warning(self, "Value Error", "Invalid quantity or price.")
                 continue
-
 
     def show_add_to_cart_dialog(self):
         selected_rows = set()
