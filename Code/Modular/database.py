@@ -926,31 +926,68 @@ class DatabaseTab(QtWidgets.QWidget):
 
             layout = QVBoxLayout()
             layout.addWidget(scroll_area)
+
+            # Add Save as PDF button
+            save_button = QtWidgets.QPushButton("Save as PDF")
+            font_button = QtGui.QFont()
+            font_button.setFamily("Segoe UI")
+            font_button.setPointSize(8)
+            font_button.setBold(True)
+            font_button.setWeight(75)
+            save_button.setMinimumSize(QtCore.QSize(100, 40))  
+            save_button.setMaximumSize(QtCore.QSize(150, 80)) 
+            save_button.setFont(font_button)
+            save_button.setStyleSheet("""
+            QPushButton {
+                background-color: #10cc94;
+                border-radius: 12px;
+                color: #fff;
+            }
+            QPushButton::pressed {
+                background-color: #fff;
+            }
+            QPushButton:hover {
+                background-color: #0a9c73;
+                transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            border: none;
+            """)
+
+            button_layout = QtWidgets.QHBoxLayout()
+            button_layout.addStretch(1)
+            button_layout.addWidget(save_button)
+            button_layout.addStretch(1)
+
+            layout.addLayout(button_layout)
+
             preview_dialog.setLayout(layout)
 
-            preview_dialog.resize(800, 600)
+            preview_dialog.resize(700, 600)
+
+            def save_report_as_pdf():
+                file_dialog = QFileDialog(preview_dialog)
+                file_dialog.setAcceptMode(QFileDialog.AcceptSave)
+                file_dialog.setNameFilter("PDF files (*.pdf)")
+                file_dialog.setDefaultSuffix("pdf")
+                if file_dialog.exec_() == QFileDialog.Accepted:
+                    file_path = file_dialog.selectedFiles()[0]
+                    if not file_path.lower().endswith('.pdf'):
+                        file_path += '.pdf'
+
+                    # Create PDF document
+                    printer = QPrinter(QPrinter.HighResolution)
+                    printer.setOutputFormat(QPrinter.PdfFormat)
+                    printer.setOutputFileName(file_path)
+
+                    document = QTextDocument()
+                    document.setHtml(report_content)
+                    document.print_(printer)
+
+                    QMessageBox.information(preview_dialog, "Report Saved", f"Report saved as {file_path}")
+
+            save_button.clicked.connect(save_report_as_pdf)
+
             preview_dialog.exec_()
-
-            # Save report as PDF
-            file_dialog = QFileDialog(self)
-            file_dialog.setAcceptMode(QFileDialog.AcceptSave)
-            file_dialog.setNameFilter("PDF files (*.pdf)")
-            file_dialog.setDefaultSuffix("pdf")
-            if file_dialog.exec_() == QFileDialog.Accepted:
-                file_path = file_dialog.selectedFiles()[0]
-                if not file_path.lower().endswith('.pdf'):
-                    file_path += '.pdf'
-
-                # Create PDF document
-                printer = QPrinter(QPrinter.HighResolution)
-                printer.setOutputFormat(QPrinter.PdfFormat)
-                printer.setOutputFileName(file_path)
-
-                document = QTextDocument()
-                document.setHtml(report_content)
-                document.print_(printer)
-
-                QMessageBox.information(self, "Report Saved", f"Report saved as {file_path}")
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error generating report: {str(e)}")
