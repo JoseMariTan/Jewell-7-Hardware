@@ -965,7 +965,6 @@ class ReportsTab(QtWidgets.QWidget):
         try:
             for row in selected_rows:
                 payment_id = self.transactions_table.item(row.row(), 14).text()
-                print(f"Selected Payment ID: {payment_id}")
                 
                 # Query to fetch all details for transactions with the same payment_id
                 cursor.execute("SELECT * FROM transactions WHERE payment_id = ?", (payment_id,))
