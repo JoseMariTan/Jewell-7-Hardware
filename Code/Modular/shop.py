@@ -408,9 +408,15 @@ class ShopTab(QtWidgets.QWidget):
                     new_qty += threshold
 
                 if new_qty >= 0:
-                    # Update quantity in products table
-                    cursor.execute("UPDATE products SET qty = ? WHERE product_name = ? AND (brand = ? OR brand IS NULL) AND (var = ? OR var IS NULL) AND (size = ? OR size IS NULL)",
-                                (new_qty, product_name, brand, var, size))
+                    # Update quantity, time_added, and date_added in products table
+                    cursor.execute("""
+                        UPDATE products 
+                        SET qty = ?, time_added = ?, date_added = ? 
+                        WHERE product_name = ? 
+                        AND (brand = ? OR brand IS NULL) 
+                        AND (var = ? OR var IS NULL) 
+                        AND (size = ? OR size IS NULL)
+                    """, (new_qty, datetime.now().strftime('%H:%M:%S'), datetime.now().strftime('%Y-%m-%d'), product_name, brand, var, size))
 
                     items_in_stock = qty - quantity
                     if items_in_stock == 0:

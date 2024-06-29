@@ -525,26 +525,67 @@ class CartTab(QtWidgets.QWidget):
         selected_rows = set()
         for item in self.ui.tableWidget.selectedItems():
             selected_rows.add(item.row())
+
         conn = sqlite3.connect('j7h.db')
         cursor = conn.cursor()
+
         for row in selected_rows:
+            # Assuming the product name column is the second column in the table
             product_item = self.ui.tableWidget.item(row, 1)
             if product_item is not None:
                 product_name = product_item.text()
-                # Retrieve current quantity from the cart
-                cursor.execute("SELECT qty FROM cart WHERE product_name = ?", (product_name,))
-                current_qty_in_cart = cursor.fetchone()[0]
-                # Update product quantity in the database
-                cursor.execute("SELECT qty, threshold FROM products WHERE product_name = ?", (product_name,))
-                result = cursor.fetchone()
-                current_qty_in_db = result[0]
-                threshold = result[1]
-                new_qty_in_db = current_qty_in_db + current_qty_in_cart
-                cursor.execute("UPDATE products SET qty = ? WHERE product_name = ?", (new_qty_in_db, product_name))
-                if new_qty_in_db > threshold:
-                    cursor.execute("UPDATE products SET status = 'Available' WHERE product_name = ?", (product_name,))
-                # Delete item from the cart
-                cursor.execute("DELETE FROM cart WHERE product_name = ?", (product_name,))
+
+                # Retrieve product_id, quantity, date_added, and time_added from the cart
+                cursor.execute("""
+                    SELECT product_id, qty, date_added, time_added 
+                    FROM cart 
+                    WHERE product_name = ?
+                """, (product_name,))
+                cart_item = cursor.fetchone()
+
+                if cart_item:
+                    product_id, cart_qty, date_added, time_added = cart_item
+
+                    # Retrieve current quantity from the products table based on product_id, date_added, and time_added
+                    cursor.execute("""
+                        SELECT qty, threshold 
+                        FROM products 
+                        WHERE product_id = ? 
+                        AND date_added = ? 
+                        AND time_added = ?
+                    """, (product_id, date_added, time_added))
+                    product_data = cursor.fetchone()
+
+                    if product_data:
+                        current_qty_in_db, threshold = product_data
+                        new_qty_in_db = current_qty_in_db + cart_qty
+
+                        # Update product quantity in the database
+                        cursor.execute("""
+                            UPDATE products 
+                            SET qty = ? 
+                            WHERE product_id = ? 
+                            AND date_added = ? 
+                            AND time_added = ?
+                        """, (new_qty_in_db, product_id, date_added, time_added))
+
+                        if new_qty_in_db > threshold:
+                            cursor.execute("""
+                                UPDATE products 
+                                SET status = 'Available' 
+                                WHERE product_id = ? 
+                                AND date_added = ? 
+                                AND time_added = ?
+                            """, (product_id, date_added, time_added))
+
+                        # Delete item from the cart
+                        cursor.execute("""
+                            DELETE FROM cart 
+                            WHERE product_id = ? 
+                            AND date_added = ? 
+                            AND time_added = ?
+                        """, (product_id, date_added, time_added))
+
         conn.commit()
         conn.close()
         self.load_cart_items()
@@ -578,19 +619,48 @@ class CartTab(QtWidgets.QWidget):
         conn = sqlite3.connect('j7h.db')
         cursor = conn.cursor()
 
-        # Retrieve quantities of all products in the cart before clearing
-        cursor.execute("SELECT product_name, qty FROM cart")
-        quantities_removed = {row[0]: row[1] for row in cursor.fetchall()}
+        # Retrieve product_id, qty, date_added, and time_added of all products in the cart
+        cursor.execute("SELECT product_id, qty, date_added, time_added FROM cart")
+        cart_items = cursor.fetchall()
+
+        quantities_removed = []
 
         # Update quantities of items in the products table
-        for product_name, qty in quantities_removed.items():
-            cursor.execute("UPDATE products SET qty = qty + ? WHERE product_name = ?", (qty, product_name))
+        for product_id, qty, date_added, time_added in cart_items:
+            # Retrieve the current quantity and threshold from the products table
+            cursor.execute("""
+                SELECT qty, threshold 
+                FROM products 
+                WHERE product_id = ? 
+                AND date_added = ? 
+                AND time_added = ?
+            """, (product_id, date_added, time_added))
+            product_data = cursor.fetchone()
 
-            # Check if the product should be marked as "Available"
-            cursor.execute("SELECT threshold FROM products WHERE product_name = ?", (product_name,))
-            threshold = cursor.fetchone()[0]
-            if qty > threshold:
-                cursor.execute("UPDATE products SET status = 'Available' WHERE product_name = ?", (product_name,))
+            if product_data:
+                current_qty, threshold = product_data
+                new_qty = current_qty + qty
+
+                # Update product quantity in the database
+                cursor.execute("""
+                    UPDATE products 
+                    SET qty = ? 
+                    WHERE product_id = ? 
+                    AND date_added = ? 
+                    AND time_added = ?
+                """, (new_qty, product_id, date_added, time_added))
+
+                # Check if the product should be marked as "Available"
+                if new_qty > threshold:
+                    cursor.execute("""
+                        UPDATE products 
+                        SET status = 'Available' 
+                        WHERE product_id = ? 
+                        AND date_added = ? 
+                        AND time_added = ?
+                    """, (product_id, date_added, time_added))
+
+                quantities_removed.append((product_id, qty, date_added, time_added))
 
         # Clear the cart
         cursor.execute("DELETE FROM cart")
@@ -604,6 +674,7 @@ class CartTab(QtWidgets.QWidget):
 
         # Return the quantities of all products removed
         return quantities_removed
+
     
     def generate_transaction_id(self):
         # Establishing connection with SQLite database
