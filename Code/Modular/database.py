@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import base64
 from io import BytesIO
 from PyQt5.QtPrintSupport import QPrinter
-from PyQt5.QtWidgets import QMessageBox, QFileDialog, QDialog, QVBoxLayout, QLabel, QDateEdit, QDialogButtonBox, QComboBox, QGroupBox
+from PyQt5.QtWidgets import QMessageBox, QFileDialog, QDialog, QVBoxLayout, QLabel, QDateEdit, QDialogButtonBox, QComboBox, QGroupBox, QScrollArea
 from PyQt5.QtGui import QTextDocument
 from PyQt5.QtCore import QDate
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -911,10 +911,24 @@ class DatabaseTab(QtWidgets.QWidget):
 
             report_content += "</body></html>"
 
-            # Display report in a preview window
-            preview_dialog = QMessageBox()
+            # Display report in a scrollable preview window
+            scroll_area = QScrollArea()
+            scroll_area.setWidgetResizable(True)
+
+            content_widget = QLabel()
+            content_widget.setText(report_content)
+            content_widget.setWordWrap(True)
+
+            scroll_area.setWidget(content_widget)
+
+            preview_dialog = QDialog()
             preview_dialog.setWindowTitle("Generated Report")
-            preview_dialog.setText(report_content)
+
+            layout = QVBoxLayout()
+            layout.addWidget(scroll_area)
+            preview_dialog.setLayout(layout)
+
+            preview_dialog.resize(800, 600)
             preview_dialog.exec_()
 
             # Save report as PDF
