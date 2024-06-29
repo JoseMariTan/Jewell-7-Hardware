@@ -1,5 +1,5 @@
 import sqlite3
-from PyQt5.QtWidgets import QTableWidgetItem, QMessageBox
+from PyQt5.QtWidgets import QTableWidgetItem, QMessageBox, QVBoxLayout, QSizePolicy, QDialog, QSpacerItem, QLabel
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt
 from datetime import datetime
@@ -952,4 +952,119 @@ class ReportsTab(QtWidgets.QWidget):
             conn.close()   
             
     def generate_receipt(self):
-        pass
+        selected_rows = self.transactions_table.selectionModel().selectedRows()
+        if not selected_rows:
+            QMessageBox.warning(self, 'No Selection', 'Please select a transaction to generate a receipt on.')
+            return
+        
+        
+        # Connect to the SQLite database
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+        
+        try:
+            for row in selected_rows:
+                payment_id = self.transactions_table.item(row.row(), 14).text()
+                print(f"Selected Payment ID: {payment_id}")
+                
+                # Query to fetch all details for transactions with the same payment_id
+                cursor.execute("SELECT * FROM transactions WHERE payment_id = ?", (payment_id,))
+                transactions = cursor.fetchall()
+                
+                # Initialize variables to store customer details and product lines
+                customer_details = None
+                product_lines = []
+                total_price = 0
+                
+                for transaction in transactions:
+                    if customer_details is None:
+                        customer_details = {
+                            'name': transaction[3],   # customer
+                            'contact': transaction[13],  # contact
+                            'amount_paid': transaction[1]  # total_price
+                        }
+                    
+                    # Fetch product details from transaction row
+                    product_name = transaction[4]  # product_name
+                    quantity = transaction[2]  # qty
+                    total_price_product = transaction[1]  # total_price
+                    
+                    # Append product line to list
+                    product_line = f"{product_name:<20} {quantity:^8} {total_price_product:>15.2f}"
+                    product_lines.append(product_line)
+                    
+                    # Calculate total price
+                    total_price += total_price_product
+                
+                # Generate receipt text
+                receipt_text = self.generate_receipt_text(customer_details, product_lines, total_price, payment_id)
+                
+            # Display receipt in a dialog
+            self.show_receipt_dialog(receipt_text)
+                      
+        except sqlite3.Error as e:
+            print(f"Error fetching data: {e}")
+            QMessageBox.critical(self, 'Database Error', 'Failed to fetch data from database.')
+        
+        finally:
+            conn.close()
+    
+    def generate_receipt_text(self, customer_details, product_lines, total_price, payment_id):
+        # Censoring contact number and address
+        def censor_text(text, visible_chars=4):
+            return text[:visible_chars] + '*' * (len(text) - visible_chars) if len(text) > visible_chars else text
+        
+        censored_contact = censor_text(customer_details['contact'])
+        
+        business_name = "Jewell 7 Hardware"
+        business_address = "123 Hardware St., City, Country"  # Placeholder address
+        business_contact1 = "09530330697"
+        business_contact2 = "09852434838"
+        
+        receipt_width = 46  # Define the width of the receipt
+        
+        receipt_header = f"""{business_name.center(receipt_width)}
+{business_address.center(receipt_width)}
+{business_contact1}, {business_contact2}
+{'=' * receipt_width}
+PAYMENT ID: {payment_id}
+{'-' * receipt_width}
+Customer Details:
+{'-' * receipt_width}
+Name    : {customer_details['name']}
+Contact : {censored_contact}
+{'-' * receipt_width}
+Products Purchased:
+{'-' * receipt_width}
+"""
+        
+        product_headers = f"{'Product':<20} {'Qty':^8} {'Price':>15}\n"
+        
+        payment_details = f"""
+{'-' * receipt_width}
+Total Price : ₱{total_price:.2f}
+{'=' * receipt_width}
+        THIS IS NOT AN OFFICIAL RECEIPT
+{'=' * receipt_width}
+"""
+
+        
+        receipt = receipt_header + product_headers + "\n".join(product_lines) + payment_details
+        return receipt
+    
+    def show_receipt_dialog(self, receipt_text):
+        # Create a QDialog and set the receipt as its text
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Receipt")
+        layout = QVBoxLayout(dialog)
+        receipt_label = QLabel()
+        receipt_label.setFont(QtGui.QFont("Courier", 10))
+        receipt_label.setText(receipt_text)
+        receipt_label.setAlignment(QtCore.Qt.AlignLeft)  # Adjust alignment if needed
+        receipt_label.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
+        layout.addWidget(receipt_label)
+        
+        spacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        layout.addItem(spacer)
+        
+        dialog.exec_()
