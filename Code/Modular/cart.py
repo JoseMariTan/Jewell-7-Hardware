@@ -516,7 +516,6 @@ class CartTab(QtWidgets.QWidget):
             contact = payment_form.customer_details['contact']
             payment_id = payment_form.payment_id
             self.checkout(customer_name, payment_id, contact) 
-            QMessageBox.information(self, "Payment Successful", "Thank you for your purchase!")
             self.load_cart_items()
         else:
             QMessageBox.warning(self, "Payment Cancelled", "Payment was not completed.")
