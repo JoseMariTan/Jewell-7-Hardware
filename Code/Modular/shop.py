@@ -450,7 +450,7 @@ class ShopTab(QtWidgets.QWidget):
                                     (product_name, quantity, total_price, date, product_id, brand, var, size, time_added, date_added))
 
                         conn.commit()
-
+                        QtWidgets.QMessageBox.information(self, "Cart Updated", "Items added to cart!")
                         self.item_added_to_cart.emit()
                     else:
                         QtWidgets.QMessageBox.warning(self, "Error", f"Product data not found for {product_name}, {brand}, {var}, {size}")
