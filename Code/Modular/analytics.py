@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtWidgets import QMessageBox
 import sqlite3
 import pandas as pd
@@ -15,34 +15,55 @@ class AnalyticsTab(QtWidgets.QWidget):
         self.setupUi()
 
     def setupUi(self):
-        self.main_layout = QtWidgets.QHBoxLayout(self)
-
+        self.main_layout = QtWidgets.QVBoxLayout(self)
+        
+        # Right side layout (chart placeholder)
+        self.chart_layout = QtWidgets.QVBoxLayout()
+        self.chart_placeholder = QtWidgets.QLabel("Chart or Graph Placeholder", self)
+        self.chart_placeholder.setAlignment(QtCore.Qt.AlignCenter)
+        self.chart_placeholder.setStyleSheet("border: 1px solid black;")
+        self.chart_layout.addWidget(self.chart_placeholder)
+        self.main_layout.addLayout(self.chart_layout, 3)  # Larger weight for chart layout
+        
         # Left side layout (controls)
         self.controls_layout = QtWidgets.QVBoxLayout()
+
+        # Define a font to make controls larger
+        larger_font = QtGui.QFont()
+        larger_font.setPointSize(12)
 
         # Chart type layout
         self.chart_type_layout = QtWidgets.QHBoxLayout()
         self.chart_type_label = QtWidgets.QLabel("Chart Type:", self)
+        self.chart_type_label.setFont(larger_font)
         self.chart_type_combo = QtWidgets.QComboBox(self)
         self.chart_type_combo.addItems(["Line Chart", "Pie Chart", "Bar Chart"])
+        self.chart_type_combo.setFont(larger_font)
         self.chart_type_layout.addWidget(self.chart_type_label)
         self.chart_type_layout.addWidget(self.chart_type_combo)
+        self.chart_type_layout.addItem(QtWidgets.QSpacerItem(20, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
         self.controls_layout.addLayout(self.chart_type_layout)
 
         # Time period layout
         self.time_period_layout = QtWidgets.QHBoxLayout()
         self.time_period_label = QtWidgets.QLabel("Time Period:", self)
+        self.time_period_label.setFont(larger_font)
         self.time_period_combo = QtWidgets.QComboBox(self)
         self.time_period_combo.addItems(["Today", "Last Week", "Last Month", "This Year"])
+        self.time_period_combo.setFont(larger_font)
         self.time_period_layout.addWidget(self.time_period_label)
         self.time_period_layout.addWidget(self.time_period_combo)
+        self.time_period_layout.addItem(QtWidgets.QSpacerItem(20, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
         self.controls_layout.addLayout(self.time_period_layout)
 
         # Transaction type layout
         self.transaction_type_layout = QtWidgets.QHBoxLayout()
         self.transaction_type_label = QtWidgets.QLabel("Transaction Type:", self)
+        self.transaction_type_label.setFont(larger_font)
         self.transaction_type_sales = QtWidgets.QRadioButton("Sales", self)
+        self.transaction_type_sales.setFont(larger_font)
         self.transaction_type_returns = QtWidgets.QRadioButton("Returns", self)
+        self.transaction_type_returns.setFont(larger_font)
         self.transaction_type_group = QtWidgets.QButtonGroup(self)
         self.transaction_type_group.addButton(self.transaction_type_sales)
         self.transaction_type_group.addButton(self.transaction_type_returns)
@@ -50,13 +71,17 @@ class AnalyticsTab(QtWidgets.QWidget):
         self.transaction_type_layout.addWidget(self.transaction_type_label)
         self.transaction_type_layout.addWidget(self.transaction_type_sales)
         self.transaction_type_layout.addWidget(self.transaction_type_returns)
+        self.transaction_type_layout.addItem(QtWidgets.QSpacerItem(20, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
         self.controls_layout.addLayout(self.transaction_type_layout)
 
         # Data type layout
         self.data_type_layout = QtWidgets.QHBoxLayout()
         self.data_type_label = QtWidgets.QLabel("Data Type:", self)
+        self.data_type_label.setFont(larger_font)
         self.data_type_product_name = QtWidgets.QRadioButton("Product Name", self)
+        self.data_type_product_name.setFont(larger_font)
         self.data_type_category = QtWidgets.QRadioButton("Category", self)
+        self.data_type_category.setFont(larger_font)
         self.data_type_group = QtWidgets.QButtonGroup(self)
         self.data_type_group.addButton(self.data_type_product_name)
         self.data_type_group.addButton(self.data_type_category)
@@ -64,11 +89,12 @@ class AnalyticsTab(QtWidgets.QWidget):
         self.data_type_layout.addWidget(self.data_type_label)
         self.data_type_layout.addWidget(self.data_type_product_name)
         self.data_type_layout.addWidget(self.data_type_category)
+        self.data_type_layout.addItem(QtWidgets.QSpacerItem(20, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
         self.controls_layout.addLayout(self.data_type_layout)
 
-        # generate button
+        # Generate button
         self.generate_button = QtWidgets.QPushButton("Generate", self)
-        self.controls_layout.addWidget(self.generate_button, alignment=QtCore.Qt.AlignRight)
+        self.controls_layout.addWidget(self.generate_button, alignment=QtCore.Qt.AlignCenter)
 
         # Spacer below the generate button
         self.controls_layout.addSpacerItem(QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding))
@@ -78,24 +104,38 @@ class AnalyticsTab(QtWidgets.QWidget):
         # Spacer between controls and chart placeholder
         self.main_layout.addItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
 
-        # Right side layout (chart placeholder)
-        self.chart_layout = QtWidgets.QVBoxLayout()
-        self.chart_placeholder = QtWidgets.QLabel("Chart or Graph Placeholder", self)
-        self.chart_placeholder.setAlignment(QtCore.Qt.AlignCenter)
-        self.chart_placeholder.setStyleSheet("border: 1px solid black;")
-        self.chart_layout.addWidget(self.chart_placeholder)
-
-        self.main_layout.addLayout(self.chart_layout, 3)  # Larger weight for chart layout
-
         # Connect generate button to a method
+        font_button = QtGui.QFont()
+        font_button.setFamily("Segoe UI")
+        font_button.setPointSize(8)
+        font_button.setBold(True)
+        font_button.setWeight(75)
         self.generate_button.clicked.connect(self.generate_analytics_data)
+        self.generate_button.setMinimumSize(QtCore.QSize(300, 60))  
+        self.generate_button.setMaximumSize(QtCore.QSize(400, 80)) 
+        self.generate_button.setFont(font_button)
+        self.generate_button.setStyleSheet("""
+            QPushButton {
+                background-color: #10cc94;
+                border-radius: 12px;
+                color: #fff;
+            }
+            QPushButton::pressed {
+                background-color: #fff;
+            }
+            QPushButton:hover {
+                background-color: #0a9c73;
+                transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            border: none;
+        """)
 
         # Connect chart type combo box to visibility handler
         self.chart_type_combo.currentIndexChanged.connect(self.toggle_data_type_visibility)
 
         # Initially hide data type options for Line Chart
         self.toggle_data_type_visibility()
-
+        
     def toggle_data_type_visibility(self):
         chart_type = self.chart_type_combo.currentText()
         if chart_type == "Line Chart":
