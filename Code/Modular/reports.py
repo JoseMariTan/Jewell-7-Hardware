@@ -1,7 +1,7 @@
 import sqlite3
 from PyQt5.QtWidgets import QTableWidgetItem, QMessageBox, QVBoxLayout, QSizePolicy, QDialog, QSpacerItem, QLabel
 from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import Qt, QTime
+from PyQt5.QtCore import Qt, QTimer, QTime
 from datetime import datetime
 import random, string
 from assets import mainlogo_rc
@@ -1114,17 +1114,19 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
     def set_cash_register(self):
         conn = sqlite3.connect("j7h.db")
         cursor = conn.cursor()
-        cursor.execute("SELECT current_value FROM cash_register")
+        cursor.execute("SELECT current_value, initial_value, reset_time FROM cash_register")
         result = cursor.fetchone()
         if result is None:
             cash_register_value = 0
+            initial_value = 0
+            reset_time = "00:00"
         else:
-            cash_register_value = result[0]
+            cash_register_value, initial_value, reset_time = result
         conn.close()
 
         dialog = QDialog(self)
         dialog.setWindowTitle("Cash Register")
-        dialog.setFixedSize(300, 200)
+        dialog.setFixedSize(300, 250)
 
         layout = QVBoxLayout()
 
@@ -1133,16 +1135,26 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
         self.cash_register_label.setAlignment(QtCore.Qt.AlignCenter)
         layout.addWidget(self.cash_register_label)
 
+        # Display the initial value
+        self.initial_value_label = QLabel(f"Initial Value: ₱ {initial_value:.2f}")
+        self.initial_value_label.setAlignment(QtCore.Qt.AlignCenter)
+        layout.addWidget(self.initial_value_label)
+
+        # Display the reset time
+        self.reset_time_label = QLabel(f"Reset Time: {reset_time}")
+        self.reset_time_label.setAlignment(QtCore.Qt.AlignCenter)
+        layout.addWidget(self.reset_time_label)
+
         button_layout = QtWidgets.QHBoxLayout()
-        
+
         set_initial_button = QtWidgets.QPushButton("Set initial value")
         set_initial_button.clicked.connect(self.set_initial_value)
         button_layout.addWidget(set_initial_button)
-            
+
         schedule_reset_button = QtWidgets.QPushButton("Schedule Reset")
         schedule_reset_button.clicked.connect(self.schedule_reset)
         button_layout.addWidget(schedule_reset_button)
-            
+
         modify_button = QtWidgets.QPushButton("Modify")
         modify_button.clicked.connect(lambda: self.modify_value(dialog))
         button_layout.addWidget(modify_button)
@@ -1151,7 +1163,7 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
 
         dialog.setLayout(layout)
         dialog.exec_()
-
+        
     def set_initial_value(self):
         dialog = QDialog(self)
         dialog.setWindowTitle("Set Initial Value")
@@ -1189,6 +1201,7 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
             conn.close()
             dialog.accept()  # Close the dialog
             QMessageBox.information(self, "Success", f"Initial value set to ₱ {new_value}")
+            self.initial_value_label.setText(f"Initial Value: ₱ {float(new_value):.2f}")
         else:
             QMessageBox.warning(self, "Input Error", "Please enter a valid number.")
 
@@ -1197,7 +1210,7 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
         dialog.setWindowTitle("Schedule Reset")
         dialog.setFixedSize(300, 200)
 
-        layout = QVBoxLayout()
+        layout = QVBoxLayout(dialog)
 
         label = QLabel("Select reset time:")
         layout.addWidget(label)
@@ -1228,7 +1241,8 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
         conn.commit()
         conn.close()
         dialog.accept()  # Close the dialog
-        QMessageBox.information(self, "Success", f"Cash Register will now reset at {reset_time}")
+        self.reset_time_label.setText(f"Reset Time: {reset_time}")
+        QMessageBox.information(self, "Success", f"Reset scheduled at {reset_time}")
         
     def modify_value(self, parent_dialog):
         dialog = QDialog(self)
@@ -1270,3 +1284,4 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
             QMessageBox.information(self, "Success", f"Cash register value modified to ₱ {new_value}")
         else:
             QMessageBox.warning(self, "Input Error", "Please enter a valid number.")
+
