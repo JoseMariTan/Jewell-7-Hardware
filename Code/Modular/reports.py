@@ -4,6 +4,7 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt
 from datetime import datetime
 import random, string
+from assets import mainlogo_rc
 
 class QuantityInputDialog(QtWidgets.QDialog):
     def __init__(self, parent=None, max_quantity=1):
@@ -217,15 +218,85 @@ class ReportsTab(QtWidgets.QWidget):
 
         # Search Component
         self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.search_input = QtWidgets.QLineEdit()
-        self.search_input.setFixedHeight(40) 
-        self.search_button = QtWidgets.QPushButton("Search")
-        self.search_button.setFixedHeight(40)
+        self.horizontalLayout.setAlignment(QtCore.Qt.AlignLeft)  # Align to the left
+        
+        spacerItem = QtWidgets.QSpacerItem(10, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItem)
+        self.search_button = QtWidgets.QPushButton(self)
+        self.search_button.setMinimumSize(QtCore.QSize(50, 50))
+        self.search_button.setMaximumSize(QtCore.QSize(50, 50))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(14)
+        font.setBold(False)
+        font.setItalic(False)
+        font.setWeight(50)
+        font.setStrikeOut(False)
+        self.search_button.setFont(font)
+        self.search_button.setMouseTracking(True)
+        self.search_button.setTabletTracking(True)
+        self.search_button.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.search_button.setStyleSheet("QPushButton {\n"
+" background-color: #f6f4f4;\n"
+"border-radius:25px;\n"
+"color:black;\n"
+";\n"
+"}\n"
+"QPushButton#quit_button {\n"
+"   background-color: green;\n"
+"}\n"
+"QPushButton::pressed {\n"
+"background-color: #fff;\n"
+"}\n"
+"QpushButton{\n"
+"border: 2px solid #555;\n"
+"    border-radius: 20px;\n"
+"    border-style: outset;\n"
+"border-width:200px;\n"
+"\n"
+"}\n"
+"QPushButton:hover {\n"
+"   background-color: #81cdc6;\n"
+"   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"color:#fff;\n"
+"}\n"
+"\n"
+"shoppingbag:hover{\n"
+"color:#fff;\n"
+"background-repeat:no-repeat;\n"
+"}\n"
+"\n"
+"border:none;\n"
+"")
+        self.search_button.setText("")
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(":/search/search.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.search_button.setIcon(icon)
+        self.search_button.setIconSize(QtCore.QSize(20, 20))
+        self.search_button.setObjectName("search_button")
         self.search_button.clicked.connect(self.search_logs)
         self.search_button.clicked.connect(self.search_transactions)
-        self.horizontalLayout.addWidget(self.search_input)
-        self.horizontalLayout.addWidget(self.search_button)
+        
+        self.search_input = QtWidgets.QLineEdit(self)
+        self.search_input.setMinimumSize(QtCore.QSize(300, 50))
+        self.search_input.setMaximumSize(QtCore.QSize(600, 75))
+        self.search_input.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.search_input.setStyleSheet("border-radius:25px;\n"
+"padding-right:10px;\n"
+"padding-left:10px;\n"
+"background-color:#f6f4f4;\n"
+"")
+        self.search_input.setText("")
+        self.search_input.setPlaceholderText("  Search...")
+        self.search_input.setCursorPosition(0)
+        self.search_input.setDragEnabled(False)
+        self.search_input.setCursorMoveStyle(QtCore.Qt.LogicalMoveStyle)
+        self.search_input.setObjectName("search_input")
+        
+        self.horizontalLayout.addWidget(self.search_button)  # Add search button first
+        self.horizontalLayout.addWidget(self.search_input)   # Add search input second
         self.layout.addLayout(self.horizontalLayout)
+
 
         # Create tab widget and sub-tabs
         self.tab_widget = QtWidgets.QTabWidget()
@@ -238,7 +309,24 @@ class ReportsTab(QtWidgets.QWidget):
         self.tab_widget.addTab(self.reports_tab, "User Logs")  
         self.tab_widget.addTab(self.transactions_tab, "Transactions")
         self.tab_widget.addTab(self.returns_tab, "Returns")
-        self.tab_widget.setStyleSheet(""" QHeaderView::section { background-color: #ff7d7d;} """)
+        self.tab_widget.setStyleSheet("QTabWidget::tab-bar {\n"
+"   border: 1px solid gray;\n"
+"background-color:81cdc6;\n"
+"}\n"
+"QTabBar::tab {\n"
+"  background: #81cdc6;\n"
+"  color: #fff;\n"
+"  padding: 10px;\n"
+"border-radius: 20px;\n"
+"\n"
+" }\n"
+"\n"
+" QTabBar::tab:selected {\n"
+"  background: #66b3a8 ;\n"
+" }\n"
+"QTabWidget::pane { \n"
+"   border: none;\n"
+"}")
 
         # Set layouts for each sub-tab
         self.initReportsTab()
@@ -249,7 +337,8 @@ class ReportsTab(QtWidgets.QWidget):
 
         # Connect itemSelectionChanged signal to handle row selection
         self.transactions_table.itemSelectionChanged.connect(self.on_selection_changed)
-        self.returns_table.itemSelectionChanged.connect(self.on_selection_row)
+        self.returns_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.user_logs_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
 
         # Connect tabChanged signal to clear the search query
         self.tab_widget.currentChanged.connect(self.clear_search_query)
@@ -264,13 +353,13 @@ class ReportsTab(QtWidgets.QWidget):
         self.user_logs_table.horizontalHeader().setStretchLastSection(True)
         self.user_logs_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         self.user_logs_table.verticalHeader().setVisible(False)
+        self.user_logs_table.setStyleSheet("QHeaderView::section { background-color: #88ccc4; }")
 
         # Add the table widget to the layout
         layout.addWidget(self.user_logs_table)
 
         # Load user logs into the table
         self.load_user_logs()
-
         buttons_layout = QtWidgets.QHBoxLayout()
 
         # Add buttons layout to the main layout
@@ -283,11 +372,12 @@ class ReportsTab(QtWidgets.QWidget):
         self.transactions_table = QtWidgets.QTableWidget()
         self.transactions_table.setColumnCount(16)  # Update column count to match the number of columns
         self.transactions_table.setHorizontalHeaderLabels([
-            'Total Amount',  'Price', 'Quantity', 'Customer', 'Product','Brand', 'Variation', 'Size', 'Category', 'Time', 
+            'Total Amount',  'Price', 'Quantity', 'Customer', 'Product', 'Brand', 'Variation', 'Size', 'Category', 'Time', 
             'Date', 'Type', 'User ID', 'Cashier', 'Payment ID', 'Contact'
         ])
         
         self.transactions_table.horizontalHeader().setStretchLastSection(True)
+        self.transactions_table.setStyleSheet("QHeaderView::section { background-color: #88ccc4; }")
         self.transactions_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         self.transactions_table.verticalHeader().setVisible(False)
 
@@ -298,45 +388,221 @@ class ReportsTab(QtWidgets.QWidget):
         self.load_transactions()
 
         # Create buttons for clearing logs, flagging transactions, and generating receipts
-        buttons_layout = QtWidgets.QHBoxLayout()
-        return_button = QtWidgets.QPushButton("Return Item")
-        flag_transaction_button = QtWidgets.QPushButton("Flag Transaction")
-        receipt_button = QtWidgets.QPushButton("Generate Receipt")
+        self.return_button = QtWidgets.QPushButton(self.transactions_tab)
+        self.return_button.setMinimumSize(QtCore.QSize(175, 50))
+        self.return_button.setMaximumSize(QtCore.QSize(400, 60))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(8)
+        font.setBold(True)
+        font.setWeight(75)
+        font.setStrikeOut(False)
+        self.return_button.setFont(font)
+        self.return_button.setMouseTracking(True)
+        self.return_button.setTabletTracking(True)
+        self.return_button.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.return_button.setText("Return Item")
+        self.return_button.setStyleSheet("QPushButton {\n"
+                                        " background-color: #F88379;\n"
+                                        "border-radius:12px;\n"
+                                        "color:#fff;\n"
+                                        "}\n"
+                                        "QPushButton#quit_button {\n"
+                                        "   background-color: green;\n"
+                                        "}\n"
+                                        "QPushButton::pressed {\n"
+                                        "background-color: #fff;\n"
+                                        "}\n"
+                                        "QpushButton{\n"
+                                        "border: 2px solid #555;\n"
+                                        "    border-radius: 20px;\n"
+                                        "    border-style: outset;\n"
+                                        "border-width:200px;\n"
+                                        "    \n"
+                                        "}\n"
+                                        "QPushButton:hover {\n"
+                                        "   background-color: #E5676B;\n"
+                                        "   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+                                        "}\n"
+                                        "\n"
+                                        "border:none;\n"
+                                        "")
+
+        self.flag_transaction_button = QtWidgets.QPushButton(self.transactions_tab)
+        self.flag_transaction_button.setMinimumSize(QtCore.QSize(175, 50))
+        self.flag_transaction_button.setMaximumSize(QtCore.QSize(400, 60))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(8)
+        font.setBold(True)
+        font.setWeight(75)
+        font.setStrikeOut(False)
+        self.flag_transaction_button.setFont(font)
+        self.flag_transaction_button.setMouseTracking(True)
+        self.flag_transaction_button.setTabletTracking(True)
+        self.flag_transaction_button.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.flag_transaction_button.setText("Flag Transaction")
+        self.flag_transaction_button.setStyleSheet("QPushButton {\n"
+                                                " background-color: #10cc94;\n"
+                                                "border-radius:12px;\n"
+                                                "color:#fff;\n"
+                                                "}\n"
+                                                "QPushButton#quit_button {\n"
+                                                "   background-color: green;\n"
+                                                "}\n"
+                                                "QPushButton::pressed {\n"
+                                                "background-color: #fff;\n"
+                                                "}\n"
+                                                "QpushButton{\n"
+                                                "border: 2px solid #555;\n"
+                                                "    border-radius: 20px;\n"
+                                                "    border-style: outset;\n"
+                                                "border-width:200px;\n"
+                                                "    \n"
+                                                "}\n"
+                                                "QPushButton:hover {\n"
+                                                "   background-color: #0a9c73;\n"
+                                                "   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+                                                "}\n"
+                                                "\n"
+                                                "border:none;\n"
+                                                "")
+
+        self.receipt_button = QtWidgets.QPushButton(self.transactions_tab)
+        self.receipt_button.setMinimumSize(QtCore.QSize(175, 50))
+        self.receipt_button.setMaximumSize(QtCore.QSize(400, 60))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(8)
+        font.setBold(True)
+        font.setWeight(75)
+        font.setStrikeOut(False)
+        self.receipt_button.setFont(font)
+        self.receipt_button.setMouseTracking(True)
+        self.receipt_button.setTabletTracking(True)
+        self.receipt_button.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.receipt_button.setText("Generate Receipt")
+        self.receipt_button.setStyleSheet("QPushButton {\n"
+                                        " background-color: #10cc94;\n"
+                                        "border-radius:12px;\n"
+                                        "color:#fff;\n"
+                                        "}\n"
+                                        "QPushButton#quit_button {\n"
+                                        "   background-color: green;\n"
+                                        "}\n"
+                                        "QPushButton::pressed {\n"
+                                        "background-color: #fff;\n"
+                                        "}\n"
+                                        "QpushButton{\n"
+                                        "border: 2px solid #555;\n"
+                                        "    border-radius: 20px;\n"
+                                        "    border-style: outset;\n"
+                                        "border-width:200px;\n"
+                                        "    \n"
+                                        "}\n"
+                                        "QPushButton:hover {\n"
+                                        "   background-color: #0a9c73;\n"
+                                        "   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+                                        "}\n"
+                                        "\n"
+                                        "border:none;\n"
+                                        "")
 
         # Connect button signals to slots
-        flag_transaction_button.clicked.connect(self.flag_transaction)
-        receipt_button.clicked.connect(self.generate_receipt)
-        return_button.clicked.connect(self.return_selected_item)
+        self.return_button.clicked.connect(self.return_selected_item)
+        self.flag_transaction_button.clicked.connect(self.flag_transaction)
+        self.receipt_button.clicked.connect(self.generate_receipt)
+
+        # Create horizontal layout for buttons
+        buttons_layout = QtWidgets.QHBoxLayout()
+        buttons_layout.setContentsMargins(200, -1, 200, -1)
+        buttons_layout.setSpacing(3)
 
         # Add buttons to the layout
-        buttons_layout.addWidget(return_button)
-        buttons_layout.addWidget(flag_transaction_button)
-        buttons_layout.addWidget(receipt_button)
+        buttons_layout.addWidget(self.return_button)
+        buttons_layout.addWidget(self.flag_transaction_button)
+        buttons_layout.addWidget(self.receipt_button)
 
         # Add buttons layout to the main layout
         layout.addLayout(buttons_layout)
-        
+
     def initReturnsTab(self):
         layout = QtWidgets.QVBoxLayout(self.returns_tab)
 
         # Create the table widget for returns
         self.returns_table = QtWidgets.QTableWidget()
         self.returns_table.setColumnCount(10)  # Set column count to match the number of columns in returns
-        self.returns_table.setHorizontalHeaderLabels(['Return ID', 'Product Name', 'Brand', 'Variation', 'Size', 'Quantity', 'Date', 'Date of Return', 'Transaction ID', 'Reason'])
+        self.returns_table.setHorizontalHeaderLabels([
+            'Return ID', 'Product Name', 'Brand', 'Variation', 'Size', 'Quantity', 'Date', 'Date of Return', 'Transaction ID', 'Reason'
+        ])
         self.returns_table.horizontalHeader().setStretchLastSection(True)
         self.returns_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         self.returns_table.verticalHeader().setVisible(False)
+        self.returns_table.setStyleSheet("QHeaderView::section { background-color: #88ccc4; }")
 
         # Add the table widget to the layout
         layout.addWidget(self.returns_table)
-        
+
+        # Create a horizontal layout for the button
+        button_layout = QtWidgets.QHBoxLayout()
+
+        # Add a spacer item to the left
+        button_layout.addStretch()
+
         # Add Return to Inventory button
         return_to_inventory_button = QtWidgets.QPushButton('Return to Inventory')
+        return_to_inventory_button.setMinimumSize(QtCore.QSize(500, 50))
+        return_to_inventory_button.setMaximumSize(QtCore.QSize(500, 60))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(8)
+        font.setBold(True)
+        font.setWeight(75)
+        font.setStrikeOut(False)
+        return_to_inventory_button.setFont(font)
+        return_to_inventory_button.setMouseTracking(True)
+        return_to_inventory_button.setTabletTracking(True)
+        return_to_inventory_button.setLayoutDirection(QtCore.Qt.LeftToRight)
+        return_to_inventory_button.setStyleSheet("QPushButton {\n"
+                                                " background-color: #10cc94;\n"
+                                                "border-radius:12px;\n"
+                                                "color:#fff;\n"
+                                                "}\n"
+                                                "QPushButton#quit_button {\n"
+                                                "   background-color: green;\n"
+                                                "}\n"
+                                                "QPushButton::pressed {\n"
+                                                "background-color: #fff;\n"
+                                                "}\n"
+                                                "QpushButton{\n"
+                                                "border: 2px solid #555;\n"
+                                                "    border-radius: 20px;\n"
+                                                "    border-style: outset;\n"
+                                                "border-width:200px;\n"
+                                                "    \n"
+                                                "}\n"
+                                                "QPushButton:hover {\n"
+                                                "   background-color: #0a9c73;\n"
+                                                "   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+                                                "}\n"
+                                                "\n"
+                                                "border:none;\n"
+                                                "")
+
         return_to_inventory_button.clicked.connect(self.return_to_inventory)
-        layout.addWidget(return_to_inventory_button)
+
+        # Add the button to the horizontal layout
+        button_layout.addWidget(return_to_inventory_button)
+
+        # Add a spacer item to the right
+        button_layout.addStretch()
+
+        # Add the horizontal layout to the main layout
+        layout.addLayout(button_layout)
+
         # Load returns into the table
         self.load_returns()
-        
+
     def return_to_inventory(self):
         selected_items = self.returns_table.selectedItems()
         if not selected_items:
@@ -396,17 +662,7 @@ class ReportsTab(QtWidgets.QWidget):
         self.search_logs()
         self.search_transactions()
         self.search_returns()
-        
-    def on_selection_row(self):
-        selected_rows = set()
-        for item in self.returns_table.selectedItems():
-            selected_rows.add(item.row())
-        for row in selected_rows:
-            for column in range(self.returns_table.columnCount()):
-                item = self.returns_table.item(row, column)
-                if item:
-                    item.setSelected(True)
-                    
+
     def on_selection_changed(self):
         selected_rows = set()
         selected_payment_ids = set()  # Track selected payment_ids
