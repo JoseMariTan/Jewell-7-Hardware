@@ -266,6 +266,10 @@ class Login(QtWidgets.QWidget):
             log_id = self.generate_log_id()
 
             if status == 'Deactivated':
+                action = "login attempt"
+                cursor.execute('''INSERT INTO user_logs (log_id, user_id, action, time, date) 
+                                VALUES (?, ?, ?, ?, ?)''', (log_id, user_id, action, time_log, date_log))
+                conn.commit()
                 self.show_error_message("Your account is Deactivated, please contact an admin.")
                 return
 
