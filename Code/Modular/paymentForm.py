@@ -1,7 +1,7 @@
 import sys
 import sqlite3
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QDialog, QMessageBox
+from PyQt5.QtWidgets import QDialog, QMessageBox, QVBoxLayout, QSpacerItem, QLabel, QSizePolicy
 import string, random
 from datetime import datetime
 
@@ -139,7 +139,7 @@ class PaymentForm(QDialog):
         self.contact_edit.setPlaceholderText(_translate("Form", "Enter number"))
         self.label_4.setText(_translate("Form", "Address"))
         self.address_edit.setPlaceholderText(_translate("Form", "Enter address"))
-        self.label_5.setText(_translate("Form", "Amount Paid (PHP)"))
+        self.label_5.setText(_translate("Form", "Amount Paid (₱)"))
         self.amount_edit.setPlaceholderText(_translate("Form", "Enter amount paid"))
         self.complete_button.setText(_translate("Form", "Complete"))
         self.clear_button.setText(_translate("Form", "Clear"))
@@ -215,7 +215,6 @@ class PaymentForm(QDialog):
             return True
         return False
 
-
     def show_receipt(self, customer_details, payment_id):
         cart_products = self.products_in_cart  # Use the already fetched cart products
 
@@ -231,30 +230,25 @@ class PaymentForm(QDialog):
         business_contact1 = "09530330697"
         business_contact2 = "09852434838"
 
-        # Function to center text within a given width using asterisks
-        def center_text(text, width):
-            return f"*{text:^{width - 2}}*"
-
         receipt_width = 46  # Define the width of the receipt
 
-        receipt_header = f"""
-    *{'=' * 44}*
-    *{center_text(business_name, 44)}*
-    *{'=' * 44}*
-    Address: {business_address}
+        receipt_header = f"""{business_name.center(receipt_width)}
+    {business_address.center(receipt_width)}
     Contact: {business_contact1}, {business_contact2}
-    *{'=' * 44}*
+    {'=' * receipt_width}
     PAYMENT ID: {payment_id}
-    *{'-' * 60}*
+    {'-' * receipt_width}
     Customer Details:
-    *{'-' * 60}*
-    Name\t: {customer_details['name']}
-    Contact\t: {censored_contact}
-    Address\t: {censored_address}
-    *{'-' * 60}*
+    {'-' * receipt_width}
+    Name    : {customer_details['name']}
+    Contact : {censored_contact}
+    Address : {censored_address}
+    {'-' * receipt_width}
     Products Purchased:
-    *{'-' * 60}*
+    {'-' * receipt_width}
     """
+
+        product_headers = f"{'Product':<20} {'Qty':^8} {'Price':>15}\n"
 
         total_price = 0
         product_lines = []
@@ -269,27 +263,36 @@ class PaymentForm(QDialog):
             quantity = product['quantity']
             total_price_product = product['total_price']
             total_price += total_price_product
-            product_line = f"{name:<{name_width}} {quantity:<{quantity_width}} PHP{total_price_product:>{price_width - 4}.2f}"
+            product_line = f"{name:<{name_width}} {quantity:^{quantity_width}} ₱{total_price_product:>{price_width - 4}.2f}"
             product_lines.append(product_line)
 
         payment_details = f"""
-    *{'-' * 44}*
-    Total Price\t: PHP{total_price:.2f}
-    Amount Paid\t: PHP{customer_details['amount_paid']:.2f}
-    Change\t\t: PHP{customer_details['amount_paid'] - total_price:.2f}
-    *{'=' * 44}*
+    {'-' * receipt_width}
+    Total Price : ₱{total_price:.2f}
+    Amount Paid : ₱{customer_details['amount_paid']:.2f}
+    Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
+    {'=' * receipt_width}
     THANK YOU FOR YOUR PURCHASE!
-    *{'=' * 44}*
+    {'=' * receipt_width}
     """
 
-        receipt = receipt_header + "\n".join(product_lines) + payment_details
+        receipt = receipt_header + product_headers + "\n".join(product_lines) + payment_details
 
-        # Create a QMessageBox and set the receipt as its text
-        message_box = QMessageBox()
-        message_box.setWindowTitle("Receipt")
-        message_box.setText(receipt)
-        message_box.setStandardButtons(QMessageBox.Ok)
-        message_box.exec_()
+        # Create a QDialog and set the receipt as its text
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Receipt")
+        layout = QVBoxLayout(dialog)
+        receipt_label = QLabel()
+        receipt_label.setFont(QtGui.QFont("Courier", 10))
+        receipt_label.setText(receipt)
+        receipt_label.setAlignment(QtCore.Qt.AlignCenter)  # Center align the text
+        receipt_label.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
+        layout.addWidget(receipt_label)
+        
+        spacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        layout.addItem(spacer)
+        
+        dialog.exec_()
 
     def generate_payment_id(self):
             # Establishing connection with SQLite database
@@ -314,10 +317,3 @@ class PaymentForm(QDialog):
             finally:
                 # Ensure the database connection is closed
                 conn.close()
-
-if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-    Form = QtWidgets.QWidget()
-    ui = PaymentForm() 
-    ui.show()
-    sys.exit(app.exec_())
