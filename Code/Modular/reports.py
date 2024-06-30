@@ -1330,19 +1330,27 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
         dialog.exec_()
 
     def save_initial_value(self, dialog):
-        new_value = self.initial_value_input.text()
-        if new_value.isdigit():
-            conn = sqlite3.connect("j7h.db")
-            cursor = conn.cursor()
-            cursor.execute("UPDATE cash_register SET initial_value = ?", (new_value,))
-            conn.commit()
-            conn.close()
-            dialog.accept()  # Close the dialog
-            QMessageBox.information(self, "Success", f"Initial value set to ₱ {new_value}")
-            self.initial_value_label.setText(f"Initial Value: ₱ {float(new_value):.2f}")
-        else:
-            QMessageBox.warning(self, "Input Error", "Please enter a valid number.")
+        try:
+            new_value = self.initial_value_input.text()
+            if new_value.isdigit():
+                conn = sqlite3.connect("j7h.db")
+                cursor = conn.cursor()
+                cursor.execute("UPDATE cash_register SET initial_value = ?", (new_value,))
+                conn.commit()
+                conn.close()
+                dialog.accept()  # Close the dialog
+                QMessageBox.information(self, "Success", f"Initial value set to ₱ {new_value}")
+                self.initial_value_label.setText(f"Initial Value: ₱ {float(new_value):.2f}")
+            else:
+                QMessageBox.warning(self, "Input Error", "Please enter a valid number.")
         
+        except sqlite3.Error as e:
+            QMessageBox.critical(self, 'Database Error', f'An error occurred: {e}')
+        
+        finally:
+            if conn:
+                conn.close()
+
     def modify_value(self, parent_dialog):
         dialog = QDialog(self)
         dialog.setWindowTitle("Modify Cash Register Value")
@@ -1371,21 +1379,30 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
         dialog.exec_()
 
     def save_modified_value(self, dialog, parent_dialog):
-        new_value = self.modify_value_input.text()
-        if new_value.replace('.', '', 1).isdigit():  # Allow decimal input
-            new_value = float(new_value)
-            conn = sqlite3.connect("j7h.db")
-            cursor = conn.cursor()
-            cursor.execute("UPDATE cash_register SET current_value = ?", (format(new_value, '.2f'),))  # Update with 2 decimal places
-            conn.commit()
-            conn.close()
-            self.cash_register_label.setText(f"Cash Register: ₱ {format(new_value, '.2f')}")
-            dialog.accept()  # Close the modify dialog
-            QMessageBox.information(self, "Success", f"Cash register value modified to ₱ {format(new_value, '.2f')}")
-        else:
-            QMessageBox.warning(self, "Input Error", "Please enter a valid number.")
+        try:
+            new_value = self.modify_value_input.text()
+            if new_value.replace('.', '', 1).isdigit():  # Allow decimal input
+                new_value = float(new_value)
+                conn = sqlite3.connect("j7h.db")
+                cursor = conn.cursor()
+                cursor.execute("UPDATE cash_register SET current_value = ?", (format(new_value, '.2f'),))  # Update with 2 decimal places
+                conn.commit()
+                conn.close()
+                self.cash_register_label.setText(f"Cash Register: ₱ {format(new_value, '.2f')}")
+                dialog.accept()  # Close the modify dialog
+                QMessageBox.information(self, "Success", f"Cash register value modified to ₱ {format(new_value, '.2f')}")
+            else:
+                QMessageBox.warning(self, "Input Error", "Please enter a valid number.")
+        
+        except sqlite3.Error as e:
+            QMessageBox.critical(self, 'Database Error', f'An error occurred: {e}')
+        
+        finally:
+            if conn:
+                conn.close()
 
     def reconcile_cash(self):
+        conn = None
         try:
             # Connect to the SQLite database
             conn = sqlite3.connect('j7h.db')
