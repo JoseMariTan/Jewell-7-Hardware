@@ -1385,5 +1385,42 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
             QMessageBox.warning(self, "Input Error", "Please enter a valid number.")
 
     def reconcile_cash(self):
-        #this will compare the total sales and the value of ending_value of cash register to ensure the system matches the cash in the register
-        pass
+        try:
+            # Connect to the SQLite database
+            conn = sqlite3.connect('j7h.db')
+            cursor = conn.cursor()
+            
+            # Get the current date in the specified format
+            current_date = datetime.now().strftime("%Y%m%d")
+            
+            # Query to get the sum of total_price from the transactions table for today
+            cursor.execute("""
+                SELECT SUM(total_price) 
+                FROM transactions 
+                WHERE strftime('%Y%m%d', date) = ?
+            """, (current_date,))
+            result = cursor.fetchone()
+            total_sales = result[0] if result[0] is not None else 0
+            
+            # Query to get the ending_value from the cash_register table for today
+            cursor.execute("""
+                SELECT ending_value 
+                FROM cash_register 
+                WHERE strftime('%Y%m%d', date) = ?
+            """, (current_date,))
+            result = cursor.fetchone()
+            ending_value = result[0] if result[0] is not None else 0
+            
+            # Compare the total_sales and ending_value
+            if total_sales == ending_value:
+                QMessageBox.information(self, 'Reconcile Cash', f'The system matches the cash in the register.\nTotal Sales: {total_sales}\nEnding Value: {ending_value}')
+            else:
+                discrepancy = abs(total_sales - ending_value)
+                QMessageBox.warning(self, 'Reconcile Cash', f'Discrepancy found! The system does not match the cash in the register.\nTotal Sales: {total_sales}\nEnding Value: {ending_value}\nDiscrepancy: {discrepancy}')
+        
+        except sqlite3.Error as e:
+            QMessageBox.critical(self, 'Database Error', f'An error occurred: {e}')
+        
+        finally:
+            if conn:
+                conn.close()
