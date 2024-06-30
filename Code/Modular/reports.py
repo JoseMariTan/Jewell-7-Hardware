@@ -487,45 +487,6 @@ class ReportsTab(QtWidgets.QWidget):
                                                 "border:none;\n"
                                                 "")
 
-        self.receipt_button = QtWidgets.QPushButton(self.transactions_tab)
-        self.receipt_button.setMinimumSize(QtCore.QSize(175, 50))
-        self.receipt_button.setMaximumSize(QtCore.QSize(400, 60))
-        font = QtGui.QFont()
-        font.setFamily("Segoe UI")
-        font.setPointSize(8)
-        font.setBold(True)
-        font.setWeight(75)
-        font.setStrikeOut(False)
-        self.receipt_button.setFont(font)
-        self.receipt_button.setMouseTracking(True)
-        self.receipt_button.setTabletTracking(True)
-        self.receipt_button.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.receipt_button.setText("Generate Receipt")
-        self.receipt_button.setStyleSheet("QPushButton {\n"
-                                        " background-color: #10cc94;\n"
-                                        "border-radius:12px;\n"
-                                        "color:#fff;\n"
-                                        "}\n"
-                                        "QPushButton#quit_button {\n"
-                                        "   background-color: green;\n"
-                                        "}\n"
-                                        "QPushButton::pressed {\n"
-                                        "background-color: #fff;\n"
-                                        "}\n"
-                                        "QpushButton{\n"
-                                        "border: 2px solid #555;\n"
-                                        "    border-radius: 20px;\n"
-                                        "    border-style: outset;\n"
-                                        "border-width:200px;\n"
-                                        "    \n"
-                                        "}\n"
-                                        "QPushButton:hover {\n"
-                                        "   background-color: #0a9c73;\n"
-                                        "   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
-                                        "}\n"
-                                        "\n"
-                                        "border:none;\n"
-                                        "")
         self.cash_register_button = QtWidgets.QPushButton(self.transactions_tab)
         self.cash_register_button.setMinimumSize(QtCore.QSize(175, 50))
         self.cash_register_button.setMaximumSize(QtCore.QSize(400, 60))
@@ -565,12 +526,94 @@ class ReportsTab(QtWidgets.QWidget):
                                                 "\n"
                                                 "border:none;\n"
                                                 "")
-
+        
+        self.reconcile_button = QtWidgets.QPushButton(self.transactions_tab)
+        self.reconcile_button.setMinimumSize(QtCore.QSize(175, 50))
+        self.reconcile_button.setMaximumSize(QtCore.QSize(400, 60))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(8)
+        font.setBold(True)
+        font.setWeight(75)
+        font.setStrikeOut(False)
+        self.reconcile_button.setFont(font)
+        self.reconcile_button.setMouseTracking(True)
+        self.reconcile_button.setTabletTracking(True)
+        self.reconcile_button.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.reconcile_button.setText("Reconcile Cash")
+        self.reconcile_button.setStyleSheet("QPushButton {\n"
+                                        " background-color: #10cc94;\n"
+                                        "border-radius:12px;\n"
+                                        "color:#fff;\n"
+                                        "}\n"
+                                        "QPushButton#quit_button {\n"
+                                        "   background-color: green;\n"
+                                        "}\n"
+                                        "QPushButton::pressed {\n"
+                                        "background-color: #fff;\n"
+                                        "}\n"
+                                        "QpushButton{\n"
+                                        "border: 2px solid #555;\n"
+                                        "    border-radius: 20px;\n"
+                                        "    border-style: outset;\n"
+                                        "border-width:200px;\n"
+                                        "    \n"
+                                        "}\n"
+                                        "QPushButton:hover {\n"
+                                        "   background-color: #0a9c73;\n"
+                                        "   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+                                        "}\n"
+                                        "\n"
+                                        "border:none;\n"
+                                        "")
+        
+        self.receipt_button = QtWidgets.QPushButton(self.transactions_tab)
+        self.receipt_button.setMinimumSize(QtCore.QSize(175, 50))
+        self.receipt_button.setMaximumSize(QtCore.QSize(400, 60))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(8)
+        font.setBold(True)
+        font.setWeight(75)
+        font.setStrikeOut(False)
+        self.receipt_button.setFont(font)
+        self.receipt_button.setMouseTracking(True)
+        self.receipt_button.setTabletTracking(True)
+        self.receipt_button.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.receipt_button.setText("Generate Receipt")
+        self.receipt_button.setStyleSheet("QPushButton {\n"
+                                        " background-color: #10cc94;\n"
+                                        "border-radius:12px;\n"
+                                        "color:#fff;\n"
+                                        "}\n"
+                                        "QPushButton#quit_button {\n"
+                                        "   background-color: green;\n"
+                                        "}\n"
+                                        "QPushButton::pressed {\n"
+                                        "background-color: #fff;\n"
+                                        "}\n"
+                                        "QpushButton{\n"
+                                        "border: 2px solid #555;\n"
+                                        "    border-radius: 20px;\n"
+                                        "    border-style: outset;\n"
+                                        "border-width:200px;\n"
+                                        "    \n"
+                                        "}\n"
+                                        "QPushButton:hover {\n"
+                                        "   background-color: #0a9c73;\n"
+                                        "   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+                                        "}\n"
+                                        "\n"
+                                        "border:none;\n"
+                                        "")
+        
         # Connect button signals to slots
         self.return_button.clicked.connect(self.return_selected_item)
         self.flag_transaction_button.clicked.connect(self.flag_transaction)
-        self.receipt_button.clicked.connect(self.generate_receipt)
         self.cash_register_button.clicked.connect(self.set_cash_register)
+        self.reconcile_button.clicked.connect(self.reconcile_cash)
+        self.receipt_button.clicked.connect(self.generate_receipt)
+
 
         # Create horizontal layout for buttons
         buttons_layout = QtWidgets.QHBoxLayout()
@@ -580,8 +623,9 @@ class ReportsTab(QtWidgets.QWidget):
         # Add buttons to the layout
         buttons_layout.addWidget(self.return_button)
         buttons_layout.addWidget(self.flag_transaction_button)
-        buttons_layout.addWidget(self.receipt_button)
         buttons_layout.addWidget(self.cash_register_button)
+        buttons_layout.addWidget(self.reconcile_button)
+        buttons_layout.addWidget(self.receipt_button)
 
         # Add buttons layout to the main layout
         layout.addLayout(buttons_layout)
@@ -1340,3 +1384,6 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
         else:
             QMessageBox.warning(self, "Input Error", "Please enter a valid number.")
 
+    def reconcile_cash(self):
+        #this will compare the total sales and the value of ending_value of cash register to ensure the system matches the cash in the register
+        pass
