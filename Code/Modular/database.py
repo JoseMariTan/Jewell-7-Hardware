@@ -9,6 +9,10 @@ import time
 import datetime
 import matplotlib.pyplot as plt
 import base64
+import pandas as pd
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from datetime import timedelta
 from io import BytesIO
 from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtWidgets import QMessageBox, QFileDialog, QDialog, QVBoxLayout, QLabel, QDateEdit, QDialogButtonBox, QComboBox, QGroupBox, QScrollArea
@@ -710,8 +714,7 @@ class DatabaseTab(QtWidgets.QWidget):
         self.ui_form.LastBackup_Data.setText(backup_time)
        
            
-        # Reports Functions
-            
+    # Reports Functions    
     def generate_report(self):
         try:
             # Check if the report has been customized
@@ -727,7 +730,7 @@ class DatabaseTab(QtWidgets.QWidget):
             if table_name == "sales":
                 table_name = "transactions"
             elif table_name == "returns":
-                table_name = "returns"  
+                table_name = "returns"
 
             # Connect to the database
             conn = sqlite3.connect("j7h.db")
@@ -794,10 +797,16 @@ class DatabaseTab(QtWidgets.QWidget):
                 elif table_name == "returns":
                     query = f"SELECT return_id, return_date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date BETWEEN ? AND ?"
                     query_params = [start_date, end_date]
-            
+
             cursor.execute(query, query_params)
             rows = cursor.fetchall()
+            
+            columns = ['transaction_id', 'date', 'time', 'customer', 'total_price', 'cashier']
+            transaction_df = pd.DataFrame(rows, columns=columns)
 
+            # Convert 'date' and 'time' to datetime
+            transaction_df['datetime'] = pd.to_datetime(transaction_df['date'] + ' ' + transaction_df['time'])
+            
             # Get the top seller product_id
             cursor.execute(f"""
                 SELECT product_id, COUNT(product_id) AS product_count 
@@ -865,22 +874,81 @@ class DatabaseTab(QtWidgets.QWidget):
 
                 report_content += "</table>"
 
-                # Generate line chart
-                times = sorted(time_data.keys())
-                values = [time_data[time] for time in times]
-                plt.figure(figsize=(6, 3))  
-                plt.plot(times, values, marker='o')
-                plt.title(f'Sales Report - {time_period}')
-                # Set x-axis label based on time_period
+                # Generate line chart using your existing logic
                 if time_period == "Today":
+                    times_24h = [(datetime.datetime.now().replace(hour=h, minute=0, second=0, microsecond=0),
+                                datetime.datetime.now().replace(hour=h + 1, minute=0, second=0, microsecond=0))
+                                for h in range(8, 19)]  # Business hours from 8 AM to 5 PM
+                    counts = [len(transaction_df[(transaction_df['datetime'] >= start) & (transaction_df['datetime'] < end)]) for start, end in times_24h]
+                    times_labels = [start.strftime('%I %p') for start, end in times_24h]
+
+                    plt.figure(figsize=(6, 8))
+                    plt.plot(times_labels, counts, marker='o', label='Sales')
                     plt.xlabel('Time')
+                    plt.ylabel('Number of Transactions')
+                    plt.title(f'Sales Report - {time_period}')
+                    plt.grid(True)
+                    plt.xticks(rotation=45)
+                    plt.legend()
+
+                elif time_period == "This Week":
+                    days = [(datetime.datetime.now() - timedelta(days=i)).date() for i in range(6, -1, -1)]
+                    counts = [len(transaction_df[transaction_df['datetime'].dt.date == day]) for day in days]
+                    days_labels = [day.strftime('%b %d') for day in days]
+
+                    plt.figure(figsize=(6, 8))
+                    plt.plot(days_labels, counts, marker='o', label='Sales')
+                    plt.xlabel('Days')
+                    plt.ylabel('Number of Transactions')
+                    plt.title(f'Sales Report - {time_period}')
+                    plt.grid(True)
+                    plt.xticks(rotation=45)
+                    plt.legend()
+
+                    # Implementing Linear Regression
+                    X = np.arange(len(days)).reshape(-1, 1)
+                    y = np.array(counts)
+
+                    model = LinearRegression()
+                    model.fit(X, y)
+
+                    # Predict for an additional day
+                    next_day_index = len(days)
+                    next_day_pred = model.predict([[next_day_index]])[0]
+
+                    # Extend labels for prediction day
+                    next_day_date = (datetime.datetime.now() + timedelta(days=1)).date()
+                    days_labels.append(next_day_date.strftime('%b %d'))  # Next day date in 'Month Day' format
+                    counts.append(next_day_pred)
+                    plt.plot(days_labels, counts, linestyle='--', color='r', label='Estimated Sales')
+
                 elif time_period == "This Month":
-                    plt.xlabel('Week')
-                else:
-                    plt.xlabel('Day')
-                plt.ylabel('Sales (₱)')
-                plt.grid(True)
-                plt.tight_layout()
+                    weeks = [(datetime.datetime.now() - timedelta(days=i * 7), datetime.datetime.now() - timedelta(days=(i - 1) * 7)) for i in range(4, 0, -1)]
+                    counts = [len(transaction_df[(transaction_df['datetime'] >= start) & (transaction_df['datetime'] < end)]) for start, end in weeks]
+                    weeks_labels = [start.strftime('%B %d') + ' - ' + (end - timedelta(days=1)).strftime('%d') for start, end in weeks]
+
+                    plt.figure(figsize=(6, 12))
+                    plt.plot(weeks_labels, counts, marker='o', label='Sales')
+                    plt.xlabel('Weeks')
+                    plt.ylabel('Number of Transactions')
+                    plt.title(f'Sales Report - {time_period}')
+                    plt.grid(True)
+                    plt.xticks(rotation=45)
+                    plt.legend()
+
+                elif time_period == "Custom":
+                    months = [datetime.datetime(datetime.datetime.now().year, m, 1) for m in range(1, 13)]
+                    counts = [len(transaction_df[transaction_df['datetime'].dt.month == month.month]) for month in months]
+                    months_labels = [month.strftime('%b') for month in months]
+
+                    plt.figure(figsize=(6, 8))
+                    plt.plot(months_labels, counts, marker='o', label='Sales')
+                    plt.xlabel('Months')
+                    plt.ylabel('Number of Transactions')
+                    plt.title(f'Sales Report - {time_period}')
+                    plt.grid(True)
+                    plt.xticks(rotation=45)
+                    plt.legend()
 
                 # Save the plot as a base64-encoded string
                 img_buffer = BytesIO()
@@ -890,6 +958,7 @@ class DatabaseTab(QtWidgets.QWidget):
 
                 # Embed the chart into the report
                 report_content += f'<div style="text-align:center; margin-top:20px; margin-bottom:20px;"><img src="data:image/png;base64,{img_str}" alt="Sales Chart" /></div>'
+
             elif table_name == "returns":
                 report_content += "<table border='1' cellspacing='0' cellpadding='5' style='margin: auto;'>"
                 report_content += "<tr><th>Return ID</th><th>Return Date</th><th>Product Name</th><th>Brand</th><th>Variety</th><th>Size</th><th>Quantity</th></tr>"
@@ -940,8 +1009,8 @@ class DatabaseTab(QtWidgets.QWidget):
             font_button.setPointSize(8)
             font_button.setBold(True)
             font_button.setWeight(75)
-            save_button.setMinimumSize(QtCore.QSize(100, 40))  
-            save_button.setMaximumSize(QtCore.QSize(150, 80)) 
+            save_button.setMinimumSize(QtCore.QSize(100, 40))
+            save_button.setMaximumSize(QtCore.QSize(150, 80))
             save_button.setFont(font_button)
             save_button.setStyleSheet("""
             QPushButton {
@@ -997,6 +1066,7 @@ class DatabaseTab(QtWidgets.QWidget):
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error generating report: {str(e)}")
+
                 
     def customize_report(self):
         dialog = QDialog()
