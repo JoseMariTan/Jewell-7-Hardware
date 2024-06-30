@@ -1173,12 +1173,14 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
         dialog.exec_()
         
     def get_user_id(self):
-        return self.user_id
         
+        return self.user_id
+    
     def set_cash_register(self):
+        current_date = datetime.now().strftime("%Y-%m-%d")
         conn = sqlite3.connect("j7h.db")
         cursor = conn.cursor()
-        cursor.execute("SELECT current_value, initial_value FROM cash_register")
+        cursor.execute("SELECT current_value, initial_value FROM cash_register WHERE date = ?", (current_date,))
         result = cursor.fetchone()
         if result is None:
             cash_register_value = 0
@@ -1295,8 +1297,7 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
                                                 "")
 
         button_layout.addWidget(modify_button)
-        button_layout.addStretch()
-        
+
         layout.addLayout(button_layout)
 
         dialog.setLayout(layout)
@@ -1330,26 +1331,19 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
         dialog.exec_()
 
     def save_initial_value(self, dialog):
+        new_value = self.initial_value_input.text()
         try:
-            new_value = self.initial_value_input.text()
-            if new_value.isdigit():
-                conn = sqlite3.connect("j7h.db")
-                cursor = conn.cursor()
-                cursor.execute("UPDATE cash_register SET initial_value = ?", (new_value,))
-                conn.commit()
-                conn.close()
-                dialog.accept()  # Close the dialog
-                QMessageBox.information(self, "Success", f"Initial value set to ₱ {new_value}")
-                self.initial_value_label.setText(f"Initial Value: ₱ {float(new_value):.2f}")
-            else:
-                QMessageBox.warning(self, "Input Error", "Please enter a valid number.")
-        
-        except sqlite3.Error as e:
-            QMessageBox.critical(self, 'Database Error', f'An error occurred: {e}')
-        
-        finally:
-            if conn:
-                conn.close()
+            float_value = float(new_value)
+            conn = sqlite3.connect("j7h.db")
+            cursor = conn.cursor()
+            cursor.execute("UPDATE cash_register SET initial_value = ?", (float_value,))
+            conn.commit()
+            conn.close()
+            dialog.accept()  # Close the dialog
+            QMessageBox.information(self, "Success", f"Initial value set to ₱ {float_value:.2f}")
+            self.initial_value_label.setText(f"Initial Value: ₱ {float_value:.2f}")
+        except ValueError:
+            QMessageBox.warning(self, "Input Error", "Please enter a valid number.")
 
     def modify_value(self, parent_dialog):
         dialog = QDialog(self)
@@ -1372,34 +1366,27 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
         cancel_button = QtWidgets.QPushButton("Cancel")
         cancel_button.clicked.connect(dialog.reject)
         button_layout.addWidget(cancel_button)
-            
+        
         layout.addLayout(button_layout)
-            
+        
         dialog.setLayout(layout)
         dialog.exec_()
 
     def save_modified_value(self, dialog, parent_dialog):
+        new_value = self.modify_value_input.text()
         try:
-            new_value = self.modify_value_input.text()
-            if new_value.replace('.', '', 1).isdigit():  # Allow decimal input
-                new_value = float(new_value)
-                conn = sqlite3.connect("j7h.db")
-                cursor = conn.cursor()
-                cursor.execute("UPDATE cash_register SET current_value = ?", (format(new_value, '.2f'),))  # Update with 2 decimal places
-                conn.commit()
-                conn.close()
-                self.cash_register_label.setText(f"Cash Register: ₱ {format(new_value, '.2f')}")
-                dialog.accept()  # Close the modify dialog
-                QMessageBox.information(self, "Success", f"Cash register value modified to ₱ {format(new_value, '.2f')}")
-            else:
-                QMessageBox.warning(self, "Input Error", "Please enter a valid number.")
-        
-        except sqlite3.Error as e:
-            QMessageBox.critical(self, 'Database Error', f'An error occurred: {e}')
-        
-        finally:
-            if conn:
-                conn.close()
+            float_value = float(new_value)
+            conn = sqlite3.connect("j7h.db")
+            cursor = conn.cursor()
+            cursor.execute("UPDATE cash_register SET current_value = ?", (float_value,))
+            conn.commit()
+            conn.close()
+            self.cash_register_label.setText(f"Cash Register: ₱ {float_value:.2f}")
+            dialog.accept()  # Close the modify dialog
+            QMessageBox.information(self, "Success", f"Cash register value modified to ₱ {float_value:.2f}")
+        except ValueError:
+            QMessageBox.warning(self, "Input Error", "Please enter a valid number.")
+
 
     def reconcile_cash(self):
         conn = None
