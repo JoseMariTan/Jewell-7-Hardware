@@ -1,6 +1,7 @@
 import sqlite3
 import random
 import string
+import atexit
 from datetime import datetime
 from PyQt5 import QtCore, QtGui, QtWidgets
 from aboutUs import AboutUsTab
@@ -11,6 +12,7 @@ from cart import CartTab
 class StaffDashoard(object):
     def __init__(self, user_id):
         self.user_id = user_id
+        atexit.register(self.update_cash_register)
         
     def setupUi(self, StaffDashboard):
         StaffDashboard.setObjectName("StaffDashboard")
@@ -480,6 +482,10 @@ class StaffDashoard(object):
         cursor.execute('''INSERT INTO user_logs (log_id, user_id, action, time, date) 
                             VALUES (?, ?, ?, ?, ?)''', (log_id, user_id, action, time_log, date_log))
         conn.commit()
+        
+        # Update the cash register
+        self.update_cash_register()
+        
         QtWidgets.QApplication.instance().activeWindow().close()
         # Go back to selection_screen
         from selection_screen import Selection
@@ -487,6 +493,58 @@ class StaffDashoard(object):
         self.selection_ui = Selection()
         self.selection_ui.setupUi(self.new_window)
         self.new_window.showFullScreen()
+        
+    def update_cash_register(self):
+        try:
+            # Connect to the SQLite database
+            conn = sqlite3.connect('j7h.db')
+            cursor = conn.cursor()
+            
+            # Get the current date in the specified format
+            current_date = datetime.now().strftime("%Y-%m-%d")
+            
+            # Get the latest entry in the cash_register table for the current date
+            cursor.execute("""
+                SELECT current_value, ending_value, date 
+                FROM cash_register 
+                WHERE date = ?
+            """, (current_date,))
+            result = cursor.fetchone()
+            print(result)
+            if result:
+                current_value, ending_value, date = result
+                
+                # Check if the date is different from today
+                if date!= current_date:
+                    # Add a new row with the initial value set to the ending value of the previous day
+                    cursor.execute("""
+                        INSERT INTO cash_register (current_value, initial_value, ending_value, date) 
+                        VALUES (?,?,?,?)
+                    """, (ending_value, ending_value, ending_value, current_date))
+                    print("diff day")
+                else:
+                    # Update the ending value to match the current value for today's entry
+                    cursor.execute("""
+                        UPDATE cash_register 
+                        SET ending_value =? 
+                        WHERE date = ?
+                    """, (current_value, current_date))
+                    print("mali query mo tanga")
+            else:
+                # If no rows exist in the table, add a new row with initial and ending values set to 0
+                cursor.execute("""
+                    INSERT INTO cash_register (current_value, initial_value, ending_value, date) 
+                    VALUES (?,?,?,?)
+                """, (0, 0, 0, current_date))
+            
+            conn.commit()
+        
+        except sqlite3.Error as e:
+            print(f"An error occurred: {e}")
+        
+        finally:
+            if conn:
+                conn.close()
 
     def generate_log_id(self):
         # Establishing connection with SQLite database
