@@ -1364,23 +1364,24 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
         cancel_button = QtWidgets.QPushButton("Cancel")
         cancel_button.clicked.connect(dialog.reject)
         button_layout.addWidget(cancel_button)
-        
+            
         layout.addLayout(button_layout)
-        
+            
         dialog.setLayout(layout)
         dialog.exec_()
 
     def save_modified_value(self, dialog, parent_dialog):
         new_value = self.modify_value_input.text()
-        if new_value.isdigit():
+        if new_value.replace('.', '', 1).isdigit():  # Allow decimal input
+            new_value = float(new_value)
             conn = sqlite3.connect("j7h.db")
             cursor = conn.cursor()
-            cursor.execute("UPDATE cash_register SET current_value = ?", (new_value,))
+            cursor.execute("UPDATE cash_register SET current_value = ?", (format(new_value, '.2f'),))  # Update with 2 decimal places
             conn.commit()
             conn.close()
-            self.cash_register_label.setText(f"Cash Register: ₱ {float(new_value):.2f}")
+            self.cash_register_label.setText(f"Cash Register: ₱ {format(new_value, '.2f')}")
             dialog.accept()  # Close the modify dialog
-            QMessageBox.information(self, "Success", f"Cash register value modified to ₱ {new_value}")
+            QMessageBox.information(self, "Success", f"Cash register value modified to ₱ {format(new_value, '.2f')}")
         else:
             QMessageBox.warning(self, "Input Error", "Please enter a valid number.")
 
@@ -1415,7 +1416,7 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
             if total_sales == ending_value:
                 QMessageBox.information(self, 'Reconcile Cash', f'The system matches the cash in the register.\nTotal Sales: {total_sales}\nEnding Value: {ending_value}')
             else:
-                discrepancy = abs(total_sales - ending_value)
+                discrepancy = format(abs(total_sales - ending_value), '.2f')
                 QMessageBox.warning(self, 'Reconcile Cash', f'Discrepancy found! The system does not match the cash in the register.\nTotal Sales: {total_sales}\nEnding Value: {ending_value}\nDiscrepancy: {discrepancy}')
         
         except sqlite3.Error as e:
