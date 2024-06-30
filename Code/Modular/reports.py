@@ -1134,14 +1134,13 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
     def set_cash_register(self):
         conn = sqlite3.connect("j7h.db")
         cursor = conn.cursor()
-        cursor.execute("SELECT current_value, initial_value, reset_time FROM cash_register")
+        cursor.execute("SELECT current_value, initial_value FROM cash_register")
         result = cursor.fetchone()
         if result is None:
             cash_register_value = 0
             initial_value = 0
-            reset_time = "00:00"
         else:
-            cash_register_value, initial_value, reset_time = result
+            cash_register_value, initial_value = result
         conn.close()
 
         dialog = QDialog(self)
