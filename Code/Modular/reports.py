@@ -1148,27 +1148,111 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
         dialog.setFixedSize(300, 250)
 
         layout = QVBoxLayout()
+        label_layout = QtWidgets.QVBoxLayout()
+        label_layout.setSpacing(0)
+        label_layout.setContentsMargins(0, 0, 0, 0)
 
         # Display the current value of the cash register
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(12)
+        font.setStrikeOut(False)
         self.cash_register_label = QLabel(f"Cash Register: ₱ {cash_register_value:.2f}")
         self.cash_register_label.setAlignment(QtCore.Qt.AlignCenter)
-        layout.addWidget(self.cash_register_label)
+        self.cash_register_label.setFont(font)
+        label_layout.addWidget(self.cash_register_label)
 
         # Display the initial value
         self.initial_value_label = QLabel(f"Initial Value: ₱ {initial_value:.2f}")
         self.initial_value_label.setAlignment(QtCore.Qt.AlignCenter)
-        layout.addWidget(self.initial_value_label)
+        self.initial_value_label.setFont(font)
+        label_layout.addWidget(self.initial_value_label)
+        
+        layout.addLayout(label_layout)
 
         button_layout = QtWidgets.QHBoxLayout()
-
+        button_layout.addStretch()
+        button_layout.setContentsMargins(0, 0, 0, 0)
+  
         set_initial_button = QtWidgets.QPushButton("Set initial value")
+        set_initial_button.setMinimumSize(QtCore.QSize(130, 50))
+        set_initial_button.setMaximumSize(QtCore.QSize(130, 50))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(8)
+        font.setBold(True)
+        font.setWeight(75)
+        font.setStrikeOut(False)
+        set_initial_button.setFont(font)
         set_initial_button.clicked.connect(self.set_initial_value)
+        set_initial_button.setStyleSheet("QPushButton {\n"
+                                                " background-color: #10cc94;\n"
+                                                "border-radius:12px;\n"
+                                                "color:#fff;\n"
+                                                "}\n"
+                                                "QPushButton#quit_button {\n"
+                                                "   background-color: green;\n"
+                                                "}\n"
+                                                "QPushButton::pressed {\n"
+                                                "background-color: #fff;\n"
+                                                "}\n"
+                                                "QpushButton{\n"
+                                                "border: 2px solid #555;\n"
+                                                "    border-radius: 20px;\n"
+                                                "    border-style: outset;\n"
+                                                "border-width:200px;\n"
+                                                "    \n"
+                                                "}\n"
+                                                "QPushButton:hover {\n"
+                                                "   background-color: #0a9c73;\n"
+                                                "   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+                                                "}\n"
+                                                "\n"
+                                                "border:none;\n"
+                                                "")
+
         button_layout.addWidget(set_initial_button)
-
+        
         modify_button = QtWidgets.QPushButton("Modify")
+        modify_button.setMinimumSize(QtCore.QSize(130, 50))
+        modify_button.setMaximumSize(QtCore.QSize(130, 50))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(8)
+        font.setBold(True)
+        font.setWeight(75)
+        font.setStrikeOut(False)
+        modify_button.setFont(font)
         modify_button.clicked.connect(lambda: self.modify_value(dialog))
-        button_layout.addWidget(modify_button)
+        modify_button.setStyleSheet("QPushButton {\n"
+                                                " background-color: #10cc94;\n"
+                                                "border-radius:12px;\n"
+                                                "color:#fff;\n"
+                                                "}\n"
+                                                "QPushButton#quit_button {\n"
+                                                "   background-color: green;\n"
+                                                "}\n"
+                                                "QPushButton::pressed {\n"
+                                                "background-color: #fff;\n"
+                                                "}\n"
+                                                "QpushButton{\n"
+                                                "border: 2px solid #555;\n"
+                                                "    border-radius: 20px;\n"
+                                                "    border-style: outset;\n"
+                                                "border-width:200px;\n"
+                                                "    \n"
+                                                "}\n"
+                                                "QPushButton:hover {\n"
+                                                "   background-color: #0a9c73;\n"
+                                                "   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+                                                "}\n"
+                                                "\n"
+                                                "border:none;\n"
+                                                "")
 
+        button_layout.addWidget(modify_button)
+        button_layout.addStretch()
+        
         layout.addLayout(button_layout)
 
         dialog.setLayout(layout)
