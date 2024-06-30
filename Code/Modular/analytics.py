@@ -17,31 +17,27 @@ class AnalyticsTab(QtWidgets.QWidget):
 
     def setupUi(self):
         self.main_layout = QtWidgets.QVBoxLayout(self)
-        self.main_layout.setAlignment(QtCore.Qt.AlignCenter)
+        self.main_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
+        
+        # Right side layout (chart placeholder)
+        self.chart_layout = QtWidgets.QVBoxLayout()
+        self.chart_placeholder = QtWidgets.QLabel("Chart or Graph Placeholder")
+        self.chart_placeholder.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.chart_placeholder.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Preferred)
+        self.chart_placeholder.setStyleSheet("border: 1px solid black; background-color:#f7f7f7;")
+        self.chart_layout.addWidget(self.chart_placeholder)
+        self.main_layout.addLayout(self.chart_layout, 3)  # Larger weight for chart layout
 
+        # Frame setup
         self.frame = QtWidgets.QFrame(self)
         self.frame.setMinimumSize(QtCore.QSize(500, 200))
         self.frame.setMaximumSize(QtCore.QSize(500, 200))
         self.frame.setStyleSheet("border-radius:20px;\n"
-                                "background-color:#f7f7f7;")
+                                 "background-color:#f7f7f7;")
         self.frame_layout = QtWidgets.QGridLayout(self.frame)
         self.frame_layout.setContentsMargins(15, 5, 15, 5)
         self.frame_layout.setVerticalSpacing(6)
-
-        # Set the alignment of the QFrame to center
-        self.main_layout.setAlignment(self.frame, QtCore.Qt.AlignCenter)
-
-        # Add the QFrame to the QVBoxLayout
-        self.main_layout.addWidget(self.frame)
-
-        # Right side layout (chart placeholder)
-        self.chart_layout = QtWidgets.QVBoxLayout()
-        self.chart_placeholder = QtWidgets.QLabel("Chart or Graph Placeholder")
-        self.chart_placeholder.setAlignment(QtCore.Qt.AlignCenter)
-        self.chart_placeholder.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
-        self.chart_placeholder.setStyleSheet("border: 1px solid black; background-color:#f7f7f7;")
-        self.chart_layout.addWidget(self.chart_placeholder)
-        self.main_layout.addLayout(self.chart_layout, 3)  # Larger weight for chart layout
+        self.frame.setLayout(self.frame_layout)
         
         # Define a font to make controls larger
         larger_font = QtGui.QFont()
@@ -129,7 +125,6 @@ class AnalyticsTab(QtWidgets.QWidget):
         self.time_period_layout.addWidget(self.time_period_combo)
         self.frame_layout.addLayout(self.time_period_layout, 1, 0)
 
-        
         # Transaction type layout
         self.transaction_type_layout = QtWidgets.QHBoxLayout()
         self.transaction_type_label = QtWidgets.QLabel("Transaction Type:")
@@ -162,11 +157,9 @@ class AnalyticsTab(QtWidgets.QWidget):
         self.data_type_layout.addWidget(self.data_type_label)
         self.data_type_layout.addWidget(self.data_type_product_name)
         self.data_type_layout.addWidget(self.data_type_category)
-        self.frame_layout.addLayout(self.transaction_type_layout, 3, 0)
+        self.frame_layout.addLayout(self.data_type_layout, 3, 0)
 
-        self.main_layout.addWidget(self.frame)
-         
-         # Generate button
+        # Generate button
         self.generate_button = QtWidgets.QPushButton("Generate", self)
         self.generate_button.setMinimumSize(QtCore.QSize(300, 60))
         self.generate_button.setMaximumSize(QtCore.QSize(400, 80))
@@ -191,7 +184,10 @@ class AnalyticsTab(QtWidgets.QWidget):
             }
             border: none;
         """)
-        self.main_layout.addWidget(self.generate_button, alignment=QtCore.Qt.AlignCenter)
+
+        # Adding widgets to the main layout
+        self.main_layout.addWidget(self.frame, alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.main_layout.addWidget(self.generate_button, alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
 
         # Connect generate button to a method
         self.generate_button.clicked.connect(self.generate_analytics_data)
