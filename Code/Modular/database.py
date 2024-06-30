@@ -871,7 +871,13 @@ class DatabaseTab(QtWidgets.QWidget):
                 plt.figure(figsize=(6, 3))  
                 plt.plot(times, values, marker='o')
                 plt.title(f'Sales Report - {time_period}')
-                plt.xlabel('Date / Time')
+                # Set x-axis label based on time_period
+                if time_period == "Today":
+                    plt.xlabel('Time')
+                elif time_period == "This Month":
+                    plt.xlabel('Week')
+                else:
+                    plt.xlabel('Day')
                 plt.ylabel('Sales (₱)')
                 plt.grid(True)
                 plt.tight_layout()
