@@ -1,7 +1,7 @@
 import sqlite3
 from PyQt5.QtWidgets import QTableWidgetItem, QMessageBox, QVBoxLayout, QSizePolicy, QDialog, QSpacerItem, QLabel
 from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import Qt, QTimer, QTime
+from PyQt5.QtCore import Qt
 from datetime import datetime
 import random, string
 from assets import mainlogo_rc
@@ -1160,20 +1160,11 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
         self.initial_value_label.setAlignment(QtCore.Qt.AlignCenter)
         layout.addWidget(self.initial_value_label)
 
-        # Display the reset time
-        self.reset_time_label = QLabel(f"Reset Time: {reset_time}")
-        self.reset_time_label.setAlignment(QtCore.Qt.AlignCenter)
-        layout.addWidget(self.reset_time_label)
-
         button_layout = QtWidgets.QHBoxLayout()
 
         set_initial_button = QtWidgets.QPushButton("Set initial value")
         set_initial_button.clicked.connect(self.set_initial_value)
         button_layout.addWidget(set_initial_button)
-
-        schedule_reset_button = QtWidgets.QPushButton("Schedule Reset")
-        schedule_reset_button.clicked.connect(self.schedule_reset)
-        button_layout.addWidget(schedule_reset_button)
 
         modify_button = QtWidgets.QPushButton("Modify")
         modify_button.clicked.connect(lambda: self.modify_value(dialog))
@@ -1224,45 +1215,6 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
             self.initial_value_label.setText(f"Initial Value: ₱ {float(new_value):.2f}")
         else:
             QMessageBox.warning(self, "Input Error", "Please enter a valid number.")
-
-    def schedule_reset(self):
-        dialog = QDialog(self)
-        dialog.setWindowTitle("Schedule Reset")
-        dialog.setFixedSize(300, 200)
-
-        layout = QVBoxLayout(dialog)
-
-        label = QLabel("Select reset time:")
-        layout.addWidget(label)
-
-        self.time_input = QtWidgets.QTimeEdit()
-        self.time_input.setTime(QTime.currentTime())
-        layout.addWidget(self.time_input)
-
-        button_layout = QtWidgets.QHBoxLayout()
-        ok_button = QtWidgets.QPushButton("OK")
-        ok_button.clicked.connect(lambda: self.save_reset_time(dialog))
-        button_layout.addWidget(ok_button)
-        
-        cancel_button = QtWidgets.QPushButton("Cancel")
-        cancel_button.clicked.connect(dialog.reject)
-        button_layout.addWidget(cancel_button)
-        
-        layout.addLayout(button_layout)
-        
-        dialog.setLayout(layout)
-        dialog.exec_()
-
-    def save_reset_time(self, dialog):
-        reset_time = self.time_input.time().toString()
-        conn = sqlite3.connect("j7h.db")
-        cursor = conn.cursor()
-        cursor.execute("UPDATE cash_register SET reset_time = ?", (reset_time,))
-        conn.commit()
-        conn.close()
-        dialog.accept()  # Close the dialog
-        self.reset_time_label.setText(f"Reset Time: {reset_time}")
-        QMessageBox.information(self, "Success", f"Reset scheduled at {reset_time}")
         
     def modify_value(self, parent_dialog):
         dialog = QDialog(self)
