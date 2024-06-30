@@ -35,14 +35,13 @@ class QuantityInputDialog(QtWidgets.QDialog):
 
     def get_quantity_and_reason(self):
         return self.quantity_spinbox.value(), self.reason_combobox.currentText()
-
-
+    
 class ReturnSelectionDialog(QtWidgets.QDialog):
     def __init__(self, parent=None, selected_rows=None, transactions_table=None, reports_tab=None):
         super().__init__(parent)
         self.selected_rows = selected_rows
         self.transactions_table = transactions_table
-        self.reports_tab = reports_tab 
+        self.reports_tab = reports_tab
         self.initUI()
     
     def initUI(self):
@@ -53,10 +52,9 @@ class ReturnSelectionDialog(QtWidgets.QDialog):
 
         # Create table widget to display selected items
         self.selected_items_table = QtWidgets.QTableWidget()
-        self.selected_items_table.setColumnCount(15)  # Update column count to match transactions table
+        self.selected_items_table.setColumnCount(8)  
         self.selected_items_table.setHorizontalHeaderLabels([
-            'Price', 'Quantity', 'Customer', 'Product', 'Brand', 'Variation', 
-            'Size', 'Category', 'Time', 'Date', 'Type', 'User ID', 'Cashier', 'Payment ID', 'Contact'
+            'Product', 'Quantity', 'Cashier', 'Customer', 'Price', 'Date', 'Time', 'Payment ID'
         ])
         
         self.selected_items_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
@@ -66,11 +64,11 @@ class ReturnSelectionDialog(QtWidgets.QDialog):
             item_row = self.selected_items_table.rowCount()
             self.selected_items_table.setRowCount(item_row + 1)
 
-            for col in range(1, 16):
+            for col in range(1,9):
                 item_text = self.transactions_table.item(row, col).text()
                 item = QTableWidgetItem(item_text)
                 self.selected_items_table.setItem(item_row, col - 1, item)
-
+        
         layout.addWidget(self.selected_items_table)
 
         # Add Return Selected button
@@ -95,7 +93,7 @@ class ReturnSelectionDialog(QtWidgets.QDialog):
 
         for row in selected_rows:
             item_data = []
-            for col in range(15):
+            for col in range(8):
                 item_data.append(self.selected_items_table.item(row.row(), col).text())
 
             result = self.open_quantity_dialog(int(item_data[1]))
@@ -106,19 +104,25 @@ class ReturnSelectionDialog(QtWidgets.QDialog):
                 item_data.append(return_quantity)  # Add the return quantity to the item data
                 item_data.append(return_reason)  # Add the return reason to the item data
                 transaction_details = tuple(item_data[:-2])  # Exclude the return quantity and reason from transaction details
-                
-                product_name = item_data[3]
-                brand = item_data[4]
-                var = item_data[5]
-                size = item_data[6]
-                payment_id = item_data[13]
 
-                transaction_id = self.get_transaction_id(product_name, brand, var, size, payment_id)
+                product_name = item_data[0]
+                payment_id = item_data[7]  # Assuming payment_id is in the correct column
+
+                transaction_id = self.get_transaction_id(product_name, payment_id)
                 if transaction_id is None:
                     QMessageBox.warning(self, 'Transaction Not Found', 'Failed to find transaction.')
                     return
+
+                brand, var, size, date = self.get_transaction_details(transaction_id)
+                if None in (brand, var, size, date):
+                    QMessageBox.warning(self, 'Transaction Details Not Found', 'Failed to find transaction details.')
+                    return
+
+                # Combine the fetched details with the existing transaction details
+                full_transaction_details = (product_name, item_data[1], item_data[2], item_data[3], item_data[4], item_data[5], item_data[6], payment_id, brand, var, size, date)
+
                 return_id = self.generate_return_id()
-                if not self.insert_into_returns(return_id, transaction_details, return_quantity, return_reason, transaction_id):
+                if not self.insert_into_returns(return_id, full_transaction_details, return_quantity, return_reason, transaction_id):
                     QMessageBox.warning(self, 'Return Failed', 'Failed to return item.')
                 else:
                     QMessageBox.information(self, 'Return Complete', 'Item returned successfully.')
@@ -146,20 +150,19 @@ class ReturnSelectionDialog(QtWidgets.QDialog):
         cursor = conn.cursor()
 
         try:
-            price, quantity, customer, product_name, brand, var, size, category, time, date, type, user_id, cashier, payment_id, contact = transaction_details
-            return_date = datetime.now().strftime("%Y-%m-%d")
             print(transaction_details)
-            print(return_quantity, return_reason)
+            product_name, quantity, cashier, customer, price, date, time, payment_id, brand, var, size, transaction_date = transaction_details
+            return_date = datetime.now().strftime("%Y-%m-%d")
             cursor.execute("""INSERT INTO returns (return_id, product_name, brand, var, size, qty, date, return_date, reason, transaction_id)
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                        (return_id, product_name, brand, var, size, return_quantity, date, return_date, return_reason, transaction_id))
+                        (return_id, product_name, brand, var, size, return_quantity, transaction_date, return_date, return_reason, transaction_id))
 
             log_id = self.generate_log_id()
             current_datetime = datetime.today()
             date_log = current_datetime.strftime('%Y-%m-%d')
             time_log = current_datetime.strftime("%I:%M %p")
             action = "returned item"
-
+            user_id = self.reports_tab.get_user_id()
             cursor.execute('''INSERT INTO user_logs (log_id, user_id, action, time, date) 
                             VALUES (?, ?, ?, ?, ?)''',
                         (log_id, user_id, action, time_log, date_log))
@@ -171,6 +174,7 @@ class ReturnSelectionDialog(QtWidgets.QDialog):
             return False
         finally:
             conn.close()
+
             
     def generate_log_id(self):
         conn = sqlite3.connect('j7h.db')
@@ -188,20 +192,35 @@ class ReturnSelectionDialog(QtWidgets.QDialog):
         finally:
             conn.close()
 
-    def get_transaction_id(self, product_name, brand, var, size, payment_id):
+    def get_transaction_id(self, product_name, payment_id):
         conn = sqlite3.connect('j7h.db')
         cursor = conn.cursor()
 
         query = """
         SELECT transaction_id
         FROM transactions
-        WHERE product_name = ? AND brand = ? AND var = ? AND size = ? AND payment_id = ?
+        WHERE product_name = ? AND payment_id = ?
         """
-        cursor.execute(query, (product_name, brand, var, size, payment_id))
+        cursor.execute(query, (product_name, payment_id))
         result = cursor.fetchone()
 
         conn.close()
         return result[0] if result else None
+    
+    def get_transaction_details(self, transaction_id):
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+
+        query = """
+        SELECT brand, var, size, date
+        FROM transactions
+        WHERE transaction_id = ?
+        """
+        cursor.execute(query, (transaction_id,))
+        result = cursor.fetchone()
+
+        conn.close()
+        return result if result else (None, None, None, None)
 
 #Class for Reports Tab
 class ReportsTab(QtWidgets.QWidget):
@@ -370,10 +389,10 @@ class ReportsTab(QtWidgets.QWidget):
         
         # Create the table widget
         self.transactions_table = QtWidgets.QTableWidget()
-        self.transactions_table.setColumnCount(16)  # Update column count to match the number of columns
+        self.transactions_table.setColumnCount(9)  
         self.transactions_table.setHorizontalHeaderLabels([
-            'Total Amount',  'Price', 'Quantity', 'Customer', 'Product', 'Brand', 'Variation', 'Size', 'Category', 'Time', 
-            'Date', 'Type', 'User ID', 'Cashier', 'Payment ID', 'Contact'
+            'Total Amount',  'Product', 'Quantity', 'Cashier' ,'Customer', 'Price',  'Date', 
+            'Time',  'Payment ID'
         ])
         
         self.transactions_table.horizontalHeader().setStretchLastSection(True)
@@ -711,13 +730,13 @@ class ReportsTab(QtWidgets.QWidget):
         # Iterate over selected items to collect rows and payment_ids
         for item in self.transactions_table.selectedItems():
             row = item.row()
-            payment_id = self.transactions_table.item(row, 14).text()  # Get payment_id from the 14th column
+            payment_id = self.transactions_table.item(row, 8).text()  # Get payment_id from the 14th column
             selected_rows.add(row)
             selected_payment_ids.add(payment_id)
 
         # Find all rows with the same payment_id as selected
         for row in range(self.transactions_table.rowCount()):
-            payment_id = self.transactions_table.item(row, 14).text()  # Get payment_id from the 14th column
+            payment_id = self.transactions_table.item(row, 8).text()  # Get payment_id from the 14th column
             if payment_id in selected_payment_ids:
                 selected_rows.add(row)
 
@@ -789,17 +808,15 @@ class ReportsTab(QtWidgets.QWidget):
         conn = sqlite3.connect('j7h.db')
         cursor = conn.cursor()
         if search_query:
-            query = """SELECT t.transaction_id, t.total_price, t.qty, t.customer, t.product_name, t.brand, 
-                            t.var, t.size, t.category, t.time, t.date, t.type, t.user_id, u.first_name, 
-                            t.payment_id, t.contact, t.product_id, t.is_flagged
+            query = """SELECT t.transaction_id, t.product_name, t.qty, u.first_name, t.customer, t.total_price, t.date,  t.time, t.payment_id,  t.brand, 
+                            t.var, t.size, t.category,  t.type, t.user_id, t.contact, t.product_id, t.is_flagged
                     FROM transactions t
                     LEFT JOIN users u ON t.user_id = u.user_id
                     WHERE t.user_id LIKE ? OR t.customer LIKE ? OR t.date LIKE ? OR t.time LIKE ?"""
             cursor.execute(query, (f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%"))
         else:
-            query = """SELECT t.transaction_id, t.total_price, t.qty, t.customer, t.product_name, t.brand, 
-                            t.var, t.size, t.category, t.time, t.date, t.type, t.user_id, u.first_name, 
-                            t.payment_id, t.contact, t.product_id, t.is_flagged
+            query = """SELECT t.transaction_id, t.product_name, t.qty, u.first_name, t.customer, t.total_price, t.date,  t.time, t.payment_id,  t.brand, 
+                            t.var, t.size, t.category,  t.type, t.user_id, t.contact, t.product_id, t.is_flagged
                     FROM transactions t
                     LEFT JOIN users u ON t.user_id = u.user_id"""
             cursor.execute(query)
@@ -810,8 +827,8 @@ class ReportsTab(QtWidgets.QWidget):
         # Group rows by customer name and time
         grouped_rows = {}
         for row in rows:
-            customer_name = row[3]
-            payment_id = row[14] 
+            customer_name = row[4]
+            payment_id = row[8] 
             key = (customer_name, payment_id)
             if key not in grouped_rows:
                 grouped_rows[key] = []
@@ -830,7 +847,7 @@ class ReportsTab(QtWidgets.QWidget):
             total_total_price = 0  # Initialize total_total_price to 0
 
             for i, row_data in enumerate(group):
-                total_price = float(row_data[1])  # Get the total price for each row
+                total_price = float(row_data[5])  # Get the total price for each row
                 total_total_price += total_price  # Add to the total_total_price
 
                 if i == 0:  # For the first row in the group
@@ -898,7 +915,7 @@ class ReportsTab(QtWidgets.QWidget):
         cursor = conn.cursor()
 
         for row in set(item.row() for item in self.transactions_table.selectedItems()):
-            payment_id = self.transactions_table.item(row, 14).text()  # Assuming payment_id is in the 15th column (index 14)
+            payment_id = self.transactions_table.item(row, 8).text() 
 
             if row in self.flagged_rows:
                 # Unflag the row (remove orange background)
@@ -1005,7 +1022,7 @@ class ReportsTab(QtWidgets.QWidget):
         
         try:
             for row in selected_rows:
-                payment_id = self.transactions_table.item(row.row(), 14).text()
+                payment_id = self.transactions_table.item(row.row(), 8).text()
                 
                 # Query to fetch all details for transactions with the same payment_id
                 cursor.execute("SELECT * FROM transactions WHERE payment_id = ?", (payment_id,))
@@ -1110,6 +1127,9 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
         layout.addItem(spacer)
         
         dialog.exec_()
+        
+    def get_user_id(self):
+        return self.user_id
         
     def set_cash_register(self):
         conn = sqlite3.connect("j7h.db")
