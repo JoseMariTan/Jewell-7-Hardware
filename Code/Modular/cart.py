@@ -808,9 +808,9 @@ class CartTab(QtWidgets.QWidget):
                 
                 # Calculate the total amount for the current transaction
                 total_amount = sum(float(self.ui.tableWidget.item(row, 6).text()) for row in range(self.ui.tableWidget.rowCount()) if self.ui.tableWidget.item(row, 6) and self.ui.tableWidget.item(row, 6).text())
-                register_id = 1
+                total_amount = format(total_amount, '.2f')
                 # Update the current_value in the cash_register table
-                cursor.execute("UPDATE cash_register SET current_value = current_value + ? WHERE register_id = ?", (total_amount, register_id))
+                cursor.execute("UPDATE cash_register SET current_value = current_value + ? WHERE date = ?", (total_amount, current_date))
 
         conn.commit()
         conn.close()
