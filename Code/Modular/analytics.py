@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error
+from assets import analytics_rc
 
 class AnalyticsTab(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -16,103 +17,164 @@ class AnalyticsTab(QtWidgets.QWidget):
 
     def setupUi(self):
         self.main_layout = QtWidgets.QVBoxLayout(self)
-        
+        self.main_layout.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.frame = QtWidgets.QFrame(self)
+        self.frame.setMinimumSize(QtCore.QSize(500, 200))
+        self.frame.setMaximumSize(QtCore.QSize(500, 200))
+        self.frame.setStyleSheet("border-radius:20px;\n"
+                                "background-color:#f7f7f7;")
+        self.frame_layout = QtWidgets.QGridLayout(self.frame)
+        self.frame_layout.setContentsMargins(15, 5, 15, 5)
+        self.frame_layout.setVerticalSpacing(6)
+
+        # Set the alignment of the QFrame to center
+        self.main_layout.setAlignment(self.frame, QtCore.Qt.AlignCenter)
+
+        # Add the QFrame to the QVBoxLayout
+        self.main_layout.addWidget(self.frame)
+
         # Right side layout (chart placeholder)
         self.chart_layout = QtWidgets.QVBoxLayout()
-        self.chart_placeholder = QtWidgets.QLabel("Chart or Graph Placeholder", self)
+        self.chart_placeholder = QtWidgets.QLabel("Chart or Graph Placeholder")
         self.chart_placeholder.setAlignment(QtCore.Qt.AlignCenter)
-        self.chart_placeholder.setStyleSheet("border: 1px solid black;")
+        self.chart_placeholder.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        self.chart_placeholder.setStyleSheet("border: 1px solid black; background-color:#f7f7f7;")
         self.chart_layout.addWidget(self.chart_placeholder)
         self.main_layout.addLayout(self.chart_layout, 3)  # Larger weight for chart layout
         
-        # Left side layout (controls)
-        self.controls_layout = QtWidgets.QVBoxLayout()
-
         # Define a font to make controls larger
         larger_font = QtGui.QFont()
         larger_font.setPointSize(12)
 
         # Chart type layout
         self.chart_type_layout = QtWidgets.QHBoxLayout()
-        self.chart_type_label = QtWidgets.QLabel("Chart Type:", self)
+        self.chart_type_label = QtWidgets.QLabel("Chart Type:")
         self.chart_type_label.setFont(larger_font)
-        self.chart_type_combo = QtWidgets.QComboBox(self)
+        self.chart_type_combo = QtWidgets.QComboBox()
         self.chart_type_combo.addItems(["Line Chart", "Pie Chart", "Bar Chart"])
         self.chart_type_combo.setFont(larger_font)
+        self.chart_type_combo.setStyleSheet("QComboBox {\n"
+                                             "border: 1px solid #cccccc;\n"
+                                             "border-radius: 5px;\n"
+                                             "padding: 5px;\n"
+                                             "background-color: #f9f9f9;\n"
+                                             "color: #333333;\n"
+                                             "font: 14px 'Segoe UI', sans-serif;\n"
+                                             "}\n"
+                                             "QComboBox::drop-down {\n"
+                                             "image: url(:/Icon/icons8-arrow-down-16.png);\n"
+                                             "subcontrol-origin: padding;\n"
+                                             "subcontrol-position: top right;\n"
+                                             "width: 20px;\n"
+                                             "border-left-width: 1px;\n"
+                                             "border-left-color: #cccccc;\n"
+                                             "border-left-style: solid;\n"
+                                             "border-top-right-radius: 3px;\n"
+                                             "border-bottom-right-radius: 3px;\n"
+                                             "background: #e6e6e6;\n"
+                                             "}\n"
+                                             "QComboBox::down-arrow {\n"
+                                             "image: url(down-arrow-icon.png); /* Replace with your own down arrow icon */\n"
+                                             "width: 14px;\n"
+                                             "height: 14px;\n"
+                                             "}\n"
+                                             "QComboBox QAbstractItemView {\n"
+                                             "border: 1px solid #cccccc;\n"
+                                             "selection-background-color: #e6e6e6;\n"
+                                             "selection-color: #333333;\n"
+                                             "}\n")
         self.chart_type_layout.addWidget(self.chart_type_label)
         self.chart_type_layout.addWidget(self.chart_type_combo)
-        self.chart_type_layout.addItem(QtWidgets.QSpacerItem(20, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
-        self.controls_layout.addLayout(self.chart_type_layout)
+        self.frame_layout.addLayout(self.chart_type_layout, 0, 0)
 
         # Time period layout
         self.time_period_layout = QtWidgets.QHBoxLayout()
-        self.time_period_label = QtWidgets.QLabel("Time Period:", self)
+        self.time_period_label = QtWidgets.QLabel("Time Period:")
         self.time_period_label.setFont(larger_font)
-        self.time_period_combo = QtWidgets.QComboBox(self)
+        self.time_period_combo = QtWidgets.QComboBox()
         self.time_period_combo.addItems(["Today", "Last Week", "Last Month", "This Year"])
         self.time_period_combo.setFont(larger_font)
+        self.time_period_combo.setStyleSheet("QComboBox {\n"
+                                             "border: 1px solid #cccccc;\n"
+                                             "border-radius: 5px;\n"
+                                             "padding: 5px;\n"
+                                             "background-color: #f9f9f9;\n"
+                                             "color: #333333;\n"
+                                             "font: 14px 'Segoe UI', sans-serif;\n"
+                                             "}\n"
+                                             "QComboBox::drop-down {\n"
+                                             "image: url(:/Icon/icons8-arrow-down-16.png);\n"
+                                             "subcontrol-origin: padding;\n"
+                                             "subcontrol-position: top right;\n"
+                                             "width: 20px;\n"
+                                             "border-left-width: 1px;\n"
+                                             "border-left-color: #cccccc;\n"
+                                             "border-left-style: solid;\n"
+                                             "border-top-right-radius: 3px;\n"
+                                             "border-bottom-right-radius: 3px;\n"
+                                             "background: #e6e6e6;\n"
+                                             "}\n"
+                                             "QComboBox::down-arrow {\n"
+                                             "image: url(down-arrow-icon.png); /* Replace with your own down arrow icon */\n"
+                                             "width: 14px;\n"
+                                             "height: 14px;\n"
+                                             "}\n"
+                                             "QComboBox QAbstractItemView {\n"
+                                             "border: 1px solid #cccccc;\n"
+                                             "selection-background-color: #e6e6e6;\n"
+                                             "selection-color: #333333;\n"
+                                             "}\n")
         self.time_period_layout.addWidget(self.time_period_label)
         self.time_period_layout.addWidget(self.time_period_combo)
-        self.time_period_layout.addItem(QtWidgets.QSpacerItem(20, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
-        self.controls_layout.addLayout(self.time_period_layout)
+        self.frame_layout.addLayout(self.time_period_layout, 1, 0)
 
+        
         # Transaction type layout
         self.transaction_type_layout = QtWidgets.QHBoxLayout()
-        self.transaction_type_label = QtWidgets.QLabel("Transaction Type:", self)
+        self.transaction_type_label = QtWidgets.QLabel("Transaction Type:")
         self.transaction_type_label.setFont(larger_font)
-        self.transaction_type_sales = QtWidgets.QRadioButton("Sales", self)
+        self.transaction_type_sales = QtWidgets.QRadioButton("Sales")
         self.transaction_type_sales.setFont(larger_font)
-        self.transaction_type_returns = QtWidgets.QRadioButton("Returns", self)
+        self.transaction_type_returns = QtWidgets.QRadioButton("Returns")
         self.transaction_type_returns.setFont(larger_font)
-        self.transaction_type_group = QtWidgets.QButtonGroup(self)
+        self.transaction_type_group = QtWidgets.QButtonGroup()
         self.transaction_type_group.addButton(self.transaction_type_sales)
         self.transaction_type_group.addButton(self.transaction_type_returns)
         self.transaction_type_sales.setChecked(True)
         self.transaction_type_layout.addWidget(self.transaction_type_label)
         self.transaction_type_layout.addWidget(self.transaction_type_sales)
         self.transaction_type_layout.addWidget(self.transaction_type_returns)
-        self.transaction_type_layout.addItem(QtWidgets.QSpacerItem(20, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
-        self.controls_layout.addLayout(self.transaction_type_layout)
+        self.frame_layout.addLayout(self.transaction_type_layout, 2, 0)
 
         # Data type layout
         self.data_type_layout = QtWidgets.QHBoxLayout()
-        self.data_type_label = QtWidgets.QLabel("Data Type:", self)
+        self.data_type_label = QtWidgets.QLabel("Data Type:")
         self.data_type_label.setFont(larger_font)
-        self.data_type_product_name = QtWidgets.QRadioButton("Product Name", self)
+        self.data_type_product_name = QtWidgets.QRadioButton("Product Name")
         self.data_type_product_name.setFont(larger_font)
-        self.data_type_category = QtWidgets.QRadioButton("Category", self)
+        self.data_type_category = QtWidgets.QRadioButton("Category")
         self.data_type_category.setFont(larger_font)
-        self.data_type_group = QtWidgets.QButtonGroup(self)
+        self.data_type_group = QtWidgets.QButtonGroup()
         self.data_type_group.addButton(self.data_type_product_name)
         self.data_type_group.addButton(self.data_type_category)
         self.data_type_product_name.setChecked(True)
         self.data_type_layout.addWidget(self.data_type_label)
         self.data_type_layout.addWidget(self.data_type_product_name)
         self.data_type_layout.addWidget(self.data_type_category)
-        self.data_type_layout.addItem(QtWidgets.QSpacerItem(20, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
-        self.controls_layout.addLayout(self.data_type_layout)
+        self.frame_layout.addLayout(self.transaction_type_layout, 3, 0)
 
-        # Generate button
+        self.main_layout.addWidget(self.frame)
+         
+         # Generate button
         self.generate_button = QtWidgets.QPushButton("Generate", self)
-        self.controls_layout.addWidget(self.generate_button, alignment=QtCore.Qt.AlignCenter)
-
-        # Spacer below the generate button
-        self.controls_layout.addSpacerItem(QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding))
-
-        self.main_layout.addLayout(self.controls_layout, 1)  # Smaller weight for controls layout
-
-        # Spacer between controls and chart placeholder
-        self.main_layout.addItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
-
-        # Connect generate button to a method
+        self.generate_button.setMinimumSize(QtCore.QSize(300, 60))
+        self.generate_button.setMaximumSize(QtCore.QSize(400, 80))
         font_button = QtGui.QFont()
         font_button.setFamily("Segoe UI")
         font_button.setPointSize(8)
         font_button.setBold(True)
         font_button.setWeight(75)
-        self.generate_button.clicked.connect(self.generate_analytics_data)
-        self.generate_button.setMinimumSize(QtCore.QSize(300, 60))  
-        self.generate_button.setMaximumSize(QtCore.QSize(400, 80)) 
         self.generate_button.setFont(font_button)
         self.generate_button.setStyleSheet("""
             QPushButton {
@@ -129,6 +191,10 @@ class AnalyticsTab(QtWidgets.QWidget):
             }
             border: none;
         """)
+        self.main_layout.addWidget(self.generate_button, alignment=QtCore.Qt.AlignCenter)
+
+        # Connect generate button to a method
+        self.generate_button.clicked.connect(self.generate_analytics_data)
 
         # Connect chart type combo box to visibility handler
         self.chart_type_combo.currentIndexChanged.connect(self.toggle_data_type_visibility)
