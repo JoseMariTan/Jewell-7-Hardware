@@ -24,8 +24,17 @@ class AnalyticsTab(QtWidgets.QWidget):
         self.chart_placeholder = QtWidgets.QLabel("Chart or Graph Placeholder")
         self.chart_placeholder.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.chart_placeholder.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Preferred)
-        self.chart_placeholder.setStyleSheet("border: 1px solid black; background-color:#f7f7f7;")
+        self.chart_placeholder.setStyleSheet("background-color:#f7f7f7;")
         self.chart_layout.addWidget(self.chart_placeholder)
+        
+        # Add horizontal line below chart placeholder
+        self.line = QtWidgets.QFrame()
+        self.line.setFrameShape(QtWidgets.QFrame.Shape.HLine)
+        self.line.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
+        self.line.setLineWidth(0)
+        self.line.setMidLineWidth(2)
+        self.chart_layout.addWidget(self.line)
+        
         self.main_layout.addLayout(self.chart_layout, 3)  # Larger weight for chart layout
 
         # Frame setup
