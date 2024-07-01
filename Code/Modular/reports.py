@@ -152,10 +152,10 @@ class ReturnSelectionDialog(QtWidgets.QDialog):
         try:
             print(transaction_details)
             product_name, quantity, cashier, customer, price, date, time, payment_id, brand, var, size, transaction_date = transaction_details
-            return_date = datetime.now().strftime("%Y-%m-%d")
+            date = datetime.now().strftime("%Y-%m-%d")
             cursor.execute("""INSERT INTO returns (return_id, product_name, brand, var, size, qty, date_bought, date, reason, transaction_id)
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                        (return_id, product_name, brand, var, size, return_quantity, transaction_date, return_date, return_reason, transaction_id))
+                        (return_id, product_name, brand, var, size, return_quantity, transaction_date, date, return_reason, transaction_id))
 
             log_id = self.generate_log_id()
             current_datetime = datetime.today()
@@ -933,12 +933,12 @@ class ReportsTab(QtWidgets.QWidget):
         cursor = conn.cursor()
 
         if search_query:
-            query = """SELECT return_id, product_name, brand, var, size, qty, date, return_date, transaction_i, reason 
+            query = """SELECT return_id, product_name, brand, var, size, qty, date_bought, date, transaction_i, reason 
                     FROM returns 
-                    WHERE return_id LIKE? OR product_name LIKE? OR brand LIKE? OR date LIKE?"""
+                    WHERE return_id LIKE? OR product_name LIKE? OR brand LIKE? OR date_bought LIKE?"""
             cursor.execute(query, (f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%"))
         else:
-            cursor.execute("SELECT return_id, product_name, brand, var, size, qty, date, return_date, transaction_id, reason FROM returns")
+            cursor.execute("SELECT return_id, product_name, brand, var, size, qty, date_bought, date, transaction_id, reason FROM returns")
 
         rows = cursor.fetchall()
         conn.close()
