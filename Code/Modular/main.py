@@ -719,6 +719,7 @@ class Ui_MainWindow(object):
 
     # Navigation Functions
     def open_shop(self):
+        self.update_cash_register()
         self.shop_tab = ShopTab()
         self.stackedWidget.addWidget(self.shop_tab)
         self.stackedWidget.setCurrentWidget(self.shop_tab)
@@ -812,32 +813,52 @@ class Ui_MainWindow(object):
                 WHERE date = ?
             """, (current_date,))
             result = cursor.fetchone()
-            print(result)
+            
             if result:
                 current_value, ending_value, date = result
                 
                 # Check if the date is different from today
-                if date!= current_date:
+                if date != current_date:
+                    # Get the ending value of the previous day
+                    cursor.execute("""
+                        SELECT ending_value 
+                        FROM cash_register 
+                        WHERE date < ? 
+                        ORDER BY date DESC 
+                        LIMIT 1
+                    """, (current_date,))
+                    previous_day_result = cursor.fetchone()
+                    previous_ending_value = previous_day_result[0] if previous_day_result else 0
+
                     # Add a new row with the initial value set to the ending value of the previous day
                     cursor.execute("""
                         INSERT INTO cash_register (current_value, initial_value, ending_value, date) 
                         VALUES (?,?,?,?)
-                    """, (ending_value, ending_value, ending_value, current_date))
-                    print("diff day")
+                    """, (previous_ending_value, previous_ending_value, previous_ending_value, current_date))
                 else:
                     # Update the ending value to match the current value for today's entry
                     cursor.execute("""
                         UPDATE cash_register 
-                        SET ending_value =? 
+                        SET ending_value = ? 
                         WHERE date = ?
                     """, (current_value, current_date))
-                    print("mali query mo tanga")
             else:
+                # Get the ending value of the previous day
+                cursor.execute("""
+                    SELECT ending_value 
+                    FROM cash_register 
+                    WHERE date < ? 
+                    ORDER BY date DESC 
+                    LIMIT 1
+                """, (current_date,))
+                previous_day_result = cursor.fetchone()
+                previous_ending_value = previous_day_result[0] if previous_day_result else 0
+
                 # If no rows exist in the table, add a new row with initial and ending values set to 0
                 cursor.execute("""
                     INSERT INTO cash_register (current_value, initial_value, ending_value, date) 
                     VALUES (?,?,?,?)
-                """, (0, 0, 0, current_date))
+                """, (previous_ending_value, previous_ending_value, previous_ending_value, current_date))
             
             conn.commit()
         
