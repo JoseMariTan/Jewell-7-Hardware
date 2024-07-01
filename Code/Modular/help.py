@@ -1,5 +1,7 @@
-
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5.QtWidgets import QVBoxLayout, QScrollArea, QWidget, QLabel, QPushButton, QFileDialog, QDialog
+from PyQt5.QtGui import QPixmap
+import fitz #pip install PyMuPDF
 
 class HelpTab(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -39,6 +41,46 @@ class HelpTab(QtWidgets.QWidget):
             self.label_2.setObjectName("label_2")
             self.verticalLayout.addWidget(self.label_2)
             self.verticalLayout_2.addLayout(self.verticalLayout)
+            
+            # Adding "View User Manual" button
+            self.view_manual_button = QtWidgets.QPushButton("View User Manual")
+            font = QtGui.QFont()
+            font.setFamily("Segoe UI")
+            font.setPointSize(8)
+            font.setBold(True)
+            font.setWeight(75)
+            font.setStrikeOut(False)
+            self.view_manual_button.setFont(font)
+            self.view_manual_button.setMaximumSize(QtCore.QSize(16777215, 35))
+            self.view_manual_button.clicked.connect(self.openUserManual)
+            self.view_manual_button.setStyleSheet("QPushButton {\n"
+                                                " background-color: #10cc94;\n"
+                                                "border-radius:12px;\n"
+                                                "color:#fff;\n"
+                                                "}\n"
+                                                "QPushButton#quit_button {\n"
+                                                "   background-color: green;\n"
+                                                "}\n"
+                                                "QPushButton::pressed {\n"
+                                                "background-color: #fff;\n"
+                                                "}\n"
+                                                "QpushButton{\n"
+                                                "border: 2px solid #555;\n"
+                                                "    border-radius: 20px;\n"
+                                                "    border-style: outset;\n"
+                                                "border-width:200px;\n"
+                                                "    \n"
+                                                "}\n"
+                                                "QPushButton:hover {\n"
+                                                "   background-color: #0a9c73;\n"
+                                                "   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+                                                "}\n"
+                                                "\n"
+                                                "border:none;\n"
+                                                "")
+                    
+            self.verticalLayout_2.addWidget(self.view_manual_button)
+        
             self.line = QtWidgets.QFrame(Form)
             self.line.setFrameShape(QtWidgets.QFrame.HLine)
             self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
@@ -272,3 +314,26 @@ class HelpTab(QtWidgets.QWidget):
             self.label_7.setText(_translate("Form", "High stock level, restocking is not a priority."))
             self.label_8.setText(_translate("Form", "Moderate stock level, restocking is optional."))
             self.label_9.setText(_translate("Form", "Low stock level, restocking is highly recommended."))
+
+    def openUserManual(self):
+        file_path = "Jewell 7 Hardware User Manual.pdf"
+        doc = fitz.open(file_path)
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        widget = QWidget()
+        layout = QVBoxLayout(widget)
+        for page_num in range(len(doc)):
+            page = doc.load_page(page_num)
+            pix = page.get_pixmap()
+            img = QPixmap.fromImage(QtGui.QImage(pix.samples, pix.width, pix.height, pix.stride, QtGui.QImage.Format_RGB888))
+            label = QLabel()
+            label.setPixmap(img)
+            layout.addWidget(label)
+        scroll_area.setWidget(widget)
+        
+        dialog = QDialog(self)
+        dialog.setWindowTitle("User Manual")
+        dialog.setLayout(QVBoxLayout())
+        dialog.layout().addWidget(scroll_area)
+        dialog.resize(663, 850)
+        dialog.exec_()
