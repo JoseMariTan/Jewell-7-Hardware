@@ -1456,7 +1456,7 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
                 WHERE strftime('%Y%m%d', date) = ?
             """, (current_date,))
             result = cursor.fetchone()
-            total_sales = result[0] if result[0] is not None else 0
+            total_sales = result[0] if result[0] is not None else 0.00
             
             # Query to get the current_value from the cash_register table for today
             cursor.execute("""
@@ -1465,7 +1465,7 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
                 WHERE strftime('%Y%m%d', date) = ?
             """, (current_date,))
             result = cursor.fetchone()
-            current_value = result[0] if result[0] is not None else 0
+            current_value = result[0] if result[0] is not None else 0.00
             
             # Query to get the ending_value from the cash_register table for the previous day
             cursor.execute("""
@@ -1476,17 +1476,21 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
                 LIMIT 1
             """, (current_date,))
             result = cursor.fetchone()
-            previous_ending_value = result[0] if result[0] is not None else 0
+            previous_ending_value = result[0] if result[0] is not None else 0.00
             
             # Calculate the expected sales value
             expected_sales_value = current_value - previous_ending_value
             
-            # Compare the total_sales and expected_sales_value
-            if total_sales == expected_sales_value:
-                QMessageBox.information(self, 'Reconcile Cash', f'The system matches the cash in the register.\nTotal Sales: {total_sales}\nExpected Sales Value: {expected_sales_value}')
+            # Format values to two decimal places
+            total_sales_str = f"{total_sales:.2f}"
+            expected_sales_value_str = f"{expected_sales_value:.2f}"
+            
+            # Compare the total_sales and expected_sales_value as strings
+            if total_sales_str == expected_sales_value_str:
+                QMessageBox.information(self, 'Reconcile Cash', f'The system matches the cash in the register.\nTotal Sales: {total_sales_str}\nExpected Sales Value: {expected_sales_value_str}')
             else:
-                discrepancy = format(abs(total_sales - expected_sales_value), '.2f')
-                QMessageBox.warning(self, 'Reconcile Cash', f'Discrepancy found! The system does not match the cash in the register.\nTotal Sales: {total_sales}\nExpected Sales Value: {expected_sales_value}\nDiscrepancy: {discrepancy}')
+                discrepancy = f"{abs(float(total_sales_str) - float(expected_sales_value_str)):.2f}"
+                QMessageBox.warning(self, 'Reconcile Cash', f'Discrepancy found! The system does not match the cash in the register.\nTotal Sales: {total_sales_str}\nExpected Sales Value: {expected_sales_value_str}\nDiscrepancy: {discrepancy}')
         
         except sqlite3.Error as e:
             QMessageBox.critical(self, 'Database Error', f'An error occurred: {e}')
@@ -1494,4 +1498,3 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
         finally:
             if conn:
                 conn.close()
-
