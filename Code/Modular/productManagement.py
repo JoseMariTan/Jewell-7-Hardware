@@ -354,8 +354,28 @@ class ProductsTab(QtWidgets.QWidget):
         self.load_data()
         
     def restock_product(self):
-        pass
-    
+        selected_items = self.tableWidget.selectedItems()
+        if not selected_items:
+            QtWidgets.QMessageBox.warning(self, "Warning", "Please select a product to restock.")
+            return
+
+        row = selected_items[0].row()
+        product_name = self.tableWidget.item(row, 2).text()
+        brand = self.tableWidget.item(row, 3).text()
+        var = self.tableWidget.item(row, 4).text()
+        size = self.tableWidget.item(row, 5).text()
+        price = self.tableWidget.item(row, 6).text()
+        qty = self.tableWidget.item(row, 7).text()
+        threshold = self.tableWidget.item(row, 8).text()
+        category = self.tableWidget.item(row, 9).text()
+        status = self.tableWidget.item(row,10).text()
+        supplier = self.tableWidget.item(row,13).text()
+
+
+        dialog = RestockDialog(parent=self,  product_name=product_name, brand=brand, var=var, size=size, price=price, qty=qty, threshold=threshold, category=category, status=status, supplier=supplier)
+        dialog.exec_()
+        self.load_data()
+
 class AddProductDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -579,6 +599,112 @@ class AddProductDialog(QtWidgets.QDialog):
                 conn.close()
         self.accept()
 
+class RestockDialog(QtWidgets.QDialog):
+    def __init__(self, parent=None, product_name=None, brand=None, var=None, size=None, price=None, qty=None, threshold = None, category= None, status= None, supplier = None):
+        super().__init__(parent)
+        self.setWindowTitle("Restock Product")
+        self.setGeometry(100, 100, 300, 200)  # Adjust dimensions as needed
+
+        self.product_name = product_name
+        self.brand = brand
+        self.var = var
+        self.size = size
+        self.price = price
+        self.qty = qty
+        self.threshold =threshold
+        self.category = category
+        self.status = status
+        self.supplier = supplier
+
+        layout = QtWidgets.QVBoxLayout()
+
+        # Product Name label
+        self.product_name_label = QtWidgets.QLabel("Product Name:")
+        self.product_name_label.setText(self.product_name)
+        layout.addWidget(self.product_name_label)
+
+        # Quantity input field
+        self.qty_label = QtWidgets.QLabel("Quantity to Restock:")
+        self.qty_input = QtWidgets.QLineEdit()
+        self.qty_input.setValidator(QtGui.QIntValidator())  # Set validator for integers
+        layout.addWidget(self.qty_label)
+        layout.addWidget(self.qty_input)
+
+        # Restock button
+        self.restock_button = QtWidgets.QPushButton("Restock")
+        self.restock_button.clicked.connect(self.restock_product)
+        layout.addWidget(self.restock_button)
+
+        self.setLayout(layout)
+
+    def generate_product_id(self):
+        # Establishing connection with SQLite database
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+    
+        try:
+            while True:
+                # Get the current date in the format YYYYMMDD
+                current_date = datetime.now().strftime("%Y%m%d")
+            
+                # Generate three random letters from A to Z
+                random_letters = ''.join(random.choices(string.ascii_uppercase, k=3))
+            
+                # Combine the parts to form the product ID
+                product_id = f"PRODUC{current_date}{random_letters}"
+            
+                # Check if the product ID already exists in the database
+                cursor.execute("SELECT 1 FROM products WHERE product_id = ?", (product_id,))
+                if not cursor.fetchone():
+                    return product_id
+        finally:
+            # Ensure the database connection is closed
+            conn.close()
+
+    def restock_product(self):
+        new_qty_text = self.qty_input.text().strip()
+        if not new_qty_text:
+            QtWidgets.QMessageBox.warning(self, "Input Error", "Please enter a quantity to restock.")
+            return
+
+        try:
+            new_qty = int(new_qty_text)
+        except ValueError:
+            QtWidgets.QMessageBox.warning(self, "Input Error", "Quantity must be a valid integer.")
+            return
+
+        # Insert a new row with the same details but different date, time, and new product_id
+        try:
+            conn = sqlite3.connect('j7h.db') 
+            cur = conn.cursor()
+
+            # Fetch current datetime
+            current_datetime = datetime.today()
+            date_log = current_datetime.strftime('%Y-%m-%d')
+            time_log = current_datetime.strftime("%I:%M %p")
+
+            # Generate new product_id
+            new_product_id = self.generate_product_id()
+
+            # Insert new row
+            cur.execute("""INSERT INTO products (product_id, product_name, brand, var, size, price, qty, threshold, category, status, date_added, time_added, supplier)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?    )""",
+                        (new_product_id, self.product_name, self.brand, self.var, self.size, self.price, new_qty, self.threshold, self.category, self.status, date_log, time_log, self.supplier))
+            conn.commit()
+
+            # Success message
+            QtWidgets.QMessageBox.information(self, "Success", "Product restocked successfully.")
+
+        except sqlite3.Error as error:
+            print("Error while connecting to SQLite", error)
+            QtWidgets.QMessageBox.critical(self, "Database Error", "Failed to restock product. Please try again.")
+
+        finally:
+            if conn:
+                conn.close()
+
+        self.accept()
+
 class ModifyProductDialog(QtWidgets.QDialog):
     def __init__(self, parent=None, rowid=None, product_id=None, product_name=None, brand=None, var=None, size=None, price=None, qty=None, category=None, threshold=None, status=None, supplier=None):
         super().__init__(parent)
@@ -689,6 +815,7 @@ class ModifyProductDialog(QtWidgets.QDialog):
         self.setLayout(layout)
 
         self.fetch_product_details()
+
 
     def populate_category_combobox(self):
         try:
