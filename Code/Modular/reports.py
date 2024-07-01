@@ -1449,47 +1449,57 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
             # Get the current date in the specified format
             current_date = datetime.now().strftime("%Y%m%d")
             
-            # Query to get the sum of total_price from the transactions table for today
-            cursor.execute("""
-                SELECT SUM(total_price) 
-                FROM transactions 
-                WHERE strftime('%Y%m%d', date) = ?
-            """, (current_date,))
-            result = cursor.fetchone()
-            total_sales = result[0] if result[0] is not None else 0.00
+            # Get user input for cash in the register
+            cash_in_register, ok_pressed = QtWidgets.QInputDialog.getDouble(self, "Enter Cash Amount", "How much money is in your cash register?", 0.00, 0, 1000000, 2)
             
-            # Query to get the current_value from the cash_register table for today
-            cursor.execute("""
-                SELECT current_value 
-                FROM cash_register 
-                WHERE strftime('%Y%m%d', date) = ?
-            """, (current_date,))
-            result = cursor.fetchone()
-            current_value = result[0] if result[0] is not None else 0.00
+            if ok_pressed:
+                # Query to get the sum of total_price from the transactions table for today
+                cursor.execute("""
+                    SELECT SUM(total_price) 
+                    FROM transactions 
+                    WHERE strftime('%Y%m%d', date) = ?
+                """, (current_date,))
+                result = cursor.fetchone()
+                total_sales = result[0] if result[0] is not None else 0.00
+                
+                # Query to get the current_value from the cash_register table for today
+                cursor.execute("""
+                    SELECT current_value 
+                    FROM cash_register 
+                    WHERE strftime('%Y%m%d', date) = ?
+                """, (current_date,))
+                result = cursor.fetchone()
+                current_value = result[0] if result[0] is not None else 0.00
+                
+                # Query to get the initial_value from the cash_register table for today
+                cursor.execute("""
+                    SELECT initial_value 
+                    FROM cash_register 
+                    WHERE strftime('%Y%m%d', date) = ?
+                """, (current_date,))
+                result = cursor.fetchone()
+                initial_value = result[0] if result[0] is not None else 0.00
+                
+                # Calculate the expected sales value
+                expected_sales_value = current_value - initial_value
+                
+                # Format values to two decimal places
+                total_sales_str = f"{total_sales:.2f}"
+                expected_sales_value_str = f"{expected_sales_value:.2f}"
+                
+                # Compare the total_sales and expected_sales_value as strings
+                if total_sales_str == expected_sales_value_str:
+                    QMessageBox.information(self, 'Reconcile Cash', f'The system matches the cash in the register.\nTotal Sales: {total_sales_str}\nSales Today: {expected_sales_value_str}')
+                else:
+                    discrepancy = f"{abs(float(total_sales_str) - float(expected_sales_value_str)):.2f}"
+                    QMessageBox.warning(self, 'Reconcile Cash', f'Discrepancy found! The system does not match the cash in the register.\nTotal Sales: {total_sales_str}\nSales Today: {expected_sales_value_str}\nDiscrepancy: {discrepancy}')
+                
+                # Compare user input with the system-calculated cash value
+                if cash_in_register == expected_sales_value_str:
+                    QMessageBox.information(self, 'Cash Verification', f'Your cash in hand matches the system-calculated cash value: {expected_sales_value_str:.2f}')
+                else:
+                    QMessageBox.warning(self, 'Cash Verification', f'Your cash in hand does not match the system-calculated cash value.\nYour Cash: {cash_in_register:.2f}\nSystem Value: {current_value:.2f}')
             
-            # Query to get the initial_value from the cash_register table for today
-            cursor.execute("""
-                SELECT initial_value 
-                FROM cash_register 
-                WHERE strftime('%Y%m%d', date) = ?
-            """, (current_date,))
-            result = cursor.fetchone()
-            initial_value = result[0] if result[0] is not None else 0.00
-            
-            # Calculate the expected sales value
-            expected_sales_value = current_value - initial_value
-            
-            # Format values to two decimal places
-            total_sales_str = f"{total_sales:.2f}"
-            expected_sales_value_str = f"{expected_sales_value:.2f}"
-            
-            # Compare the total_sales and expected_sales_value as strings
-            if total_sales_str == expected_sales_value_str:
-                QMessageBox.information(self, 'Reconcile Cash', f'The system matches the cash in the register.\nTotal Sales: {total_sales_str}\n Sales Today: {expected_sales_value_str}')
-            else:
-                discrepancy = f"{abs(float(total_sales_str) - float(expected_sales_value_str)):.2f}"
-                QMessageBox.warning(self, 'Reconcile Cash', f'Discrepancy found! The system does not match the cash in the register.\nTotal Sales: {total_sales_str}\n Sales Today: {expected_sales_value_str}\nDiscrepancy: {discrepancy}')
-        
         except sqlite3.Error as e:
             QMessageBox.critical(self, 'Database Error', f'An error occurred: {e}')
         
