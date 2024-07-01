@@ -295,6 +295,7 @@ class ReportsTab(QtWidgets.QWidget):
         self.search_button.setObjectName("search_button")
         self.search_button.clicked.connect(self.search_logs)
         self.search_button.clicked.connect(self.search_transactions)
+        self.search_button.clicked.connect(self.search_returns)
         
         self.search_input = QtWidgets.QLineEdit(self)
         self.search_input.setMinimumSize(QtCore.QSize(300, 50))
@@ -819,7 +820,6 @@ class ReportsTab(QtWidgets.QWidget):
                       search_param, exact_search_param))
             else:
                 current_date = datetime.now().strftime("%Y-%m-%d")
-                print(current_date)
                 cur.execute("""
                     SELECT log_id, user_id, action, time, date
                     FROM user_logs
@@ -851,15 +851,18 @@ class ReportsTab(QtWidgets.QWidget):
         conn = sqlite3.connect('j7h.db')
         cursor = conn.cursor()
         if search_query:
-            query = """SELECT t.transaction_id, t.product_name, t.qty, u.first_name, t.customer, t.total_price, t.date,  t.time, t.payment_id,  t.brand, 
-                            t.var, t.size, t.category,  t.type, t.user_id, t.contact, t.product_id, t.is_flagged
+            query = """SELECT t.transaction_id, t.product_name, t.qty, u.first_name, t.customer, t.total_price, t.date, t.time, t.payment_id, t.brand, 
+                            t.var, t.size, t.category, t.type, t.user_id, t.contact, t.product_id, t.is_flagged
                     FROM transactions t
                     LEFT JOIN users u ON t.user_id = u.user_id
-                    WHERE t.user_id LIKE ? OR t.customer LIKE ? OR t.date LIKE ? OR t.time LIKE ?"""
-            cursor.execute(query, (f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%"))
+                    WHERE t.transaction_id LIKE ? OR t.product_name LIKE ? OR t.qty LIKE ? OR u.first_name LIKE ? OR t.customer LIKE ? 
+                            OR t.total_price LIKE ? OR t.date LIKE ? OR t.time LIKE ? OR t.payment_id LIKE ? OR t.brand LIKE ? 
+                            OR t.var LIKE ? OR t.size LIKE ? OR t.category LIKE ? OR t.type LIKE ? OR t.user_id LIKE ? 
+                            OR t.contact LIKE ? OR t.product_id LIKE ? OR t.is_flagged LIKE ?"""
+            cursor.execute(query, (f"%{search_query}%",) * 18)
         else:
-            query = """SELECT t.transaction_id, t.product_name, t.qty, u.first_name, t.customer, t.total_price, t.date,  t.time, t.payment_id,  t.brand, 
-                            t.var, t.size, t.category,  t.type, t.user_id, t.contact, t.product_id, t.is_flagged
+            query = """SELECT t.transaction_id, t.product_name, t.qty, u.first_name, t.customer, t.total_price, t.date, t.time, t.payment_id, t.brand, 
+                            t.var, t.size, t.category, t.type, t.user_id, t.contact, t.product_id, t.is_flagged
                     FROM transactions t
                     LEFT JOIN users u ON t.user_id = u.user_id"""
             cursor.execute(query)
@@ -933,12 +936,14 @@ class ReportsTab(QtWidgets.QWidget):
         cursor = conn.cursor()
 
         if search_query:
-            query = """SELECT return_id, product_name, brand, var, size, qty, date_bought, date, transaction_i, reason 
+            query = """SELECT return_id, product_name, brand, var, size, qty, date_bought, date, transaction_id, reason 
                     FROM returns 
-                    WHERE return_id LIKE? OR product_name LIKE? OR brand LIKE? OR date_bought LIKE?"""
-            cursor.execute(query, (f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%"))
+                    WHERE return_id LIKE ? OR product_name LIKE ? OR brand LIKE ? OR var LIKE ? OR size LIKE ? OR qty LIKE ? OR date_bought LIKE ? OR date LIKE ? OR transaction_id LIKE ? OR reason LIKE ?"""
+            cursor.execute(query, (f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%", f"%{search_query}%"))
         else:
-            cursor.execute("SELECT return_id, product_name, brand, var, size, qty, date_bought, date, transaction_id, reason FROM returns")
+            query = """SELECT return_id, product_name, brand, var, size, qty, date_bought, date, transaction_id, reason 
+                    FROM returns"""
+            cursor.execute(query)
 
         rows = cursor.fetchall()
         conn.close()
