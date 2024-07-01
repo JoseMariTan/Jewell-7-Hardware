@@ -6,20 +6,18 @@ import shutil
 import sqlite3
 import threading
 import time
-import datetime
 import matplotlib.pyplot as plt
 import base64
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
-from datetime import timedelta
 from io import BytesIO
 from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtWidgets import QMessageBox, QFileDialog, QDialog, QVBoxLayout, QLabel, QDateEdit, QDialogButtonBox, QComboBox, QGroupBox, QScrollArea
 from PyQt5.QtGui import QTextDocument
 from PyQt5.QtCore import QDate
 from PyQt5 import QtCore, QtGui, QtWidgets
-
+from datetime import datetime, timedelta
         
 class Ui_Form(object):
     def setupUi(self, Form):
@@ -757,10 +755,10 @@ class DatabaseTab(QtWidgets.QWidget):
                     """
                     query_params = [today]
                 elif table_name == "returns":
-                    query = f"SELECT return_id, return_date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date=?"
+                    query = f"SELECT return_id, date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date=?"
                     query_params = [today]
             elif time_period == "This Week":
-                start_of_week = today - datetime.timedelta(days=today.weekday())
+                start_of_week = today - datetime.timedelta(days=6)
                 if table_name == "transactions":
                     query = f"""
                         SELECT t.transaction_id, t.date, t.time, t.customer, t.total_price, u.first_name 
@@ -770,10 +768,10 @@ class DatabaseTab(QtWidgets.QWidget):
                     """
                     query_params = [start_of_week, today]
                 elif table_name == "returns":
-                    query = f"SELECT return_id, return_date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date BETWEEN ? AND ?"
+                    query = f"SELECT return_id, date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date BETWEEN ? AND ?"
                     query_params = [start_of_week, today]
             elif time_period == "This Month":
-                start_of_month = today.replace(day=1)
+                start_of_month = today - timedelta(days=28)
                 if table_name == "transactions":
                     query = f"""
                         SELECT t.transaction_id, t.date, t.time, t.customer, t.total_price, u.first_name 
@@ -783,7 +781,7 @@ class DatabaseTab(QtWidgets.QWidget):
                     """
                     query_params = [start_of_month, today]
                 elif table_name == "returns":
-                    query = f"SELECT return_id, return_date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date BETWEEN ? AND ?"
+                    query = f"SELECT return_id, date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date BETWEEN ? AND ?"
                     query_params = [start_of_month, today]
             elif time_period == "Custom":
                 if table_name == "transactions":
@@ -795,7 +793,7 @@ class DatabaseTab(QtWidgets.QWidget):
                     """
                     query_params = [start_date, end_date]
                 elif table_name == "returns":
-                    query = f"SELECT return_id, return_date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date BETWEEN ? AND ?"
+                    query = f"SELECT return_id, date, product_name, brand, var, size, qty FROM {table_name} WHERE return_date BETWEEN ? AND ?"
                     query_params = [start_date, end_date]
 
             cursor.execute(query, query_params)
@@ -874,36 +872,24 @@ class DatabaseTab(QtWidgets.QWidget):
 
                 report_content += "</table>"
 
-                # Generate line chart using your existing logic
-                if time_period == "Today":
-                    times_24h = [(datetime.datetime.now().replace(hour=h, minute=0, second=0, microsecond=0),
-                                datetime.datetime.now().replace(hour=h + 1, minute=0, second=0, microsecond=0))
+                if time_period == 'Today':
+                    times_24h = [(datetime.now().replace(hour=h, minute=0, second=0, microsecond=0),
+                                datetime.now().replace(hour=h + 1, minute=0, second=0, microsecond=0))
                                 for h in range(8, 19)]  # Business hours from 8 AM to 5 PM
                     counts = [len(transaction_df[(transaction_df['datetime'] >= start) & (transaction_df['datetime'] < end)]) for start, end in times_24h]
                     times_labels = [start.strftime('%I %p') for start, end in times_24h]
+                    ax.plot(times_labels, counts, marker='o', label='Sales')
 
-                    plt.figure(figsize=(6, 8))
-                    plt.plot(times_labels, counts, marker='o', label='Sales')
-                    plt.xlabel('Time')
-                    plt.ylabel('Number of Transactions')
-                    plt.title(f'Sales Report - {time_period}')
-                    plt.grid(True)
-                    plt.xticks(rotation=45)
-                    plt.legend()
+                    ax.set_xlabel('Time')
+                    ax.set_ylabel('Number of Transactions')
 
-                elif time_period == "This Week":
-                    days = [(datetime.datetime.now() - timedelta(days=i)).date() for i in range(6, -1, -1)]
+                elif time_period == 'This Week':
+                    days = [(datetime.now() - timedelta(days=i)).date() for i in range(6, -1, -1)]
                     counts = [len(transaction_df[transaction_df['datetime'].dt.date == day]) for day in days]
-                    days_labels = [day.strftime('%b %d') for day in days]
+                    days_labels = [day.strftime('%b %d') for day in days]  # Formatting as 'Month Day'
 
-                    plt.figure(figsize=(6, 8))
-                    plt.plot(days_labels, counts, marker='o', label='Sales')
-                    plt.xlabel('Days')
-                    plt.ylabel('Number of Transactions')
-                    plt.title(f'Sales Report - {time_period}')
-                    plt.grid(True)
-                    plt.xticks(rotation=45)
-                    plt.legend()
+                    fig, ax = plt.subplots()
+                    ax.plot(days_labels, counts, marker='o', color='r', label='Actual Sales')
 
                     # Implementing Linear Regression
                     X = np.arange(len(days)).reshape(-1, 1)
@@ -917,39 +903,32 @@ class DatabaseTab(QtWidgets.QWidget):
                     next_day_pred = model.predict([[next_day_index]])[0]
 
                     # Extend labels for prediction day
-                    next_day_date = (datetime.datetime.now() + timedelta(days=1)).date()
+                    next_day_date = (datetime.now() + timedelta(days=1)).date()
                     days_labels.append(next_day_date.strftime('%b %d'))  # Next day date in 'Month Day' format
                     counts.append(next_day_pred)
-                    plt.plot(days_labels, counts, linestyle='--', color='r', label='Estimated Sales')
+                    ax.plot(days_labels, counts, linestyle='--', color='r', label='Estimated Sales')
 
-                elif time_period == "This Month":
-                    weeks = [(datetime.datetime.now() - timedelta(days=i * 7), datetime.datetime.now() - timedelta(days=(i - 1) * 7)) for i in range(4, 0, -1)]
+                    ax.set_xlabel('Days')
+                    ax.set_ylabel('Number of Transactions')
+
+                elif time_period == 'This Month':
+                    weeks = [(datetime.now() - timedelta(days=i * 7), datetime.now() - timedelta(days=(i - 1) * 7)) for i in range(4, 0, -1)]
                     counts = [len(transaction_df[(transaction_df['datetime'] >= start) & (transaction_df['datetime'] < end)]) for start, end in weeks]
                     weeks_labels = [start.strftime('%B %d') + ' - ' + (end - timedelta(days=1)).strftime('%d') for start, end in weeks]
+                    ax.plot(weeks_labels, counts, marker='o', label='Sales')
 
-                    plt.figure(figsize=(6, 12))
-                    plt.plot(weeks_labels, counts, marker='o', label='Sales')
-                    plt.xlabel('Weeks')
-                    plt.ylabel('Number of Transactions')
-                    plt.title(f'Sales Report - {time_period}')
-                    plt.grid(True)
-                    plt.xticks(rotation=45)
-                    plt.legend()
+                    ax.set_xlabel('Weeks')
+                    ax.set_ylabel('Number of Transactions')
 
-                elif time_period == "Custom":
-                    months = [datetime.datetime(datetime.datetime.now().year, m, 1) for m in range(1, 13)]
+                elif time_period == 'This Year':
+                    months = [datetime(datetime.now().year, m, 1) for m in range(1, 13)]
                     counts = [len(transaction_df[transaction_df['datetime'].dt.month == month.month]) for month in months]
                     months_labels = [month.strftime('%b') for month in months]
+                    ax.plot(months_labels, counts, marker='o', label='Sales')
 
-                    plt.figure(figsize=(6, 8))
-                    plt.plot(months_labels, counts, marker='o', label='Sales')
-                    plt.xlabel('Months')
-                    plt.ylabel('Number of Transactions')
-                    plt.title(f'Sales Report - {time_period}')
-                    plt.grid(True)
-                    plt.xticks(rotation=45)
-                    plt.legend()
-
+                    ax.set_xlabel('Months')
+                    ax.set_ylabel('Number of Transactions')
+                
                 # Save the plot as a base64-encoded string
                 img_buffer = BytesIO()
                 plt.savefig(img_buffer, format='png')
@@ -976,6 +955,45 @@ class DatabaseTab(QtWidgets.QWidget):
                     )
                     report_content += returns_str
                 report_content += "</table>"
+                if time_period == 'Today':
+                    times_24h = [(datetime.now().replace(hour=h, minute=0, second=0, microsecond=0),
+                                datetime.now().replace(hour=h + 1, minute=0, second=0, microsecond=0))
+                                for h in range(8, 19)]  # Business hours from 8 AM to 5 PM
+                    counts = [len(transaction_df[(transaction_df['datetime'] >= start) & (transaction_df['datetime'] < end)]) for start, end in times_24h]
+                    times_labels = [start.strftime('%I %p') for start, end in times_24h]
+                    ax.plot(times_labels, counts, marker='o', label='Returns')
+
+                    ax.set_xlabel('Time')
+                    ax.set_ylabel('Number of Returns')
+
+                elif time_period == 'This Week':
+                    days = [(datetime.now() - timedelta(days=i)).date() for i in range(6, -1, -1)]
+                    counts = [len(transaction_df[transaction_df['datetime'].dt.date == day]) for day in days]
+                    days_labels = [day.strftime('%b %d') for day in days]  # Formatting as 'Month Day'
+
+                    fig, ax = plt.subplots()
+                    ax.plot(days_labels, counts, marker='o', label='Returns')
+
+                    ax.set_xlabel('Days')
+                    ax.set_ylabel('Number of Returns')
+
+                elif time_period == 'This Month':
+                    weeks = [(datetime.now() - timedelta(days=i * 7), datetime.now() - timedelta(days=(i - 1) * 7)) for i in range(4, 0, -1)]
+                    counts = [len(transaction_df[(transaction_df['datetime'] >= start) & (transaction_df['datetime'] < end)]) for start, end in weeks]
+                    weeks_labels = [start.strftime('%B %d') + ' - ' + (end - timedelta(days=1)).strftime('%d') for start, end in weeks]
+                    ax.plot(weeks_labels, counts, marker='o', label='Returns')
+
+                    ax.set_xlabel('Weeks')
+                    ax.set_ylabel('Number of Returns')
+
+                elif time_period == 'This Year':
+                    months = [datetime(datetime.now().year, m, 1) for m in range(1, 13)]
+                    counts = [len(transaction_df[transaction_df['datetime'].dt.month == month.month]) for month in months]
+                    months_labels = [month.strftime('%b') for month in months]
+                    ax.plot(months_labels, counts, marker='o', label='Returns')
+
+                    ax.set_xlabel('Months')
+                    ax.set_ylabel('Number of Returns')
 
             # Add summary details
             if table_name in ["transactions"]:
@@ -1079,7 +1097,7 @@ class DatabaseTab(QtWidgets.QWidget):
         time_period_combo.addItem("Today")
         time_period_combo.addItem("This Week")
         time_period_combo.addItem("This Month")
-        time_period_combo.addItem("Custom")
+        time_period_combo.addItem("This Year")
 
         # Create a combo box for selecting the data type
         data_type_label = QLabel("Select Data Type:")
