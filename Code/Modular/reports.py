@@ -614,11 +614,10 @@ class ReportsTab(QtWidgets.QWidget):
         self.reconcile_button.clicked.connect(self.reconcile_cash)
         self.receipt_button.clicked.connect(self.generate_receipt)
 
-
         # Create horizontal layout for buttons
         buttons_layout = QtWidgets.QHBoxLayout()
         buttons_layout.setContentsMargins(200, -1, 200, -1)
-        buttons_layout.setSpacing(3)
+        buttons_layout.setSpacing(6)
 
         # Add buttons to the layout
         buttons_layout.addWidget(self.return_button)
@@ -1191,7 +1190,7 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
 
         dialog = QDialog(self)
         dialog.setWindowTitle("Cash Register")
-        dialog.setFixedSize(300, 250)
+        dialog.setFixedSize(425, 250)
 
         layout = QVBoxLayout()
         label_layout = QtWidgets.QVBoxLayout()
@@ -1258,6 +1257,45 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
                                                 "")
 
         button_layout.addWidget(set_initial_button)
+
+        save_button = QtWidgets.QPushButton("Save Current Cashier")
+        save_button.setMinimumSize(QtCore.QSize(130, 50))
+        save_button.setMaximumSize(QtCore.QSize(130, 50))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(8)
+        font.setBold(True)
+        font.setWeight(75)
+        font.setStrikeOut(False)
+        save_button.setFont(font)
+        save_button.clicked.connect(self.save_value)
+        save_button.setStyleSheet("QPushButton {\n"
+                                                " background-color: #10cc94;\n"
+                                                "border-radius:12px;\n"
+                                                "color:#fff;\n"
+                                                "}\n"
+                                                "QPushButton#quit_button {\n"
+                                                "   background-color: green;\n"
+                                                "}\n"
+                                                "QPushButton::pressed {\n"
+                                                "background-color: #fff;\n"
+                                                "}\n"
+                                                "QpushButton{\n"
+                                                "border: 2px solid #555;\n"
+                                                "    border-radius: 20px;\n"
+                                                "    border-style: outset;\n"
+                                                "border-width:200px;\n"
+                                                "    \n"
+                                                "}\n"
+                                                "QPushButton:hover {\n"
+                                                "   background-color: #0a9c73;\n"
+                                                "   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
+                                                "}\n"
+                                                "\n"
+                                                "border:none;\n"
+                                                "")
+
+        button_layout.addWidget(save_button)
         
         modify_button = QtWidgets.QPushButton("Modify")
         modify_button.setMinimumSize(QtCore.QSize(130, 50))
@@ -1334,9 +1372,10 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
         new_value = self.initial_value_input.text()
         try:
             float_value = float(new_value)
+            today = datetime.now().strftime("%Y-%m-%d")
             conn = sqlite3.connect("j7h.db")
             cursor = conn.cursor()
-            cursor.execute("UPDATE cash_register SET initial_value = ?", (float_value,))
+            cursor.execute("UPDATE cash_register SET initial_value = ? WHERE date = ?", (float_value, today))
             conn.commit()
             conn.close()
             dialog.accept()  # Close the dialog
@@ -1345,6 +1384,18 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
         except ValueError:
             QMessageBox.warning(self, "Input Error", "Please enter a valid number.")
 
+
+    def save_value(self):
+        today = datetime.now().strftime("%Y-%m-%d")
+        conn = sqlite3.connect("j7h.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT current_value FROM cash_register WHERE date = ?", (today,))
+        current_value = cursor.fetchone()[0]
+        cursor.execute("UPDATE cash_register SET ending_value = ? WHERE date = ?", (current_value, today))
+        conn.commit()
+        conn.close()
+        QMessageBox.information(self, "Success", f"Cash Register updated to ₱ {current_value:.2f} for {today}")
+    
     def modify_value(self, parent_dialog):
         dialog = QDialog(self)
         dialog.setWindowTitle("Modify Cash Register Value")
@@ -1376,9 +1427,10 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
         new_value = self.modify_value_input.text()
         try:
             float_value = float(new_value)
+            today = datetime.now().strftime("%Y-%m-%d")
             conn = sqlite3.connect("j7h.db")
             cursor = conn.cursor()
-            cursor.execute("UPDATE cash_register SET current_value = ?", (float_value,))
+            cursor.execute("UPDATE cash_register SET current_value = ? WHERE date = ?", (float_value, today))
             conn.commit()
             conn.close()
             self.cash_register_label.setText(f"Cash Register: ₱ {float_value:.2f}")
@@ -1386,7 +1438,6 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
             QMessageBox.information(self, "Success", f"Cash register value modified to ₱ {float_value:.2f}")
         except ValueError:
             QMessageBox.warning(self, "Input Error", "Please enter a valid number.")
-
 
     def reconcile_cash(self):
         conn = None
