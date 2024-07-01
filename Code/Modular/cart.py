@@ -740,89 +740,99 @@ class CartTab(QtWidgets.QWidget):
 
         # Use the stored user_id
         user_id = self.user_id
-        amount_paid = amount_paid
         
-        for row in range(self.ui.tableWidget.rowCount()):
-            product_name_item = self.ui.tableWidget.item(row, 1)
-            brand_item = self.ui.tableWidget.item(row, 2)
-            var_item = self.ui.tableWidget.item(row, 3)
-            size_item = self.ui.tableWidget.item(row, 4)
-            qty_item = self.ui.tableWidget.item(row, 5)
-            total_price_item = self.ui.tableWidget.item(row, 6)
+        try:
+            total_amount = sum(float(self.ui.tableWidget.item(row, 6).text())
+                            for row in range(self.ui.tableWidget.rowCount())
+                            if self.ui.tableWidget.item(row, 6) and self.ui.tableWidget.item(row, 6).text())
+            total_amount = format(total_amount, '.2f')
+            
+            for row in range(self.ui.tableWidget.rowCount()):
+                product_name_item = self.ui.tableWidget.item(row, 1)
+                brand_item = self.ui.tableWidget.item(row, 2)
+                var_item = self.ui.tableWidget.item(row, 3)
+                size_item = self.ui.tableWidget.item(row, 4)
+                qty_item = self.ui.tableWidget.item(row, 5)
+                total_price_item = self.ui.tableWidget.item(row, 6)
 
-            if qty_item and qty_item.text():
-                product_name = product_name_item.text()
-                qty = int(qty_item.text())
-                total_price = float(total_price_item.text())
-                brand = brand_item.text() if brand_item.text() else None
-                var = var_item.text() if var_item.text() else None
-                size = size_item.text() if size_item.text() else None
-                transaction_id = self.generate_transaction_id()
-                log_id = self.generate_log_id()
-                is_flagged = 0
+                if qty_item and qty_item.text():
+                    product_name = product_name_item.text()
+                    qty = int(qty_item.text())
+                    total_price = float(total_price_item.text())
+                    brand = brand_item.text() if brand_item.text() else None
+                    var = var_item.text() if var_item.text() else None
+                    size = size_item.text() if size_item.text() else None
+                    transaction_id = self.generate_transaction_id()
+                    log_id = self.generate_log_id()
+                    is_flagged = 0
 
-                query = """
-                    SELECT product_id 
-                    FROM products 
-                    WHERE product_name = ? 
-                        AND (brand = ? OR brand IS NULL) 
-                        AND (var = ? OR var IS NULL) 
-                        AND (size = ? OR size IS NULL)
-                """
-                cursor.execute(query, (product_name, brand, var, size))
+                    query = """
+                        SELECT product_id 
+                        FROM products 
+                        WHERE product_name = ? 
+                            AND (brand = ? OR brand IS NULL) 
+                            AND (var = ? OR var IS NULL) 
+                            AND (size = ? OR size IS NULL)
+                    """
+                    cursor.execute(query, (product_name, brand, var, size))
 
-                product_id_result = cursor.fetchone()
+                    product_id_result = cursor.fetchone()
 
-                if product_id_result:
-                    product_id = product_id_result[0]
-                else:
-                    # Log the error and continue with the next item
-                    QMessageBox.warning(self, "Error", f"Product ID not found for {brand}!")
-                    transaction_successful = False
-                    continue  # Skip this item
+                    if product_id_result:
+                        product_id = product_id_result[0]
+                    else:
+                        # Log the error and continue with the next item
+                        QMessageBox.warning(self, "Error", f"Product ID not found for {brand}!")
+                        transaction_successful = False
+                        continue  # Skip this item
 
-            # Check the status of the item in the cart
-                cursor.execute("SELECT status FROM cart WHERE product_name = ? AND brand = ? AND var = ? AND size = ?", (product_name, brand, var, size))
-                status_result = cursor.fetchone()
-                if status_result and status_result[0] == 'return':
-                    transaction_type = "replacement"
-                else:
-                    transaction_type = "purchase"
+                    # Check the status of the item in the cart
+                    cursor.execute("SELECT status FROM cart WHERE product_name = ? AND brand = ? AND var = ? AND size = ?", (product_name, brand, var, size))
+                    status_result = cursor.fetchone()
+                    if status_result and status_result[0] == 'return':
+                        transaction_type = "replacement"
+                    else:
+                        transaction_type = "purchase"
 
-                cursor.execute('''
-                    INSERT INTO transactions ( transaction_id, customer, product_name, qty, total_price, date, time, type, product_id, brand, var, size, user_id, payment_id, contact, is_flagged, log_id, amount_paid)
-                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-                ''', (transaction_id, customer_name, product_name, qty, total_price, current_date, current_time, transaction_type, product_id, brand, var, size, user_id, payment_id, contact, is_flagged, log_id, amount_paid))
+                    cursor.execute('''
+                        INSERT INTO transactions ( transaction_id, customer, product_name, qty, total_price, date, time, type, product_id, brand, var, size, user_id, payment_id, contact, is_flagged, log_id, amount_paid)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    ''', (transaction_id, customer_name, product_name, qty, total_price, current_date, current_time, transaction_type, product_id, brand, var, size, user_id, payment_id, contact, is_flagged, log_id, amount_paid))
 
-                # Update the quantity in the products table
-                cursor.execute("UPDATE products SET qty = qty - ? WHERE product_id = ?", (qty, product_id))
+                    # Update the quantity in the products table
+                    cursor.execute("UPDATE products SET qty = qty - ? WHERE product_id = ?", (qty, product_id))
 
-                # Insert into user_logs table
-                action = "checkout"
-                cursor.execute('''
-                    INSERT INTO user_logs (log_id,user_id, action, time, date)
-                    VALUES (?,?,?,?,?)
-                ''', (log_id, user_id, action, current_time, current_date))
+                    # Insert into user_logs table
+                    action = "checkout"
+                    cursor.execute('''
+                        INSERT INTO user_logs (log_id,user_id, action, time, date)
+                        VALUES (?,?,?,?,?)
+                    ''', (log_id, user_id, action, current_time, current_date))
 
-                transaction_successful = True
-                
-                # Calculate the total amount for the current transaction
-                total_amount = sum(float(self.ui.tableWidget.item(row, 6).text()) for row in range(self.ui.tableWidget.rowCount()) if self.ui.tableWidget.item(row, 6) and self.ui.tableWidget.item(row, 6).text())
-                total_amount = format(total_amount, '.2f')
-                # Update the current_value in the cash_register table
-                cursor.execute("UPDATE cash_register SET current_value = current_value + ? WHERE date = ?", (total_amount, current_date))
+                    transaction_successful = True
+            
+            # Update the current_value in the cash_register table
+            cursor.execute("UPDATE cash_register SET current_value = current_value + ? WHERE date = ?", (total_amount, current_date))
 
-        conn.commit()
-        conn.close()
+            conn.commit()
+            conn.close()
 
-        # Clear cart table
-        self.clear_cart()
+            # Clear cart table
+            self.clear_cart()
 
-        # Display success message
-        if transaction_successful:
-            QMessageBox.information(self, "Checkout", "Checkout successful!")
-        else:
-            QMessageBox.warning(self, "Checkout", "Checkout failed. Some items were not processed.")
+            # Display success message
+            if transaction_successful:
+                QMessageBox.information(self, "Checkout", "Checkout successful!")
+            else:
+                QMessageBox.warning(self, "Checkout", "Checkout failed. Some items were not processed.")
+
+        except sqlite3.Error as e:
+            QMessageBox.critical(self, 'Database Error', f'An error occurred: {e}')
+
+        finally:
+            if conn:
+                conn.close()
+
             
     def is_admin(self):
         conn = sqlite3.connect('j7h.db')
