@@ -424,7 +424,29 @@ class AnalyticsTab(QtWidgets.QWidget):
                         else:
                             self.generate_bar_chart(data_df, f'Most Common Reason for Customer Returns {time_period} ({year_range})', data_type)
         else:
-            print("Transaction Data is empty.")
+            self.type = "Sales"  
+            self.period = "Today"
+
+            if transaction_type == "Sales":
+                self.type = "Sales"
+            else:
+                self.type = "Returns"
+            
+            if time_period == "Today":
+                self.time = "Today"
+            elif time_period == "Last Week":
+                self.time = "Last Week"
+            elif time_period == "Last Month":
+                self.time = "Last Month"
+            else:
+                self.time = "This Year"
+
+            # Displaying a message box
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Information)
+            msg.setText(f"No {self.type.lower()} data found for {self.time.lower()}")
+            msg.setWindowTitle("Graph Error")
+            msg.exec_()
 
     def fetch_data(self, data_type, time_period):
         conn = sqlite3.connect("j7h.db")

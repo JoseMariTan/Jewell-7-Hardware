@@ -153,7 +153,7 @@ class ReturnSelectionDialog(QtWidgets.QDialog):
             print(transaction_details)
             product_name, quantity, cashier, customer, price, date, time, payment_id, brand, var, size, transaction_date = transaction_details
             return_date = datetime.now().strftime("%Y-%m-%d")
-            cursor.execute("""INSERT INTO returns (return_id, product_name, brand, var, size, qty, date, return_date, reason, transaction_id)
+            cursor.execute("""INSERT INTO returns (return_id, product_name, brand, var, size, qty, date_bought, date, reason, transaction_id)
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                         (return_id, product_name, brand, var, size, return_quantity, transaction_date, return_date, return_reason, transaction_id))
 
