@@ -1,4 +1,5 @@
 import sys
+import time
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMessageBox
 from datetime import datetime
@@ -15,6 +16,9 @@ class Login(QtWidgets.QWidget):
         super().__init__(parent)
         self.setupUi(self)
         self.new_window = None
+        self.max_attempts = 5
+        self.attempts = 0
+        self.lockout_timer = None
 
     def setupUi(self, Login):
         self.setObjectName("Login")
@@ -242,7 +246,17 @@ class Login(QtWidgets.QWidget):
         else:
             self.password_input.setEchoMode(QtWidgets.QLineEdit.Password)
 
+    def check_attempts(self):
+        if self.attempts >= self.max_attempts:
+            self.lockout_timer = time.time() + 3600  # Lock user out for 1 hour
+            self.attempts = 0  # Reset attempts after lockout
+
     def login_user(self):
+        if self.lockout_timer and time.time() < self.lockout_timer:
+            remaining_time = int(self.lockout_timer - time.time())
+            self.show_error_message(f"Too many failed attempts. Try again in {remaining_time // 60} minutes.")
+            return
+
         username = self.username_input.text().strip()
         password = self.password_input.text().strip()
 
@@ -259,7 +273,9 @@ class Login(QtWidgets.QWidget):
             result = cursor.fetchone()
         
             if result is None:
-                self.show_error_message("Invalid username or password.")
+                print("Invalid username or password.")
+                self.attempts += 1
+                self.check_attempts()
                 return
 
             user_id, stored_password, loa, status = result
@@ -289,6 +305,8 @@ class Login(QtWidgets.QWidget):
                 else:
                     self.show_error_message("Invalid level of access.")
             else:
+                self.attempts += 1
+                self.check_attempts()
                 action = "login attempt"
                 cursor.execute('''INSERT INTO user_logs (log_id, user_id, action, time, date) 
                                 VALUES (?, ?, ?, ?, ?)''', (log_id, user_id, action, time_log, date_log))
@@ -299,7 +317,6 @@ class Login(QtWidgets.QWidget):
         finally:
             conn.close()
 
-            
     def generate_log_id(self):
         # Establishing connection with SQLite database
         conn = sqlite3.connect('j7h.db')
