@@ -360,6 +360,17 @@ class ForgotPassword(object):
             self.show_error_message("Please fill in all the fields.")
             return
 
+        # Validation: Check if the password length is between 8 and 12 characters
+        if not (8 <= len(new_password) <= 12):
+            # Displaying a message box for error
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Warning)
+            msg.setText("Password must be between 8 and 12 characters long.")
+            msg.setWindowTitle("Error")
+            msg.exec_()
+            return
+
+
         # Validation: Check if new password and confirm password match
         if new_password != confirm_password:
             self.show_error_message("New password and confirm password do not match.")
