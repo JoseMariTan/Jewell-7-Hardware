@@ -356,7 +356,7 @@ class ForgotPassword(object):
         confirm_password = self.confirmPassword_input.text().strip()
 
         # Validation: Check if any field is empty
-        if not all([birthdate, middle_name, new_password, confirm_password]):
+        if not all([birthdate, new_password, confirm_password]):
             self.show_error_message("Please fill in all the fields.")
             return
 
@@ -387,6 +387,7 @@ class ForgotPassword(object):
             date_log = current_datetime.strftime('%Y-%m-%d')
             time_log = current_datetime.strftime("%I:%M %p")
             log_id = self.generate_log_id()
+
             # Inserting data into the user_logs table
             action = "changed password"
             cursor.execute('''INSERT INTO user_logs (log_id, user_id, action, time, date) 

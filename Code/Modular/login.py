@@ -38,6 +38,7 @@ class Login(QtWidgets.QWidget):
                                     "}")
         self.widget_2.setObjectName("widget_2")
         self.gridLayout = QtWidgets.QGridLayout(self.widget_2)
+        self.gridLayout.setContentsMargins(10, 0, 20, 25)
         self.gridLayout.setObjectName("gridLayout")
         self.logo = QtWidgets.QLabel(self.widget_2)
         self.logo.setMinimumSize(QtCore.QSize(420, 50))
@@ -213,6 +214,8 @@ class Login(QtWidgets.QWidget):
                                         "")
         self.forgotButton.setObjectName("forgotButton")
         self.verticalLayout.addWidget(self.forgotButton)
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        self.verticalLayout.addItem(spacerItem)
         self.forgotButton.clicked.connect(self.forgot_password)
         
         self.gridLayout_2.addWidget(self.widget, 0, 1, 1, 1)
@@ -338,6 +341,7 @@ class Login(QtWidgets.QWidget):
         self.close()
         
     def forgot_password(self):
+        QtWidgets.QApplication.instance().activeWindow().close()
         self.forgotPasswordWindow = QtWidgets.QMainWindow()
         self.ui = ForgotPassword()
         self.ui.setupUi(self.forgotPasswordWindow)

@@ -31,6 +31,7 @@ class Register(QtWidgets.QWidget):
                                          "}\n")
         self.logoContainer.setObjectName("logoContainer")
         self.gridLayout = QtWidgets.QGridLayout(self.logoContainer)
+        self.gridLayout.setContentsMargins(10, 0, 20, 25)
         self.gridLayout.setObjectName("gridLayout")
         
         # Logo Image
