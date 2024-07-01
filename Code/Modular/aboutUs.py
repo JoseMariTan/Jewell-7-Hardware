@@ -1,5 +1,6 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from assets import about_rc
 
 class AboutUsTab(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -382,11 +383,17 @@ class AboutUsTab(QtWidgets.QWidget):
 "point-of sale designed for Jewell 7 \n"
 "Hardware,  developed using the Python\n"
 "programming language and SQLite\n"
-"database."))
+"database.\n"
+"\n"
+"This system includes features for\n"
+"managing stocks, processing transactions\n"
+"(Point of Sale), generating reports, and\n"
+"performing analytics. It also uses Linear\n"
+"Regression algorithm for predicting\n"
+"sales within a weekly timeframe."))
         self.label_13.setText(_translate("Form", "Buenaventura, John Gabriel N."))
         self.label_14.setText(_translate("Form", "Frontend Developer"))
         self.label_15.setText(_translate("Form", "    Santos, Johan D."))
         self.label_18.setText(_translate("Form", " Full-stack Developer"))
         self.label_16.setText(_translate("Form", "Tan, Jose Mari V."))
         self.label_19.setText(_translate("Form", "Full-stack Developer"))
-from assets import about_rc
