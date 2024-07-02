@@ -447,7 +447,7 @@ class CartTab(QtWidgets.QWidget):
         cursor = conn.cursor()
 
         try:
-            if search_query:
+            if search_query and len(search_query) > 1:
                 search_param = '%{}%'.format(search_query)
                 exact_search_param = '{}'.format(search_query)
                 cursor.execute("""
@@ -461,7 +461,7 @@ class CartTab(QtWidgets.QWidget):
                         (c.size LIKE ? COLLATE NOCASE OR c.size = ?)
                     ORDER BY c.cart_id DESC
                 """, (search_param, exact_search_param, search_param, exact_search_param,
-                      search_param, exact_search_param, search_param, exact_search_param))
+                    search_param, exact_search_param, search_param, exact_search_param))
             else:
                 cursor.execute("""SELECT rowid, product_name, brand, var, size, qty, total_price FROM cart ORDER BY cart_id DESC""")
             
