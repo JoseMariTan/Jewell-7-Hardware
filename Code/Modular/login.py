@@ -188,7 +188,6 @@ class Login(QtWidgets.QWidget):
                                        "}\n"
                                        "QPushButton:hover {\n"
                                        "   background-color: #0a9c73;\n"
-                                       "   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
                                        "}\n"
                                        "border:none;")
         self.loginButton.setObjectName("loginButton")
