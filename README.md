@@ -1,4 +1,2 @@
 # Jewell-7-Hardware
-In partial fulfillment of the course Software Engineering 2, students are expected to develop a product management system with point of sale for Jewell 7 Hardware.
-- UI Folder contains all of the .ui files created through QT Designer
-- Code Folder contains all of the python files converted from .ui files
+The Product Management System with Point-of-Sale for Jewell 7 Hardware offers a collection of features designed to enhance operational efficiency and support informed decision-making. The product management feature allows for the efficient addition and monitoring of product stock levels, making it easy to identify which products need to be restocked. The point of sale feature streamlines customer transactions, reducing transaction times and improving the overall experience for both the business and its customers. Additionally, the system incorporates reporting and analytics capabilities, providing timely, computer-generated reports that aid in the decision-making process, thereby contributing to the overall quality of business operations.
