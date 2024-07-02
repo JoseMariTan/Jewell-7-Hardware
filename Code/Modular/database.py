@@ -438,7 +438,7 @@ class Ui_Form(object):
         self.manualBackup_button.setText(_translate("Form", "Manual Backup"))
         self.restoreDatabase_button.setText(_translate("Form", "Restore Database"))
         self.ActiveDatabase_label.setText(_translate("Form", "Active Database: "))
-        self.ActiveDatabase_Data.setText(_translate("Form", "Data"))
+        self.ActiveDatabase_Data.setText(_translate("Form", "j7h.db"))
         self.lastBackup_label.setText(_translate("Form", "Last Backup: "))
         self.LastBackup_Data.setText(_translate("Form", "Data"))
         self.CurrentTime_label.setText(_translate("Form", "Current Automatic Backup Time: "))
@@ -931,10 +931,11 @@ class DatabaseTab(QtWidgets.QWidget):
 
             elif table_name == "returns":
                 report_content += "<table border='1' cellspacing='0' cellpadding='5' style='margin: auto;'>"
-                report_content += "<tr><th>Return ID</th><th>Date</th><th>Product Name</th><th>Brand</th><th>Variant</th><th>Size</th><th>Quantity</th><th>Reason</th></tr>"
+                report_content += "<tr><th>Return ID</th><th>Date</th><th>Product Name</th><th>Brand</th><th>Var</th><th>Size</th><th>Qty</th><th>Reason</th></tr>"
                 total_returns = 0
+                time_data = {}
                 for row in rows:
-                    report_content += (
+                    return_str = (
                         f"<tr>"
                         f"<td>{row[0]}</td>"
                         f"<td>{row[1]}</td>"
@@ -946,11 +947,88 @@ class DatabaseTab(QtWidgets.QWidget):
                         f"<td>{row[7]}</td>"
                         f"</tr>"
                     )
-                    total_returns += row[6]
+                    report_content += return_str
+                    total_returns += 1
+
+                    # Collect time data for chart
+                    date = row[1]
+                    if time_period == "Today":
+                        time = date  # Use date as the key
+                    elif time_period == "This Week":
+                        time = date  # Date
+                    elif time_period == "This Month":
+                        time = f"Week {datetime.now().strptime(date, '%Y-%m-%d').isocalendar()[1]}"  # Week
+                    else:
+                        time = date
+
+                    if time not in time_data:
+                        time_data[time] = 0
+                    time_data[time] += 1  # Increment the count for each return
 
                 report_content += "</table>"
 
-                report_content += f"<h2>Summary:</h2><p>Total Returns: {total_returns}</p>"
+                if time_period == 'Today':
+                    days = [datetime.now().date()]
+                    counts = [len(transaction_df[transaction_df['date'] == day.strftime('%Y-%m-%d')]) for day in days]
+                    days_labels = [day.strftime('%b %d') for day in days]  # Formatting as 'Month Day'
+
+                    plt.figure(figsize=(6, 8))
+                    plt.plot(days_labels, counts, color='g', marker='o', label='Returns')
+                    plt.xlabel('Days')
+                    plt.ylabel('Number of Returns')
+                    plt.title(f'Returns Report - {time_period}')
+                    plt.grid(True)
+                    plt.xticks(rotation=45)
+                    plt.legend()
+
+                elif time_period == 'This Week':
+                    days = [(datetime.now() - timedelta(days=i)).date() for i in range(6, -1, -1)]
+                    counts = [len(transaction_df[transaction_df['date'] == day.strftime('%Y-%m-%d')]) for day in days]
+                    days_labels = [day.strftime('%b %d') for day in days]  # Formatting as 'Month Day'
+
+                    plt.figure(figsize=(6, 8))
+                    plt.plot(days_labels, counts, color='y', marker='o', label='Returns')
+                    plt.xlabel('Days')
+                    plt.ylabel('Number of Returns')
+                    plt.title(f'Returns Report - {time_period}')
+                    plt.grid(True)
+                    plt.xticks(rotation=45)
+                    plt.legend()
+
+                elif time_period == 'This Month':
+                    weeks = sorted(time_data.keys())
+                    totals = [time_data[week] for week in weeks]
+
+                    plt.figure(figsize=(6, 8))
+                    plt.plot(weeks, totals, color='c', marker='o', label='Returns')
+                    plt.xlabel('Week')
+                    plt.ylabel('Total Returns')
+                    plt.title(f'Returns Report - {time_period}')
+                    plt.grid(True)
+                    plt.xticks(rotation=45)
+                    plt.legend()
+
+                else:
+                    months = sorted(time_data.keys())
+                    totals = [time_data[month] for month in months]
+
+                    plt.figure(figsize=(6, 8))
+                    plt.plot(months, totals, color='m', marker='o', label='Returns')
+                    plt.xlabel('Month')
+                    plt.ylabel('Total Returns')
+                    plt.title(f'Returns Report - {time_period}')
+                    plt.grid(True)
+                    plt.xticks(rotation=45)
+                    plt.legend()
+
+                chart_file = "returns_chart.png"
+                plt.savefig(chart_file)
+                plt.close()
+
+                report_content += "<h4>Returns Chart</h4>"
+                report_content += f"<div style='text-align:center;'><img src='{chart_file}' alt='Returns Chart'></div>"
+
+                report_content += f"<p><b>Total Returns:</b> {total_returns}</p>"
 
             report_content += "</body></html>"
 
