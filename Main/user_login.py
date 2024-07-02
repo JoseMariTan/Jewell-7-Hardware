@@ -272,7 +272,7 @@ class Login(QtWidgets.QWidget):
             result = cursor.fetchone()
         
             if result is None:
-                print("Invalid username or password.")
+                self.show_error_message("Invalid username or password.")
                 self.attempts += 1
                 self.check_attempts()
                 return
