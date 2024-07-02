@@ -108,7 +108,6 @@ class StaffRegistration(QtWidgets.QWidget):
 "  border: none;\n"
 "border-radius:12px;\n"
 "  position: relative;\n"
-"  z-index: 0; /* We force a stacking context */\n"
 "}\n"
 "")
         self.firstName_input.setObjectName("firstName_input")
@@ -127,7 +126,6 @@ class StaffRegistration(QtWidgets.QWidget):
 "  border: none;\n"
 "border-radius:12px;\n"
 "  position: relative;\n"
-"  z-index: 0; /* We force a stacking context */\n"
 "}\n"
 "")
         self.lastName_input.setObjectName("lastName_input")
@@ -281,7 +279,6 @@ class StaffRegistration(QtWidgets.QWidget):
 "}\n"
 "QPushButton:hover {\n"
 "   background-color: #0a9c73;\n"
-"   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
 "}\n"
 "\n"
 "border:none;\n"
@@ -315,7 +312,6 @@ class StaffRegistration(QtWidgets.QWidget):
 "}\n"
 "QPushButton:hover {\n"
 "   background-color: #F66150;\n"
-"   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);\n"
 "}\n"
 "\n"
 "border:none;\n"
