@@ -10,3 +10,6 @@ The system includes the following modules:
 - Reports Module
 - Analytics Module
 - Backup and Restore Module
+
+Please install the necessary libraries:
+- pip install PyQt5 matplotlib pandas numpy scikit-learn PyMuPDF
