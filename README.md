@@ -11,7 +11,5 @@ The system includes the following modules:
 - Analytics Module
 - Backup and Restore Module
 
-Run the program:
-- run main.py    
-Install the necessary libraries:
-- pip install PyQt5 matplotlib pandas numpy scikit-learn PyMuPDF
+To run the program: - run main.py
+Install the necessary libraries: - pip install PyQt5 matplotlib pandas numpy scikit-learn PyMuPDF
