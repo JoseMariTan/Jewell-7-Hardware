@@ -316,7 +316,9 @@ class HelpTab(QtWidgets.QWidget):
             self.label_9.setText(_translate("Form", "Low stock level, restocking is highly recommended."))
 
     def openUserManual(self):
-        file_path = "Jewell 7 Hardware User Manual.pdf"
+        import os
+        script_dir = os.path.dirname(__file__)
+        file_path = os.path.join(script_dir, "Jewell 7 Hardware User Manual.pdf")
         doc = fitz.open(file_path)
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
