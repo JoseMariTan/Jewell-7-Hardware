@@ -1,10 +1,13 @@
-import sqlite3
 import random
+import sqlite3
 import string
 from datetime import datetime
-from PyQt5.QtWidgets import QMessageBox
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QMessageBox
+
 from assets import shop_rc
+
 
 #Class for Products Tab
 class ProductsTab(QtWidgets.QWidget):
@@ -619,19 +622,57 @@ class RestockDialog(QtWidgets.QDialog):
         layout = QtWidgets.QVBoxLayout()
 
         # Product Name label
-        self.product_name_label = QtWidgets.QLabel("Product Name:")
-        self.product_name_label.setText(self.product_name)
+        self.product_name_label = QtWidgets.QLabel("Product Name: " + self.product_name)
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(12)
+        self.product_name_label.setFont(font)
+        self.product_name_label.setStyleSheet("QLineEdit {\n"
+                                          "  background-color: #c6c6c8;\n"
+                                          "  padding: 4px;\n"
+                                          "  border: none;\n"
+                                          "  border-radius: 12px;\n"
+                                          "  position: relative;\n"
+                                          "  z-index: 0;\n"
+                                          "}")
         layout.addWidget(self.product_name_label)
 
         # Quantity input field
         self.qty_label = QtWidgets.QLabel("Quantity to Restock:")
         self.qty_input = QtWidgets.QLineEdit()
+        self.qty_label.setFont(font)
         self.qty_input.setValidator(QtGui.QIntValidator())  # Set validator for integers
         layout.addWidget(self.qty_label)
         layout.addWidget(self.qty_input)
 
-        # Restock button
+        # Restock buttonself.login_button = QtWidgets.QPushButton('Login', self)
         self.restock_button = QtWidgets.QPushButton("Restock")
+        self.restock_button.setMinimumSize(QtCore.QSize(150, 50))
+        self.restock_button.setMaximumSize(QtCore.QSize(500, 16777215))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(8)
+        font.setBold(True)
+        font.setWeight(75)
+        font.setStrikeOut(False)
+        self.restock_button.setFont(font)
+        self.restock_button.setMouseTracking(True)
+        self.restock_button.setTabletTracking(True)
+        self.restock_button.setStyleSheet("QPushButton {\n"
+                                       " background-color: #10cc94;\n"
+                                       " border-radius: 12px;\n"
+                                       " color: #fff;\n"
+                                       "}\n"
+                                       "QPushButton#quit_button {\n"
+                                       "   background-color: green;\n"
+                                       "}\n"
+                                       "QPushButton::pressed {\n"
+                                       "   background-color: #fff;\n"
+                                       "}\n"
+                                       "QPushButton:hover {\n"
+                                       "   background-color: #0a9c73;\n"
+                                       "}\n"
+                                       "border:none;")
         self.restock_button.clicked.connect(self.restock_product)
         layout.addWidget(self.restock_button)
 
