@@ -1,5 +1,7 @@
 import sqlite3
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class UsersTab(QtWidgets.QWidget):
     user_modified = QtCore.pyqtSignal()
@@ -284,6 +286,8 @@ class UsersTab(QtWidgets.QWidget):
 
             for i, user in enumerate(users):
                 for j, value in enumerate(user):
+                    if j == 4:  # Password column
+                        value = self.mask_password(value)
                     self.tableWidget.setItem(i, j, QtWidgets.QTableWidgetItem(str(value)))
 
         except sqlite3.Error as e:
@@ -292,6 +296,7 @@ class UsersTab(QtWidgets.QWidget):
 
         finally:
             conn.close()
+
 
     def search_users(self):
         search_query = self.search_input.text()
@@ -378,6 +383,11 @@ class UsersTab(QtWidgets.QWidget):
                 item = self.tableWidget.item(row, column)
                 if item:
                     item.setSelected(True)
+                    
+    def mask_password(self, password):
+        if len(password) > 1:
+            return password[0] + '*' * (len(password) - 1)
+        return password
 
 class ModifyUserDialog(QtWidgets.QDialog):
     def __init__(self, rowid, user, parent=None):
