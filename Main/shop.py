@@ -1,5 +1,6 @@
 import sqlite3
 from datetime import datetime
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import (QDialog, QHBoxLayout, QLabel, QPushButton,
                              QSpinBox, QVBoxLayout)
@@ -29,11 +30,6 @@ class AddToCartDialog(QDialog):
         self.plus_5_button.setFixedWidth(50)
         self.plus_5_button.clicked.connect(lambda: self.adjust_quantity(5))
         self.button_layout.addWidget(self.plus_5_button)
-
-        self.zero_button = QPushButton("0")
-        self.zero_button.setFixedWidth(50)
-        self.zero_button.clicked.connect(lambda: self.adjust_quantity(0))
-        self.button_layout.addWidget(self.zero_button)
         
         self.plus_10_button = QPushButton("+10")
         self.plus_10_button.setFixedWidth(50)
@@ -278,6 +274,7 @@ class Ui_ShopTab(object):
         item.setText(_translate("ShopTab", "Category"))
         self.add_to_cart_button.setText(_translate("ShopTab", "Add to cart"))
 from assets import shop_rc
+
 
 class ShopTab(QtWidgets.QWidget):
     item_added_to_cart = QtCore.pyqtSignal()
