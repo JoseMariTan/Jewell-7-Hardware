@@ -1,7 +1,6 @@
 import random
 import sqlite3
 import string
-import uuid
 from datetime import datetime
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -16,19 +15,90 @@ class AdminLoginDialog(QtWidgets.QDialog):
 
         self.layout = QtWidgets.QVBoxLayout(self)
 
+        
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(12)
         self.help_label = QtWidgets.QLabel("Ask an Admin for Help", self)
+        self.help_label.setStyleSheet("QLineEdit {\n"
+                                          "  background-color: #c6c6c8;\n"
+                                          "  padding: 4px;\n"
+                                          "  border: none;\n"
+                                          "  border-radius: 12px;\n"
+                                          "  position: relative;\n"
+                                          "  z-index: 0;\n"
+                                          "}")
+        self.help_label.setFont(font)
         self.layout.addWidget(self.help_label)
 
         self.username_input = QtWidgets.QLineEdit(self)
+        self.username_input.setMinimumSize(QtCore.QSize(150, 55))
+        self.username_input.setMaximumSize(QtCore.QSize(500, 55))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        self.username_input.setFont(font)
+        self.username_input.setStyleSheet("QLineEdit {\n"
+                                          "  background-color: #c6c6c8;\n"
+                                          "  padding: 4px;\n"
+                                          "  border: none;\n"
+                                          "  border-radius: 12px;\n"
+                                          "  position: relative;\n"
+                                          "  z-index: 0;\n"
+                                          "}")
+        self.username_input.setText("")
+        self.username_input.setFrame(True)
+        self.username_input.setEchoMode(QtWidgets.QLineEdit.Normal)
         self.username_input.setPlaceholderText('Username')
         self.layout.addWidget(self.username_input)
 
         self.password_input = QtWidgets.QLineEdit(self)
+        self.password_input.setMinimumSize(QtCore.QSize(150, 55))
+        self.password_input.setMaximumSize(QtCore.QSize(500, 55))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        self.password_input.setFont(font)
+        self.password_input.setStyleSheet("QLineEdit {\n"
+                                          "  background-color: #c6c6c8;\n"
+                                          "  padding: 4px;\n"
+                                          "  border: none;\n"
+                                          "  border-radius: 10px;\n"
+                                          "  position: relative;\n"
+                                          "  z-index: 0;\n"
+                                          "}")
+        self.password_input.setText("")
+        self.password_input.setFrame(True)
         self.password_input.setPlaceholderText('Password')
         self.password_input.setEchoMode(QtWidgets.QLineEdit.Password)
         self.layout.addWidget(self.password_input)
 
         self.login_button = QtWidgets.QPushButton('Login', self)
+        self.login_button.setMinimumSize(QtCore.QSize(150, 50))
+        self.login_button.setMaximumSize(QtCore.QSize(500, 16777215))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(8)
+        font.setBold(True)
+        font.setWeight(75)
+        font.setStrikeOut(False)
+        self.login_button.setFont(font)
+        self.login_button.setMouseTracking(True)
+        self.login_button.setTabletTracking(True)
+        self.login_button.setStyleSheet("QPushButton {\n"
+                                       " background-color: #10cc94;\n"
+                                       " border-radius: 12px;\n"
+                                       " color: #fff;\n"
+                                       "}\n"
+                                       "QPushButton#quit_button {\n"
+                                       "   background-color: green;\n"
+                                       "}\n"
+                                       "QPushButton::pressed {\n"
+                                       "   background-color: #fff;\n"
+                                       "}\n"
+                                       "QPushButton:hover {\n"
+                                       "   background-color: #0a9c73;\n"
+                                       "}\n"
+                                       "border:none;")
+        self.login_button.setObjectName("loginButton")
         self.layout.addWidget(self.login_button)
         self.login_button.clicked.connect(self.check_credentials)
 
@@ -85,6 +155,7 @@ class AdminLoginDialog(QtWidgets.QDialog):
         dialog = AdminLoginDialog(parent)
         result = dialog.exec_()
         return result == QtWidgets.QDialog.Accepted
+    
 class Ui_Cart_Tab(object):
     def setupUi(self, Cart_Tab):
         Cart_Tab.setObjectName("Cart_Tab")
@@ -419,6 +490,7 @@ class Ui_Cart_Tab(object):
         self.total_label.setText(_translate("Cart_Tab", "Total Price: ₱ 0.00"))
         
 from assets import shop_rc
+
 
 class CartTab(QtWidgets.QWidget):
     def __init__(self, user_id):
