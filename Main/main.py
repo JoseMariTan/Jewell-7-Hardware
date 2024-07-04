@@ -1,8 +1,158 @@
+import sqlite3
 import sys
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
+class AdminLoginDialog(QtWidgets.QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle('Admin Login')
+        self.setGeometry(200, 200, 300, 180)
+
+        self.layout = QtWidgets.QVBoxLayout(self)
+
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(12)
+        self.help_label = QtWidgets.QLabel("An admin is required to perform this task, please contact an admin.", self)
+        self.help_label.setStyleSheet("QLineEdit {\n"
+                                          "  background-color: #c6c6c8;\n"
+                                          "  padding: 4px;\n"
+                                          "  border: none;\n"
+                                          "  border-radius: 12px;\n"
+                                          "  position: relative;\n"
+                                          "  z-index: 0;\n"
+                                          "}")
+        self.help_label.setFont(font)
+        self.layout.addWidget(self.help_label)
+
+        self.username_input = QtWidgets.QLineEdit(self)
+        self.username_input.setMinimumSize(QtCore.QSize(150, 55))
+        self.username_input.setMaximumSize(QtCore.QSize(500, 55))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        self.username_input.setFont(font)
+        self.username_input.setStyleSheet("QLineEdit {\n"
+                                          "  background-color: #c6c6c8;\n"
+                                          "  padding: 4px;\n"
+                                          "  border: none;\n"
+                                          "  border-radius: 12px;\n"
+                                          "  position: relative;\n"
+                                          "  z-index: 0;\n"
+                                          "}")
+        self.username_input.setText("")
+        self.username_input.setFrame(True)
+        self.username_input.setEchoMode(QtWidgets.QLineEdit.Normal)
+        self.username_input.setPlaceholderText('Username')
+        self.layout.addWidget(self.username_input)
+        
+
+        self.password_input = QtWidgets.QLineEdit(self)
+        self.password_input.setMinimumSize(QtCore.QSize(150, 55))
+        self.password_input.setMaximumSize(QtCore.QSize(500, 55))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        self.password_input.setFont(font)
+        self.password_input.setStyleSheet("QLineEdit {\n"
+                                          "  background-color: #c6c6c8;\n"
+                                          "  padding: 4px;\n"
+                                          "  border: none;\n"
+                                          "  border-radius: 10px;\n"
+                                          "  position: relative;\n"
+                                          "  z-index: 0;\n"
+                                          "}")
+        self.password_input.setText("")
+        self.password_input.setFrame(True)
+        self.password_input.setPlaceholderText('Password')
+        self.password_input.setEchoMode(QtWidgets.QLineEdit.Password)
+        self.layout.addWidget(self.password_input)
+
+        self.login_button = QtWidgets.QPushButton('Login', self)
+        self.login_button.setMinimumSize(QtCore.QSize(150, 50))
+        self.login_button.setMaximumSize(QtCore.QSize(500, 16777215))
+        font = QtGui.QFont()
+        font.setFamily("Segoe UI")
+        font.setPointSize(8)
+        font.setBold(True)
+        font.setWeight(75)
+        font.setStrikeOut(False)
+        self.login_button.setFont(font)
+        self.login_button.setMouseTracking(True)
+        self.login_button.setTabletTracking(True)
+        self.login_button.setStyleSheet("QPushButton {\n"
+                                       " background-color: #10cc94;\n"
+                                       " border-radius: 12px;\n"
+                                       " color: #fff;\n"
+                                       "}\n"
+                                       "QPushButton#quit_button {\n"
+                                       "   background-color: green;\n"
+                                       "}\n"
+                                       "QPushButton::pressed {\n"
+                                       "   background-color: #fff;\n"
+                                       "}\n"
+                                       "QPushButton:hover {\n"
+                                       "   background-color: #0a9c73;\n"
+                                       "}\n"
+                                       "border:none;")
+        self.login_button.setObjectName("loginButton")
+        self.layout.addWidget(self.login_button)
+        self.login_button.clicked.connect(self.check_credentials)
+
+    def check_credentials(self):
+        username = self.username_input.text().strip()
+        password = self.password_input.text().strip()
+
+        if not all([username, password]):
+            QtWidgets.QMessageBox.warning(self, 'Login Failed', 'Please fill in all the fields.')
+            return
+
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+
+        try:
+            query = "SELECT user_id FROM users WHERE username = ? AND password = ?"
+            cursor.execute(query, (username, password))
+            result = cursor.fetchone()
+
+            if result:
+                user_id = result[0]
+                if self.is_admin(user_id):
+                    self.accept()  # Close dialog with accept status if credentials are correct and user is admin
+                else:
+                    QtWidgets.QMessageBox.warning(self, 'Login Failed', 'You are not authorized as an admin.')
+            else:
+                QtWidgets.QMessageBox.warning(self, 'Login Failed', 'Invalid username or password.')
+
+        except sqlite3.Error as e:
+            QtWidgets.QMessageBox.warning(self, 'Database Error', f'Database error: {e}')
+
+        finally:
+            conn.close()
+
+    def is_admin(self, user_id):
+        conn = sqlite3.connect('j7h.db')
+        cursor = conn.cursor()
+
+        try:
+            query = "SELECT 1 FROM admin WHERE user_id = ?"
+            cursor.execute(query, (user_id,))
+            result = cursor.fetchone()
+
+            return result is not None
+
+        except sqlite3.Error as e:
+            QtWidgets.QMessageBox.warning(self, 'Database Error', f'Database error: {e}')
+
+        finally:
+            conn.close()
+
+    @staticmethod
+    def get_credentials(parent=None):
+        dialog = AdminLoginDialog(parent)
+        result = dialog.exec_()
+        return result == QtWidgets.QDialog.Accepted
+    
 class Selection(object):
     def setupUi(self, MainWindow):
         self.MainWindow = MainWindow
@@ -171,8 +321,8 @@ class Selection(object):
         MainWindow.setStatusBar(self.statusbar)
         
         # Create instances of LoginWidget and RegisterWidget
-        from user_login import Login
         from select_registration import Register
+        from user_login import Login
         self.login_widget = Login()
         self.register_widget = Register()
         
@@ -195,9 +345,8 @@ class Selection(object):
         self.MainWindow.setCentralWidget(self.login_widget)
         
     def switch_to_register(self):
-        # Switch to RegisterWidget
-       self.MainWindow.setCentralWidget(self.register_widget)
-
+        if AdminLoginDialog.get_credentials(self.MainWindow):
+            self.MainWindow.setCentralWidget(self.register_widget)
 
 from assets import logo_rc
 
