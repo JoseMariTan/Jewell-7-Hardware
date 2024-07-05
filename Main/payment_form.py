@@ -2,9 +2,16 @@ import sys
 import sqlite3
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QDialog, QMessageBox, QVBoxLayout, QSpacerItem, QLabel, QSizePolicy
+from PyQt5.QtGui import QDoubleValidator
 import string, random
 from datetime import datetime
 
+class CustomDoubleValidator(QDoubleValidator):
+    def validate(self, input, pos):
+        if 'e' in input:
+            return QtGui.QValidator.Invalid, input, pos
+        return super().validate(input, pos)
+    
 class PaymentForm(QDialog):
     def __init__(self, total_price, parent=None):
         super().__init__(parent)
@@ -101,7 +108,7 @@ class PaymentForm(QDialog):
         self.label_5.setObjectName("label_5")
         self.verticalLayout.addWidget(self.label_5)
         self.amount_edit = QtWidgets.QLineEdit(self)
-        self.amount_edit.setValidator(QtGui.QDoubleValidator(0.99, 9999.99, 2))
+        self.amount_edit.setValidator(CustomDoubleValidator(0.99, 9999.99, 2))
         self.verticalLayout.addWidget(self.amount_edit)
         self.verticalLayout_2.addLayout(self.verticalLayout)
         self.gridLayout_2 = QtWidgets.QGridLayout()
@@ -215,7 +222,7 @@ class PaymentForm(QDialog):
         if all(fields) and float(self.amount_edit.text()) >= self.total_price:
             return True
         return False
-
+    
     def show_receipt(self, customer_details, payment_id):
         cart_products = self.products_in_cart  # Use the already fetched cart products
 
@@ -227,15 +234,15 @@ class PaymentForm(QDialog):
         censored_address = censor_text(customer_details['address'])
 
         business_name = "Jewell 7 Hardware"
-        business_address = "123 Hardware St., City, Country"  # Placeholder address
+        business_address = "32 D, Village East Avenue, Cainta Rizal" 
         business_contact1 = "09530330697"
         business_contact2 = "09852434838"
 
         receipt_width = 46  # Define the width of the receipt
 
         receipt_header = f"""{business_name.center(receipt_width)}
-    {business_address.center(receipt_width)}
-    Contact: {business_contact1}, {business_contact2}
+{business_address.center(receipt_width)}
+{business_contact1.center(receipt_width)}\n{business_contact2.center(receipt_width)}
     {'=' * receipt_width}
     PAYMENT ID: {payment_id}
     {'-' * receipt_width}
@@ -264,7 +271,7 @@ class PaymentForm(QDialog):
             quantity = product['quantity']
             total_price_product = product['total_price']
             total_price += total_price_product
-            product_line = f"{name:<{name_width}} {quantity:^{quantity_width}} ₱{total_price_product:>{price_width - 4}.2f}"
+            product_line = f"    {name:<{name_width}} {quantity:^{quantity_width}} {total_price_product:>{price_width}.2f}"
             product_lines.append(product_line)
 
         payment_details = f"""
@@ -273,20 +280,20 @@ class PaymentForm(QDialog):
     Amount Paid : ₱{customer_details['amount_paid']:.2f}
     Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
     {'=' * receipt_width}
-    THANK YOU FOR YOUR PURCHASE!
+    {"THANK YOU FOR YOUR PURCHASE!".center(receipt_width)}
+    {"THIS IS NOT AN OFFICIAL RECEIPT".center(receipt_width)}
     {'=' * receipt_width}
     """
 
         receipt = receipt_header + product_headers + "\n".join(product_lines) + payment_details
 
-        # Create a QDialog and set the receipt as its text
         dialog = QDialog(self)
         dialog.setWindowTitle("Receipt")
         layout = QVBoxLayout(dialog)
         receipt_label = QLabel()
         receipt_label.setFont(QtGui.QFont("Courier", 10))
         receipt_label.setText(receipt)
-        receipt_label.setAlignment(QtCore.Qt.AlignCenter)  # Center align the text
+        receipt_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
         receipt_label.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
         layout.addWidget(receipt_label)
         
@@ -294,6 +301,7 @@ class PaymentForm(QDialog):
         layout.addItem(spacer)
         
         dialog.exec_()
+
 
     def generate_payment_id(self):
             # Establishing connection with SQLite database
