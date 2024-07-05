@@ -1129,36 +1129,36 @@ class ReportsTab(QtWidgets.QWidget):
         receipt_width = 46  # Define the width of the receipt
         
         receipt_header = f"""{business_name.center(receipt_width)}
-    {business_address.center(receipt_width)}
-    {business_contact1.center(receipt_width)}\n{business_contact2.center(receipt_width)}
-    {'=' * receipt_width}
-    PAYMENT ID: {payment_id}
-    {'-' * receipt_width}
-    Customer Details:
-    {'-' * receipt_width}
-    Name    : {customer_details['name']}
-    Contact : {censored_contact}
-    {'-' * receipt_width}
-    Products Purchased:
-    {'-' * receipt_width}
-    """
+{business_address.center(receipt_width)}
+{business_contact1.center(receipt_width)}\n{business_contact2.center(receipt_width)}
+{'=' * receipt_width}
+PAYMENT ID: {payment_id}
+{'-' * receipt_width}
+Customer Details:
+{'-' * receipt_width}
+Name    : {customer_details['name']}
+Contact : {censored_contact}
+{'-' * receipt_width}
+Products Purchased:
+{'-' * receipt_width}
+"""
         
         product_headers = f"{'Product':<20} {'Qty':^8} {'Price':>15}\n"
         
         payment_details = f"""
-    {'-' * receipt_width}
-    Total Price : ₱{total_price:.2f}
-    Amount Paid : ₱{customer_details['amount_paid']:.2f}
-    Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
-    {'=' * receipt_width}
-    THIS IS NOT AN OFFICIAL RECEIPT
-    {'=' * receipt_width}
-    """
+{'-' * receipt_width}
+Total Price : ₱{total_price:.2f}
+Amount Paid : ₱{customer_details['amount_paid']:.2f}
+Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
+{'=' * receipt_width}
+        THIS IS NOT AN OFFICIAL RECEIPT
+{'=' * receipt_width}
+"""
 
         
         receipt = receipt_header + product_headers + "\n".join(product_lines) + payment_details
         return receipt
-
+    
     def show_receipt_dialog(self, receipt_text):
         # Create a QDialog and set the receipt as its text
         dialog = QDialog(self)
@@ -1171,7 +1171,8 @@ class ReportsTab(QtWidgets.QWidget):
         receipt_label.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
         layout.addWidget(receipt_label)
         
-        layout.addStretch()  # Use addStretch instead of QSpacerItem
+        spacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        layout.addItem(spacer)
         
         dialog.exec_()
         
