@@ -883,13 +883,30 @@ class DatabaseTab(QtWidgets.QWidget):
                     plt.legend()
 
                 elif time_period == 'This Week':
-                    days = [(datetime.now() - timedelta(days=i)).date() for i in range(6, -1, -1)]
+                    days = [(datetime.now() - timedelta(days=i)).date() for i in range(7)]
                     counts = [len(transaction_df[transaction_df['datetime'].dt.date == day]) for day in days]
                     days_labels = [day.strftime('%b %d') for day in days]  # Formatting as 'Month Day'
 
+                    # Implementing Linear Regression
+                    X = np.arange(len(days)).reshape(-1, 1)
+                    y = np.array(counts)
+
+                    model = LinearRegression()
+                    model.fit(X, y)
+
+                    # Predict for an additional day
+                    next_day_index = len(days)
+                    next_day_pred = model.predict([[next_day_index]])[0]
+
+                    # Extend labels for prediction day
+                    next_day_date = (datetime.now() + timedelta(days=1)).date()
+                    days_labels.append(next_day_date.strftime('%b %d'))  # Next day date in 'Month Day' format
+                    counts.append(next_day_pred)
+
                     plt.figure(figsize=(6, 8))
                     plt.tight_layout()
-                    plt.plot(days_labels, counts, color='r', marker='o', label='Sales')
+                    plt.plot(days_labels[:-1], counts[:-1], color='r', marker='o', label='Actual Sales')
+                    plt.plot(days_labels, counts, linestyle='--', color='r', label='Estimated Sales')
                     plt.xlabel('Days')
                     plt.ylabel('Number of Transactions')
                     plt.title(f'Sales Report - {time_period}')
