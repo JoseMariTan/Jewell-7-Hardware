@@ -302,8 +302,8 @@ class ShopTab(QtWidgets.QWidget):
                         status = 'Available'
                     ORDER BY date_added DESC, time_added DESC
                 """, (search_param, exact_search_param, search_param, exact_search_param,
-                      search_param, exact_search_param, search_param, exact_search_param,
-                      search_param, exact_search_param))
+                    search_param, exact_search_param, search_param, exact_search_param,
+                    search_param, exact_search_param))
             else:
                 cursor.execute("SELECT * FROM products WHERE status = 'Available' ORDER BY date_added DESC, time_added DESC")
 
@@ -323,12 +323,13 @@ class ShopTab(QtWidgets.QWidget):
                 qty = row_data[6]  # qty
                 threshold = row_data[7]  # threshold
                 self.items_in_stock = qty - threshold  # subtract threshold
+                if self.items_in_stock <= 0:
+                    self.items_in_stock = qty
                 self.tableWidget.setItem(row_number, 5, QtWidgets.QTableWidgetItem(str(self.items_in_stock)))  # Items in Stock
                 self.tableWidget.setItem(row_number, 6, QtWidgets.QTableWidgetItem(str(row_data[8])))  # category
         except sqlite3.Error as e:
             print("SQLite error:", e)
             QtWidgets.QMessageBox.critical(self, "Database Error", "Failed to load data. Please try again.")
-
         finally:
             conn.close()
             
