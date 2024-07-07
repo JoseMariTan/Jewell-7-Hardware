@@ -873,6 +873,7 @@ class DatabaseTab(QtWidgets.QWidget):
                     times_labels = [start.strftime('%I %p') for start, end in times_24h]
 
                     plt.figure(figsize=(6, 8))
+                    plt.tight_layout()
                     plt.plot(times_labels, counts, marker='o', label='Sales')
                     plt.xlabel('Time')
                     plt.ylabel('Number of Transactions')
@@ -887,6 +888,7 @@ class DatabaseTab(QtWidgets.QWidget):
                     days_labels = [day.strftime('%b %d') for day in days]  # Formatting as 'Month Day'
 
                     plt.figure(figsize=(6, 8))
+                    plt.tight_layout()
                     plt.plot(days_labels, counts, color='r', marker='o', label='Sales')
                     plt.xlabel('Days')
                     plt.ylabel('Number of Transactions')
@@ -899,7 +901,8 @@ class DatabaseTab(QtWidgets.QWidget):
                     weeks = sorted(time_data.keys())
                     totals = [time_data[week] for week in weeks]
 
-                    plt.figure(figsize=(8, 6))
+                    plt.figure(figsize=(6, 8))
+                    plt.tight_layout()
                     plt.plot(weeks, totals, marker='o', color='m', label='Sales')
                     plt.xlabel('Week')
                     plt.ylabel('Total Revenue')
@@ -912,7 +915,8 @@ class DatabaseTab(QtWidgets.QWidget):
                     months = sorted(time_data.keys())
                     totals = [time_data[month] for month in months]
 
-                    plt.figure(figsize=(8, 6))
+                    plt.figure(figsize=(6, 10))
+                    plt.tight_layout()
                     plt.plot(months, totals, marker='o', color='b', label='Sales')
                     plt.xlabel('Month')
                     plt.ylabel('Total Revenue')
@@ -925,7 +929,7 @@ class DatabaseTab(QtWidgets.QWidget):
                 plt.savefig(chart_filename)
                 plt.close()
 
-                report_content += f"<div style='text-align:center;'><img src='{chart_filename}' alt='Sales Report Chart'></div>"
+                report_content += f"<div style='page-break-before: always; text-align:center;'><img src='{chart_filename}' alt='Sales Report Chart'></div>"
 
                 report_content += f"<h2>Summary:</h2><p>Total Sales: {total_sales}</p><p>Total Revenue: ₱{total_revenue:.2f}</p>"
 
@@ -1026,7 +1030,7 @@ class DatabaseTab(QtWidgets.QWidget):
                 plt.close()
 
                 report_content += "<h4>Returns Chart</h4>"
-                report_content += f"<div style='text-align:center;'><img src='{chart_file}' alt='Returns Chart'></div>"
+                report_content += f"<div style='page-break-before: always; text-align:center;'><img src='{chart_file}' alt='Returns Chart'></div>"
 
                 report_content += f"<p><b>Total Returns:</b> {total_returns}</p>"
 
