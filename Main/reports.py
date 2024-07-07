@@ -1452,7 +1452,7 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
             cursor = conn.cursor()
             
             # Get the current date in the specified format
-            current_date = datetime.now().strftime("%Y%m%d")
+            current_date = datetime.now().strftime("%Y-%m-%d")
             
             # Get user input for cash in the register
             cash_in_register, ok_pressed = QtWidgets.QInputDialog.getDouble(self, "Enter Cash Amount", "How much money is in your cash register?", 0.00, 0, 1000000, 2)
@@ -1471,7 +1471,7 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
                 cursor.execute("""
                     SELECT current_value 
                     FROM cash_register 
-                    WHERE strftime('%Y%m%d', date) = ?
+                    WHERE strftime('%Y-%m-%d', date) = ?
                 """, (current_date,))
                 result = cursor.fetchone()
                 current_value = result[0] if result[0] is not None else 0.00
@@ -1480,7 +1480,7 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
                 cursor.execute("""
                     SELECT initial_value 
                     FROM cash_register 
-                    WHERE strftime('%Y%m%d', date) = ?
+                    WHERE strftime('%Y-%m-%d', date) = ?
                 """, (current_date,))
                 result = cursor.fetchone()
                 initial_value = result[0] if result[0] is not None else 0.00
