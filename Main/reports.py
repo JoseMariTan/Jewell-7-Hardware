@@ -1462,7 +1462,7 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
                 cursor.execute("""
                     SELECT SUM(total_price) 
                     FROM transactions 
-                    WHERE strftime('%Y%m%d', date) = ?
+                    WHERE date = ?
                 """, (current_date,))
                 result = cursor.fetchone()
                 total_sales = result[0] if result[0] is not None else 0.00
@@ -1499,9 +1499,9 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
                     discrepancy = f"{abs(float(total_sales_str) - float(expected_sales_value_str)):.2f}"
                     QMessageBox.warning(self, 'Reconcile Cash', f'Discrepancy found! The system does not match the cash in the register.\nTotal Sales: {total_sales_str}\nSales Today: {expected_sales_value_str}\nDiscrepancy: {discrepancy}')
                 
-                # Compare user input with the system-calculated cash value
-                if cash_in_register == expected_sales_value_str:
-                    QMessageBox.information(self, 'Cash Verification', f'Your cash in hand matches the system-calculated cash value: {expected_sales_value_str:.2f}')
+                # Compare user input with the current_value from the cash_register table
+                if abs(cash_in_register - current_value) < 0.01:
+                    QMessageBox.information(self, 'Cash Verification', f'Your cash in hand matches the system-calculated cash value: {current_value:.2f}')
                 else:
                     QMessageBox.warning(self, 'Cash Verification', f'Your cash in hand does not match the system-calculated cash value.\nYour Cash: {cash_in_register:.2f}\nSystem Value: {current_value:.2f}')
             
@@ -1511,4 +1511,6 @@ Change      : ₱{customer_details['amount_paid'] - total_price:.2f}
         finally:
             if conn:
                 conn.close()
+
+
 
