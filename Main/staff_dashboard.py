@@ -12,8 +12,8 @@ from cart import CartTab
 class StaffDashoard(object):
     def __init__(self, user_id):
         self.user_id = user_id
-        atexit.register(self.update_cash_register)
         self.update_cash_register()
+        atexit.register(self.update_cash_register)
         
     def setupUi(self, StaffDashboard):
         StaffDashboard.setObjectName("StaffDashboard")
