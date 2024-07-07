@@ -18,6 +18,7 @@ from backup_restore import DatabaseTab
 class Ui_MainWindow(object):
     def __init__(self, user_id):
         self.user_id = user_id
+        self.update_cash_register()
         atexit.register(self.update_cash_register)
 
     def setupUi(self, AdminDashboard):
