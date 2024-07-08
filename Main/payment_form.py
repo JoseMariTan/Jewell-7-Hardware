@@ -238,12 +238,15 @@ class PaymentForm(QDialog):
         business_contact1 = "09530330697"
         business_contact2 = "09852434838"
 
-        receipt_width = 46  # Define the width of the receipt
+        receipt_width = 45  # Define the width of the receipt
+        date_of_issue = datetime.now().strftime("%B %d, %Y")
 
         receipt_header = f"""{business_name.center(receipt_width)}
-{business_address.center(receipt_width)}
-{business_contact1.center(receipt_width)}\n{business_contact2.center(receipt_width)}
+    {business_address.center(receipt_width)}
+    {business_contact1.center(receipt_width)}
+    {business_contact2.center(receipt_width)}
     {'=' * receipt_width}
+    DATE OF ISSUE: {date_of_issue}
     PAYMENT ID: {payment_id}
     {'-' * receipt_width}
     Customer Details:
